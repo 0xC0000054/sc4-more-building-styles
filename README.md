@@ -5,7 +5,34 @@ A DLL Plugin for SimCity 4 that adds support for more building styles.
 This mod patches the game's memory to remove the default restriction on the number of styles
 that the Building Select Dialog can support.
 
-The plugin also adds a `DebugActiveStyles` cheat, this cheat will write the currently enabled style IDs to the log file.
+The plugin also includes the following features for developers:
+
+A `DebugActiveStyles` cheat, this cheat will write the currently enabled style IDs to the log file.    
+A message that fires when the user's selected styles change that other DLLs can subscribe to:
+```cpp
+// Sent when a style is checked on unchecked in the building style list.
+// data1: Non-zero if the check box has been checked; otherwise, zero.
+// data2: The ID of the style that has been enabled or disabled.
+static const uint32_t kMessageBuildingStyleCheckboxChanged = 0x573D5E8F;
+```
+
+The complete list of active/checked styles can be retrieved from the `cISC4TractDeveloper` class.
+```cpp
+cISC4AppPtr pSC4App;
+if (pSC4App)
+{
+    cISC4City* pCity = pSC4App->GetCity();
+    if (pCity)
+    {
+        cISC4TractDeveloper* pTractDeveloper = pCity->GetTractDeveloper();
+        if (pTractDeveloper)
+        {
+            eastl::vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
+            // Do something with the active style list
+        }
+    }
+}
+```
 
 The plugin can be downloaded from the Releases tab: https://github.com/0xC0000054/sc4-more-building-styles/releases
 

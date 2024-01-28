@@ -32,12 +32,16 @@
 
 #include "BuildingSelectWinProcHooks.h"
 #include "AvailableBuildingStyles.h"
-#include "GlobalTractDeveloper.h"
+#include "BuildingStyleMessages.h"
+#include "GlobalPointers.h"
 #include "Logger.h"
 #include "SC4VersionDetection.h"
 #include "GZWinUtil.h"
 #include "cIGZWin.h"
 #include "cIGZWinProc.h"
+#include "cIGZMessageServer2.h"
+#include "cRZMessage2Standard.h"
+#include "GZServPtrs.h"
 
 #include <Windows.h>
 #include "wil/resource.h"
@@ -88,6 +92,20 @@ namespace
 		*((uint8_t*)address) = 0xE8;
 		*((uintptr_t*)(address + 1)) = reinterpret_cast<uintptr_t>(pfnFunc) - address - 5;
 	}
+
+	void SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t styleID)
+	{
+		if (spMessageServer2)
+		{
+			cRZMessage2Standard message;
+			message.SetType(kMessageBuildingStyleCheckboxChanged);
+			message.SetData1(checked);
+			message.SetData2(styleID);
+
+			// We have to use MesageSend because the message is allocated on the stack.
+			spMessageServer2->MessageSend(static_cast<cIGZMessage2*>(static_cast<cIGZMessage2Standard*>(&message)));
+		}
+	}
 }
 
 #ifdef __clang__
@@ -132,6 +150,10 @@ public:
 
 	void __thiscall SetActiveStyleButtons();
 
+	void __thiscall AddActiveStyle(uint32_t style);
+
+	void __thiscall RemoveActiveStyle(uint32_t style);
+
 	// Class member variables.
 	// The first 4 bytes are occupied by the class vtable pointer.
 	uint32_t refCount;                 // 0x4
@@ -139,7 +161,7 @@ public:
 	cIGZWin* window;                   // 0xc
 	cIGZWin* styleListContainer;       // 0x10
 	cIGZWin* styleChangeYearContainer; // 0x14
-	uint32_t isExpanded;               // 0x18
+	uint32_t isCollapsed;              // 0x18
 };
 
 
@@ -186,6 +208,45 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 	EnableStyleButtons();
 }
 
+void __thiscall cSC4BuildingSelectWinProc::AddActiveStyle(uint32_t style)
+{
+	// This is a copy of the existing active style list, not a reference to it.
+	// We will call SetActiveStyles to update SC4's copy after we modify it.
+	eastl::vector<uint32_t> activeStyles = spTractDeveloper->GetActiveStyles();
+
+	if (!Contains(activeStyles, style))
+	{
+		activeStyles.push_back(style);
+		spTractDeveloper->SetActiveStyles(activeStyles);
+
+		SendActiveBuildingStyleCheckboxChangedMessage(true, style);
+	}
+}
+
+void __thiscall cSC4BuildingSelectWinProc::RemoveActiveStyle(uint32_t style)
+{
+	// This is a copy of the existing active style list, not a reference to it.
+	// We will call SetActiveStyles to update SC4's copy after we modify it.
+	eastl::vector<uint32_t> activeStyles = spTractDeveloper->GetActiveStyles();
+	bool itemRemoved = false;
+
+	for (auto it = activeStyles.begin(); it != activeStyles.end(); it++)
+	{
+		if (*it == style)
+		{
+			activeStyles.erase(it);
+			itemRemoved = true;
+			break;
+		}
+	}
+
+	if (itemRemoved)
+	{
+		spTractDeveloper->SetActiveStyles(activeStyles);
+		SendActiveBuildingStyleCheckboxChangedMessage(false, style);
+	}
+}
+
 static union EnableButtonsHookShim
 {
 	void (cSC4BuildingSelectWinProc::*pfnEnableButtons)(void) = &cSC4BuildingSelectWinProc::EnableStyleButtons;
@@ -206,6 +267,26 @@ static_assert(sizeof(SetActiveStyleButtonsHookShim::pfnSetActiveStyleButtons) ==
 	"sizeof(SetActiveStyleButtonsHookShim::pfnSetActiveStyleButtons) != sizeof(SetActiveStyleButtonsHookShim::pfnVoid)"
 	", is cSC4BuildingSelectWinProc using multiple inheritance?");
 
+static union AddActiveStyleHookShim
+{
+	void (cSC4BuildingSelectWinProc::*pfnAddActiveStyle)(uint32_t) = &cSC4BuildingSelectWinProc::AddActiveStyle;
+	void (*pfnVoid)(void);
+}add_active_style_shim;
+
+static_assert(sizeof(AddActiveStyleHookShim::pfnAddActiveStyle) == sizeof(AddActiveStyleHookShim::pfnVoid),
+	"sizeof(AddActiveStyleHookShim::pfnAddActiveStyle) != sizeof(AddActiveStyleHookShim::pfnVoid)"
+	", is cSC4BuildingSelectWinProc using multiple inheritance?");
+
+static union RemoveActiveStyleHookShim
+{
+	void (cSC4BuildingSelectWinProc::*pfnRemoveActiveStyle)(uint32_t) = &cSC4BuildingSelectWinProc::RemoveActiveStyle;
+	void (*pfnVoid)(void);
+}remove_active_style_shim;
+
+static_assert(sizeof(RemoveActiveStyleHookShim::pfnRemoveActiveStyle) == sizeof(RemoveActiveStyleHookShim::pfnVoid),
+	"sizeof(RemoveActiveStyleHookShim::pfnRemoveActiveStyle) != sizeof(RemoveActiveStyleHookShim::pfnVoid)"
+	", is cSC4BuildingSelectWinProc using multiple inheritance?");
+
 void BuildingSelectWinProcHooks::Install()
 {
 	uintptr_t DoWinProcMessage_Hook_InjectPoint = 0;
@@ -213,6 +294,8 @@ void BuildingSelectWinProcHooks::Install()
 	DoWinProcMessage_Hook_NotFoundJump = 0;
 	uintptr_t DoWinProcMessage_EnableStyleButtons_Call_1 = 0;
 	uintptr_t DoWinProcMessage_EnableStyleButtons_Call_2 = 0;
+	uintptr_t DoWinProcMessage_AddActiveStyle_Call = 0;
+	uintptr_t DoWinProcMessage_RemoveActiveStyle_Call = 0;
 
 	uintptr_t ShowWindow_Jump_InjectPoint = 0; // Used to skip the existing style button loop.
 	uintptr_t ShowWindow_Jump_Target = 0;
@@ -231,6 +314,8 @@ void BuildingSelectWinProcHooks::Install()
 		DoWinProcMessage_Hook_NotFoundJump = 0x769b25;
 		DoWinProcMessage_EnableStyleButtons_Call_1 = 0x7699a0;
 		DoWinProcMessage_EnableStyleButtons_Call_2 = 0x7699b6;
+		DoWinProcMessage_AddActiveStyle_Call = 0x769999;
+		DoWinProcMessage_RemoveActiveStyle_Call = 0x7699af;
 
 		ShowWindow_Jump_InjectPoint = 0x769b77;
 		ShowWindow_Jump_Target = 0x769bea;
@@ -246,6 +331,8 @@ void BuildingSelectWinProcHooks::Install()
 			InstallJump(DoWinProcMessage_Hook_InjectPoint, reinterpret_cast<uintptr_t>(&DoWinProcMessageHookFn));
 			InstallCallHook(DoWinProcMessage_EnableStyleButtons_Call_1, enable_buttons_shim.pfnVoid);
 			InstallCallHook(DoWinProcMessage_EnableStyleButtons_Call_2, enable_buttons_shim.pfnVoid);
+			InstallCallHook(DoWinProcMessage_AddActiveStyle_Call, add_active_style_shim.pfnVoid);
+			InstallCallHook(DoWinProcMessage_RemoveActiveStyle_Call, remove_active_style_shim.pfnVoid);
 
 			InstallJump(ShowWindow_Jump_InjectPoint, ShowWindow_Jump_Target);
 			InstallCallHook(ShowWindow_SetActiveStyleButtons_Call, set_active_style_shim.pfnVoid);

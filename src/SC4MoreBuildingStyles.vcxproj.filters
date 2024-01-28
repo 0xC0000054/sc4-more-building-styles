@@ -146,9 +146,6 @@
     <ClInclude Include="BuildingSelectWinProcHooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GlobalTractDeveloper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="AvailableBuildingStyles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -159,6 +156,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SC4VersionDetection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalPointers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingStyleMessages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

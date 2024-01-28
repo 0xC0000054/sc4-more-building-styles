@@ -11,8 +11,9 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "version.h"
-#include "GlobalTractDeveloper.h"
+#include "GlobalPointers.h"
 #include "BuildingSelectWinProcHooks.h"
+#include "BuildingStyleMessages.h"
 #include "AvailableBuildingStyles.h"
 #include "Logger.h"
 #include "cIGZCOM.h"
@@ -52,6 +53,7 @@ static constexpr uint32_t kDebugActiveStyles = 0x730FF429;
 
 static constexpr std::string_view PluginLogFileName = "SC4MoreBuildingStyles.log";
 
+cIGZMessageServer2* spMessageServer2 = nullptr;
 cISC4TractDeveloper* spTractDeveloper = nullptr;
 
 class MoreBuildingStylesDllDirector : public cRZMessage2COMDirector
@@ -73,6 +75,23 @@ public:
 	uint32_t GetDirectorID() const
 	{
 		return kMoreBuildingStylesDirectorID;
+	}
+
+	void ActiveBuildingStyleCheckboxChanged(cIGZMessage2Standard* pStandardMsg)
+	{
+		bool added = pStandardMsg->GetData1() != 0;
+		uint32_t styleID = static_cast<uint32_t>(pStandardMsg->GetData2());
+
+		char buffer[256]{};
+
+		snprintf(
+			buffer,
+			sizeof(buffer),
+			"Style 0x%08X %s",
+			styleID,
+			added ? "added" : "removed");
+
+		Logger::GetInstance().WriteLine(LogLevel::Info, buffer);
 	}
 
 	void ProcessCheat(cIGZMessage2Standard* pStandardMsg)
@@ -144,6 +163,9 @@ public:
 		case kSC4MessagePreCityShutdown:
 			PreAppShutdown();
 			break;
+		case kMessageBuildingStyleCheckboxChanged:
+			ActiveBuildingStyleCheckboxChanged(pStandardMsg);
+			break;
 		}
 
 		return true;
@@ -168,17 +190,24 @@ public:
 			}
 		}
 
-		cIGZMessageServer2Ptr pMsgServ;
+		cIGZFrameWork* const pFramework = RZGetFrameWork();
 
-		if (pMsgServ)
+		constexpr uint32_t GZMessageServer2SysServiceID = 0x4FA845B;
+		constexpr uint32_t GZIID_cIGZMesageServer2 = 0x652294C7;
+
+		if (pFramework->GetSystemService(
+			GZMessageServer2SysServiceID,
+			GZIID_cIGZMesageServer2,
+			reinterpret_cast<void**>(&spMessageServer2)))
 		{
 			std::vector<uint32_t> requiredNotifications;
 			requiredNotifications.push_back(kSC4MessagePostCityInit);
 			requiredNotifications.push_back(kSC4MessagePreCityShutdown);
+			requiredNotifications.push_back(kMessageBuildingStyleCheckboxChanged);
 
 			for (uint32_t messageID : requiredNotifications)
 			{
-				if (!pMsgServ->AddNotification(this, messageID))
+				if (!spMessageServer2->AddNotification(this, messageID))
 				{
 					logger.WriteLine(LogLevel::Error, "Failed to subscribe to the required notifications.");
 					return false;
@@ -187,8 +216,22 @@ public:
 		}
 		else
 		{
+			spMessageServer2 = nullptr;
 			logger.WriteLine(LogLevel::Error, "Failed to subscribe to the required notifications.");
 			return false;
+		}
+
+		return true;
+	}
+
+	bool PreAppShutdown()
+	{
+		cIGZMessageServer2* pMsgServ = spMessageServer2;
+		spMessageServer2 = nullptr;
+
+		if (pMsgServ)
+		{
+			pMsgServ->Release();
 		}
 
 		return true;
