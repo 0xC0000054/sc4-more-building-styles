@@ -23,8 +23,8 @@ public:
 	virtual float QueryActiveDemandMax() const = 0;
 	virtual float QueryActiveDemandMin() const = 0;
 
-	virtual void* AddToSupplyValue(float value) = 0;
-	virtual void* AddToDemandValue(float value) = 0;
+	virtual bool AddToSupplyValue(float value) = 0;
+	virtual bool AddToDemandValue(float value) = 0;
 
 	virtual bool SetSupplyValue(float value) = 0;
 	virtual bool SetDemandValue(float value) = 0;
@@ -38,7 +38,7 @@ public:
 	virtual float GetTaxModifier() const = 0;
 	virtual bool SetTaxModifier(float value) = 0;
 
-	virtual SC4Percentage GetDemandCap() const = 0;
+	virtual SC4Percentage* GetDemandCap() const = 0;
 	virtual bool SetDemandCap(const SC4Percentage& demandCap) = 0;
 
 	virtual uint32_t GetRegionUse() = 0;
