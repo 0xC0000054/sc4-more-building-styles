@@ -55,13 +55,13 @@ namespace
 		return std::find(vector.begin(), vector.end(), value) != vector.end();
 	}
 
-	bool HasMoreThanOneStyleChecked(cIGZWin* container, const std::vector<uint32_t>& styleButtonIDs)
+	bool HasMoreThanOneStyleChecked(cIGZWin* container, const std::map<uint32_t, std::string>& styleButtons)
 	{
 		int32_t numberOfButtonsChecked = 0;
 
-		for (uint32_t id : styleButtonIDs)
+		for (const std::pair<uint32_t, std::string>& item : styleButtons)
 		{
-			if (GZWinUtil::GetButtonToggleState(container, id))
+			if (GZWinUtil::GetButtonToggleState(container, item.first))
 			{
 				++numberOfButtonsChecked;
 
@@ -101,6 +101,11 @@ namespace
 			message.SetType(kMessageBuildingStyleCheckboxChanged);
 			message.SetData1(checked);
 			message.SetData2(styleID);
+
+			const std::map<uint32_t, std::string>& allStyles = AvailableBuildingStyles::GetInstance().GetBuildingStyles();
+			cRZBaseString name(allStyles.find(styleID)->second);
+
+			message.SetVoid3(static_cast<cIGZString*>(&name));
 
 			// We have to use MesageSend because the message is allocated on the stack.
 			spMessageServer2->MessageSend(static_cast<cIGZMessage2*>(static_cast<cIGZMessage2Standard*>(&message)));
@@ -167,22 +172,23 @@ public:
 
 void __thiscall cSC4BuildingSelectWinProc::EnableStyleButtons()
 {
-	const std::vector<uint32_t>& styleButtonIDs = AvailableBuildingStyles::GetInstance().GetBuildingStyles();
+	const std::map<uint32_t, std::string>& styleButtons = AvailableBuildingStyles::GetInstance().GetBuildingStyles();
 
-	if (HasMoreThanOneStyleChecked(this->styleListContainer, styleButtonIDs))
+	if (HasMoreThanOneStyleChecked(this->styleListContainer, styleButtons))
 	{
 		// Enable all of the radio buttons.
-		for (uint32_t id : styleButtonIDs)
+		for (const std::pair<uint32_t, std::string>& item : styleButtons)
 		{
-			GZWinUtil::SetChildWindowEnabled(this->styleListContainer, id, true);
+			GZWinUtil::SetChildWindowEnabled(this->styleListContainer, item.first, true);
 		}
 	}
 	else
 	{
 		// Disable the active radio button to prevent it from being deselected.
 		// This ensures that there is always at least one radio button active.
-		for (uint32_t id : styleButtonIDs)
+		for (const std::pair<uint32_t, std::string>& item : styleButtons)
 		{
+			uint32_t id = item.first;
 			if (GZWinUtil::GetButtonToggleState(this->styleListContainer, id))
 			{
 				GZWinUtil::SetChildWindowEnabled(this->styleListContainer, id, false);
@@ -194,12 +200,13 @@ void __thiscall cSC4BuildingSelectWinProc::EnableStyleButtons()
 
 void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 {
-	const std::vector<uint32_t>& allBuildingStyles = AvailableBuildingStyles::GetInstance().GetBuildingStyles();
+	const std::map<uint32_t, std::string>& allBuildingStyles = AvailableBuildingStyles::GetInstance().GetBuildingStyles();
 
 	const eastl::vector<uint32_t>& activeBuildingStyles = spTractDeveloper->GetActiveStyles();
 
-	for (uint32_t style : allBuildingStyles)
+	for (const std::pair<uint32_t, std::string>& item : allBuildingStyles)
 	{
+		uint32_t style = item.first;
 		bool selected = Contains(activeBuildingStyles, style);
 
 		GZWinUtil::SetButtonToggleState(this->styleListContainer, style, selected);

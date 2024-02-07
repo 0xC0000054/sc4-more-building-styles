@@ -11,7 +11,8 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <vector>
+#include <map>
+#include <string>
 
 class AvailableBuildingStyles
 {
@@ -24,13 +25,13 @@ public:
 
 	bool ContainsBuildingStyle(uint32_t style) const;
 
-	const std::vector<uint32_t>& GetBuildingStyles() const;
+	const std::map<uint32_t, std::string>& GetBuildingStyles() const;
 
 private:
 
 	AvailableBuildingStyles();
 
-	std::vector<uint32_t> availableBuildingStyles;
+	std::map<uint32_t, std::string> availableBuildingStyles;
 	bool initialized;
 };
 

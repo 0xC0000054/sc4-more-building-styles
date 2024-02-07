@@ -81,14 +81,16 @@ public:
 	{
 		bool added = pStandardMsg->GetData1() != 0;
 		uint32_t styleID = static_cast<uint32_t>(pStandardMsg->GetData2());
+		cIGZString* styleButtonText = static_cast<cIGZString*>(pStandardMsg->GetVoid3());
 
-		char buffer[256]{};
+		char buffer[1024]{};
 
 		snprintf(
 			buffer,
 			sizeof(buffer),
-			"Style 0x%08X %s",
+			"Style 0x%08X (%s) %s",
 			styleID,
+			styleButtonText->ToChar(),
 			added ? "added" : "removed");
 
 		Logger::GetInstance().WriteLine(LogLevel::Info, buffer);

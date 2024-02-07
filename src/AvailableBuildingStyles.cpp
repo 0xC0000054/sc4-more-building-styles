@@ -13,10 +13,11 @@
 #include "AvailableBuildingStyles.h"
 #include "cGZPersistResourceKey.h"
 #include "cIGZWin.h"
+#include "cIGZWinBtn.h"
 #include "cISC4App.h"
 #include "cISC4View3DWin.h"
 #include "GZServPtrs.h"
-#include <set>
+#include <map>
 
 static const uint32_t kGZWin_WinSC4App = 0x6104489a;
 static const uint32_t kGZWin_SC4View3DWin = 0x9a47b417;
@@ -37,7 +38,7 @@ AvailableBuildingStyles::AvailableBuildingStyles()
 
 struct BuildingSelectContext
 {
-	std::set<uint32_t> items;
+	std::map<uint32_t, std::string> items;
 };
 
 static bool BuildingSelectWinEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
@@ -52,7 +53,16 @@ static bool BuildingSelectWinEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin
 	{
 		BuildingSelectContext* state = static_cast<BuildingSelectContext*>(pState);
 
-		state->items.emplace(childID);
+		cIGZWinBtn* pBtn = nullptr;
+
+		if (child->QueryInterface(GZIID_cIGZWinBtn, reinterpret_cast<void**>(&pBtn)))
+		{
+			cIGZString* caption = pBtn->GetCaption();
+
+			state->items.try_emplace(childID, caption->ToChar());
+
+			pBtn->Release();
+		}
 	}
 
 	return true;
@@ -93,12 +103,7 @@ void AvailableBuildingStyles::Initialize()
 							&BuildingSelectWinEnumProc,
 							&context);
 
-						this->availableBuildingStyles.reserve(context.items.size());
-
-						for (uint32_t value : context.items)
-						{
-							this->availableBuildingStyles.push_back(value);
-						}
+						this->availableBuildingStyles.swap(context.items);
 					}
 				}
 			}
@@ -110,10 +115,10 @@ void AvailableBuildingStyles::Initialize()
 
 bool AvailableBuildingStyles::ContainsBuildingStyle(uint32_t style) const
 {
-	return std::find(availableBuildingStyles.begin(), availableBuildingStyles.end(), style) != availableBuildingStyles.end();
+	return availableBuildingStyles.contains(style);
 }
 
-const std::vector<uint32_t>& AvailableBuildingStyles::GetBuildingStyles() const
+const std::map<uint32_t, std::string>& AvailableBuildingStyles::GetBuildingStyles() const
 {
 	return availableBuildingStyles;
 }

@@ -16,4 +16,5 @@
 // Sent when a style is checked on unchecked in the building style list.
 // data1: Non-zero if the check box has been checked; otherwise, zero.
 // data2: The ID of the style that has been enabled or disabled.
+// data3: A cIGZString containing the style name.
 static const uint32_t kMessageBuildingStyleCheckboxChanged = 0x573D5E8F;
