@@ -83,17 +83,20 @@ public:
 		uint32_t styleID = static_cast<uint32_t>(pStandardMsg->GetData2());
 		cIGZString* styleButtonText = static_cast<cIGZString*>(pStandardMsg->GetVoid3());
 
-		char buffer[1024]{};
+		// Note that if the style button text contains characters outside the US-ASCII range (0x00-0x7F),
+		// the value that is written to the log may not match the in-game text due to character set
+		// differences. This may also be dependent on the user's operating system language.
+		//
+		// I am not sure if there is an easy way to fix this problem. The game's language manager service
+		// has functions to get the current country, language and Windows code page, but it does not have
+		// any functions to convert strings between different encodings.
 
-		snprintf(
-			buffer,
-			sizeof(buffer),
+		Logger::GetInstance().WriteLineFormatted(
+			LogLevel::Info,
 			"Style 0x%08X (%s) %s",
 			styleID,
 			styleButtonText->ToChar(),
 			added ? "added" : "removed");
-
-		Logger::GetInstance().WriteLine(LogLevel::Info, buffer);
 	}
 
 	void ProcessCheat(cIGZMessage2Standard* pStandardMsg)
