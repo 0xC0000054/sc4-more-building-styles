@@ -84,8 +84,9 @@ public:
 		cIGZString* styleButtonText = static_cast<cIGZString*>(pStandardMsg->GetVoid3());
 
 		// Note that if the style button text contains characters outside the US-ASCII range (0x00-0x7F),
-		// the value that is written to the log may not match the in-game text due to character set
-		// differences. This may also be dependent on the user's operating system language.
+		// the value that is written to the log and/or displayed in the debugger may not match the
+		// in-game text due to character set differences. This may also be dependent on the user's
+		// operating system language.
 		//
 		// I am not sure if there is an easy way to fix this problem. The game's language manager service
 		// has functions to get the current country, language and Windows code page, but it does not have
