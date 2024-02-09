@@ -3,8 +3,10 @@
 
 class cIGZString;
 
-class cIGZLanguageUtility : cIGZUnknown
+class cIGZLanguageUtility : public cIGZUnknown
 {
+public:
+
 	virtual bool Init() = 0;
 	virtual bool Shutdown() = 0;
 
