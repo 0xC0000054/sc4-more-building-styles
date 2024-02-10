@@ -14,11 +14,15 @@ After creating the patch you need to edit the UI to add more check boxes.
 The check box ID (e.g. `0x2003`) identifies the building style to the game, these IDs should be in the range of 0x2000 to 0x2fff.
 Finally you will need to update existing buildings to use the new building style IDs.
 
-## Additional Features for Modders 
+### Cheat Codes
 
-### A DebugActiveStyles cheat
+The plugin provides the following cheat codes:
 
-This cheat will write the currently enabled style IDs to the log file.
+`ActiveStyle` shows an in-game message box with the ID of the currently active style when
+`Change building style every N years` is selected. When `Build all styles at once` is selected, using this cheat will
+display a message saying that mode is active.
+
+`DebugActiveStyles` writes the currently enabled style IDs to the plugin's log file.
 
 ### For DLL Modders
 

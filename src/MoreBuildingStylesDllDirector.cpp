@@ -25,7 +25,7 @@
 #include "cIGZMessageTarget.h"
 #include "cIGZMessageTarget2.h"
 #include "cIGZString.h"
-#include "cIGZSystemService.h"
+#include "cIGZWinMgr.h"
 #include "cRZMessage2COMDirector.h"
 #include "cRZMessage2Standard.h"
 #include "cRZBaseString.h"
@@ -50,6 +50,7 @@ static constexpr uint32_t kMessageCheatIssued = 0x230E27AC;
 static constexpr uint32_t kMoreBuildingStylesDirectorID = 0x3BF9E52C;
 
 static constexpr uint32_t kDebugActiveStyles = 0x730FF429;
+static constexpr uint32_t kActiveStyle = 0x4580A54D;
 
 static constexpr std::string_view PluginLogFileName = "SC4MoreBuildingStyles.log";
 
@@ -132,6 +133,49 @@ public:
 				}
 			}
 		}
+		else if (cheatID == kActiveStyle)
+		{
+			cISC4AppPtr pSC4App;
+			cIGZWinMgrPtr pWinMgr;
+
+			if (pSC4App && pWinMgr)
+			{
+				cISC4City* pCity = pSC4App->GetCity();
+
+				if (pCity)
+				{
+					const cISC4TractDeveloper* pTractDeveloper = pCity->GetTractDeveloper();
+
+					if (pTractDeveloper)
+					{
+						if (pTractDeveloper->IsUsingAllStylesAtOnce())
+						{
+							pWinMgr->GZMsgBox(
+								cRZBaseString("All styles are being built at once."),
+								cRZBaseString("ActiveStyle"),
+								0,
+								false,
+								0);
+						}
+						else
+						{
+							uint32_t currentStyle = pTractDeveloper->GetCurrentStyle();
+
+							char buffer[128]{};
+
+							std::snprintf(buffer, sizeof(buffer), "0x%X", currentStyle);
+
+							pWinMgr->GZMsgBox(
+								cRZBaseString(buffer),
+								cRZBaseString("ActiveStyle"),
+								0,
+								false,
+								0);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	void PostCityInit(cIGZMessage2Standard* pStandardMsg)
@@ -193,6 +237,7 @@ public:
 			{
 				pCheatMgr->AddNotification2(this, 0);
 				pCheatMgr->RegisterCheatCode(kDebugActiveStyles, cRZBaseString("DebugActiveStyles"));
+				pCheatMgr->RegisterCheatCode(kActiveStyle, cRZBaseString("ActiveStyle"));
 			}
 		}
 
