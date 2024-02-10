@@ -2,13 +2,27 @@
 
 A DLL Plugin for SimCity 4 that adds support for more building styles.   
 
-This mod patches the game's memory to remove the default restriction on the number of styles
-that the Building Select Dialog can support.
+In the original game the Building Style Control UI only recognizes the check boxes
+of the 4 built-in styles, no matter how may check boxes are actually present.
+This mod patches the game's memory to remove that restriction.
 
-The plugin also includes the following features for developers:
+## Adding More Building Styles into SC4 
 
-A `DebugActiveStyles` cheat, this cheat will write the currently enabled style IDs to the log file.    
-A message that fires when the user's selected styles change that other DLLs can subscribe to:
+Adding new style check boxes requires creating a patch that overrides the default
+Building Style Control UI, TGI `0x00000000,0x96a006b0,0x6bc61f19` in `SimCity_1.dat`.    
+After creating the patch you need to edit the UI to add more check boxes.
+The check box ID (e.g. `0x2003`) identifies the building style to the game, these IDs should be in the range of 0x2000 to 0x2fff.
+Finally you will need to update existing buildings to use the new building style IDs.
+
+## Additional Features for Modders 
+
+### A DebugActiveStyles cheat
+
+This cheat will write the currently enabled style IDs to the log file.
+
+### For DLL Modders
+
+The DLL dispatches a message that when the user's selected styles change:
 ```cpp
 // Sent when a style is checked on unchecked in the building style list.
 // data1: Non-zero if the check box has been checked; otherwise, zero.
@@ -34,6 +48,8 @@ if (pSC4App)
     }
 }
 ```
+
+## Download
 
 The plugin can be downloaded from the Releases tab: https://github.com/0xC0000054/sc4-more-building-styles/releases
 
