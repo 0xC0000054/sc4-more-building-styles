@@ -209,7 +209,9 @@ public:
 			std::vector<uint32_t> requiredNotifications;
 			requiredNotifications.push_back(kSC4MessagePostCityInit);
 			requiredNotifications.push_back(kSC4MessagePreCityShutdown);
+#ifdef _DEBUG
 			requiredNotifications.push_back(kMessageBuildingStyleCheckboxChanged);
+#endif // _DEBUG
 
 			for (uint32_t messageID : requiredNotifications)
 			{
