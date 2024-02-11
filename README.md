@@ -6,6 +6,11 @@ In the original game the Building Style Control UI only recognizes the check box
 of the 4 built-in styles, no matter how may check boxes are actually present.
 This mod patches the game's memory to remove that restriction.
 
+# WARNING
+
+This mod is **EXPERIMENTAL**, and the in-game effects are not fully known.
+You should download it for **TESTING PURPOSES ONLY** and not use it in a city/region that you care about.
+
 ## Adding More Building Styles into SC4 
 
 Adding new style check boxes requires creating a patch that overrides the default
