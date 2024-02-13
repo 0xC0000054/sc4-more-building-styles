@@ -1,9 +1,12 @@
 # sc4-more-building-styles
 
-A DLL Plugin for SimCity 4 that adds support for more building styles.   
+A DLL Plugin for SimCity 4 that allows the game to use more than 4 building styles.   
 
-In the original game the Building Style Control UI only recognizes the check boxes
-of the 4 built-in styles, no matter how may check boxes are actually present.
+This DLL mod is intended as a dependency for other mods that add new building styles beyond the 4 that Maxis included,
+it does not add any building styles to the game by itself.
+
+Maxis programmed the Building Style Control UI to only recognize the check boxes of the 4 built-in styles,
+no matter how may check boxes are actually present.
 This mod patches the game's memory to remove that restriction.
 
 # WARNING
