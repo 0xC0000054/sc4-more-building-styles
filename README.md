@@ -6,7 +6,7 @@ This DLL mod is intended as a dependency for other mods that add new building st
 it does not add any building styles to the game by itself.
 
 Maxis programmed the Building Style Control UI to only recognize the check boxes of the 4 built-in styles,
-no matter how may check boxes are actually present.
+no matter how many check boxes are actually present.
 This mod patches the game's memory to remove that restriction.
 
 # WARNING
