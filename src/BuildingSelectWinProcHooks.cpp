@@ -119,8 +119,20 @@ namespace
 #define NAKED_FUN __declspec(naked)
 #endif
 
-static uintptr_t DoWinProcMessage_Hook_ContinueJump;
-static uintptr_t DoWinProcMessage_Hook_NotFoundJump;
+static uintptr_t DoWinProcMessage_Hook_Button_StyleControlRadio_CycleEveryNYears_Continue_Jump;
+static uintptr_t DoWinProcMessage_Hook_Button_StyleControlRadio_UseAllStylesAtOnce_Continue_Jump;
+static uintptr_t DoWinProcMessage_Hook_Button_StylePanelTitleBar_ToggleVisibility_Continue_Jump;
+static uintptr_t DoWinProcMessage_Hook_Button_ShowBuildingStyleControl_Continue_Jump;
+static uintptr_t DoWinProcMessage_Hook_Button_HideBuildingStyleControl_Continue_Jump;
+static uintptr_t DoWinProcMessage_Hook_StyleValidJump;
+static uintptr_t DoWinProcMessage_Hook_ExitMethodJump;
+
+constexpr uint32_t StyleControlRadio_CycleEveryNYears = 0xcbc61559;
+constexpr uint32_t StyleControlRadio_UseAllStylesAtOnce = 0xebc61560;
+constexpr uint32_t StylePanel_Collapsed_TitleBar = 0xbc61548;
+constexpr uint32_t StylePanel_Expanded_TitleBar = 0x2bc619f3;
+constexpr uint32_t StylePanel_Collapsed_ToggleButton = 0xcbc61567;
+constexpr uint32_t StylePanel_Expanded_ToggleButton = 0xebc619fd;
 
 static void NAKED_FUN DoWinProcMessageHookFn(void)
 {
@@ -129,15 +141,50 @@ static void NAKED_FUN DoWinProcMessageHookFn(void)
 	_asm mov buttonID, eax
 	_asm pushad
 
-	if (AvailableBuildingStyles::GetInstance().ContainsBuildingStyle(buttonID))
+	if (buttonID == StyleControlRadio_CycleEveryNYears)
 	{
 		_asm popad
-		_asm push DoWinProcMessage_Hook_ContinueJump
+		_asm push DoWinProcMessage_Hook_Button_StyleControlRadio_CycleEveryNYears_Continue_Jump
 		_asm ret
+	}
+	else if (buttonID == StyleControlRadio_UseAllStylesAtOnce)
+	{
+		_asm popad
+		_asm push DoWinProcMessage_Hook_Button_StyleControlRadio_UseAllStylesAtOnce_Continue_Jump
+		_asm ret
+	}
+	else if (buttonID == StylePanel_Collapsed_TitleBar || buttonID == StylePanel_Expanded_TitleBar)
+	{
+		_asm popad
+		_asm push DoWinProcMessage_Hook_Button_StylePanelTitleBar_ToggleVisibility_Continue_Jump
+		_asm ret
+	}
+	else if (buttonID == StylePanel_Collapsed_ToggleButton)
+	{
+		_asm popad
+		_asm push DoWinProcMessage_Hook_Button_ShowBuildingStyleControl_Continue_Jump
+		_asm ret
+	}
+	else if (buttonID == StylePanel_Expanded_ToggleButton)
+	{
+		_asm popad
+		_asm push DoWinProcMessage_Hook_Button_HideBuildingStyleControl_Continue_Jump
+		_asm ret
+	}
+	else
+	{
+		// The available building styles must be the last button ids to be processed.
+		// A building style radio button could use any button ID not in the above list.
+		if (AvailableBuildingStyles::GetInstance().ContainsBuildingStyle(buttonID))
+		{
+			_asm popad
+			_asm push DoWinProcMessage_Hook_StyleValidJump
+			_asm ret
+		}
 	}
 
 	_asm popad
-	_asm push DoWinProcMessage_Hook_NotFoundJump
+	_asm push DoWinProcMessage_Hook_ExitMethodJump
 	_asm ret
 }
 
@@ -297,8 +344,13 @@ static_assert(sizeof(RemoveActiveStyleHookShim::pfnRemoveActiveStyle) == sizeof(
 void BuildingSelectWinProcHooks::Install()
 {
 	uintptr_t DoWinProcMessage_Hook_InjectPoint = 0;
-	DoWinProcMessage_Hook_ContinueJump = 0;
-	DoWinProcMessage_Hook_NotFoundJump = 0;
+	DoWinProcMessage_Hook_Button_StyleControlRadio_CycleEveryNYears_Continue_Jump = 0;
+	DoWinProcMessage_Hook_Button_StyleControlRadio_UseAllStylesAtOnce_Continue_Jump = 0;
+	DoWinProcMessage_Hook_Button_StylePanelTitleBar_ToggleVisibility_Continue_Jump = 0;
+	DoWinProcMessage_Hook_Button_ShowBuildingStyleControl_Continue_Jump = 0;
+	DoWinProcMessage_Hook_Button_HideBuildingStyleControl_Continue_Jump = 0;
+	DoWinProcMessage_Hook_StyleValidJump = 0;
+	DoWinProcMessage_Hook_ExitMethodJump = 0;
 	uintptr_t DoWinProcMessage_EnableStyleButtons_Call_1 = 0;
 	uintptr_t DoWinProcMessage_EnableStyleButtons_Call_2 = 0;
 	uintptr_t DoWinProcMessage_AddActiveStyle_Call = 0;
@@ -316,9 +368,14 @@ void BuildingSelectWinProcHooks::Install()
 	switch (gameVersion)
 	{
 	case 641:
-		DoWinProcMessage_Hook_InjectPoint = 0x769979;
-		DoWinProcMessage_Hook_ContinueJump = 0x76998f;
-		DoWinProcMessage_Hook_NotFoundJump = 0x769b25;
+		DoWinProcMessage_Hook_InjectPoint = 0x769968;
+		DoWinProcMessage_Hook_Button_StyleControlRadio_CycleEveryNYears_Continue_Jump = 0x7699ea;
+		DoWinProcMessage_Hook_Button_StyleControlRadio_UseAllStylesAtOnce_Continue_Jump = 0x769a5b;
+		DoWinProcMessage_Hook_Button_StylePanelTitleBar_ToggleVisibility_Continue_Jump = 0x7699d0;
+		DoWinProcMessage_Hook_Button_ShowBuildingStyleControl_Continue_Jump = 0x769a8f;
+		DoWinProcMessage_Hook_Button_HideBuildingStyleControl_Continue_Jump = 0x769a37;
+		DoWinProcMessage_Hook_StyleValidJump = 0x76998f;
+		DoWinProcMessage_Hook_ExitMethodJump = 0x769b25;
 		DoWinProcMessage_EnableStyleButtons_Call_1 = 0x7699a0;
 		DoWinProcMessage_EnableStyleButtons_Call_2 = 0x7699b6;
 		DoWinProcMessage_AddActiveStyle_Call = 0x769999;
