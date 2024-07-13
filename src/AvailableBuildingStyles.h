@@ -17,10 +17,9 @@
 class AvailableBuildingStyles
 {
 public:
+	AvailableBuildingStyles();
 
-	static AvailableBuildingStyles& GetInstance();
-
-	// Initializes the list of
+	// Initializes the list of available building styles.
 	void Initialize();
 
 	bool ContainsBuildingStyle(uint32_t style) const;
@@ -28,8 +27,6 @@ public:
 	const std::map<uint32_t, std::string>& GetBuildingStyles() const;
 
 private:
-
-	AvailableBuildingStyles();
 
 	std::map<uint32_t, std::string> availableBuildingStyles;
 	bool initialized;

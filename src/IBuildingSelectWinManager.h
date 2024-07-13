@@ -11,6 +11,19 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "IBuildingSelectWinManager.h"
+#include "cISC4TractDeveloper.h"
 
-extern IBuildingSelectWinManager* spBuildingSelectWinManager;
+#include <map>
+#include <string>
+
+class IBuildingSelectWinManager
+{
+public:
+
+	virtual cISC4TractDeveloper* GetTractDeveloper() const = 0;
+
+	virtual bool IsBuildingStyleAvailable(uint32_t style) const = 0;
+	virtual const std::map<uint32_t, std::string>& GetAvailableBuildingStyles() const = 0;
+
+	virtual void SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t styleID) = 0;
+};

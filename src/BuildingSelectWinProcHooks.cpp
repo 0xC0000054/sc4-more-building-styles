@@ -92,25 +92,6 @@ namespace
 		*((uint8_t*)address) = 0xE8;
 		*((uintptr_t*)(address + 1)) = reinterpret_cast<uintptr_t>(pfnFunc) - address - 5;
 	}
-
-	void SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t styleID)
-	{
-		if (spMessageServer2)
-		{
-			cRZMessage2Standard message;
-			message.SetType(kMessageBuildingStyleCheckboxChanged);
-			message.SetData1(checked);
-			message.SetData2(styleID);
-
-			const std::map<uint32_t, std::string>& allStyles = AvailableBuildingStyles::GetInstance().GetBuildingStyles();
-			cRZBaseString name(allStyles.find(styleID)->second);
-
-			message.SetVoid3(static_cast<cIGZString*>(&name));
-
-			// We have to use MesageSend because the message is allocated on the stack.
-			spMessageServer2->MessageSend(static_cast<cIGZMessage2*>(static_cast<cIGZMessage2Standard*>(&message)));
-		}
-	}
 }
 
 #ifdef __clang__
@@ -175,7 +156,7 @@ static void NAKED_FUN DoWinProcMessageHookFn(void)
 	{
 		// The available building styles must be the last button ids to be processed.
 		// A building style radio button could use any button ID not in the above list.
-		if (AvailableBuildingStyles::GetInstance().ContainsBuildingStyle(buttonID))
+		if (spBuildingSelectWinManager->IsBuildingStyleAvailable(buttonID))
 		{
 			_asm popad
 			_asm push DoWinProcMessage_Hook_StyleValidJump
@@ -219,7 +200,7 @@ public:
 
 void __thiscall cSC4BuildingSelectWinProc::EnableStyleButtons()
 {
-	const std::map<uint32_t, std::string>& styleButtons = AvailableBuildingStyles::GetInstance().GetBuildingStyles();
+	const std::map<uint32_t, std::string>& styleButtons = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
 	if (HasMoreThanOneStyleChecked(this->styleListContainer, styleButtons))
 	{
@@ -247,9 +228,9 @@ void __thiscall cSC4BuildingSelectWinProc::EnableStyleButtons()
 
 void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 {
-	const std::map<uint32_t, std::string>& allBuildingStyles = AvailableBuildingStyles::GetInstance().GetBuildingStyles();
+	const std::map<uint32_t, std::string>& allBuildingStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
-	const eastl::vector<uint32_t>& activeBuildingStyles = spTractDeveloper->GetActiveStyles();
+	const eastl::vector<uint32_t>& activeBuildingStyles = spBuildingSelectWinManager->GetTractDeveloper()->GetActiveStyles();
 
 	for (const std::pair<uint32_t, std::string>& item : allBuildingStyles)
 	{
@@ -264,24 +245,29 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 
 void __thiscall cSC4BuildingSelectWinProc::AddActiveStyle(uint32_t style)
 {
+	cISC4TractDeveloper* const pTractDeveloper = spBuildingSelectWinManager->GetTractDeveloper();
+
 	// This is a copy of the existing active style list, not a reference to it.
 	// We will call SetActiveStyles to update SC4's copy after we modify it.
-	eastl::vector<uint32_t> activeStyles = spTractDeveloper->GetActiveStyles();
+	eastl::vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
 
 	if (!Contains(activeStyles, style))
 	{
 		activeStyles.push_back(style);
-		spTractDeveloper->SetActiveStyles(activeStyles);
+		pTractDeveloper->SetActiveStyles(activeStyles);
 
-		SendActiveBuildingStyleCheckboxChangedMessage(true, style);
+		spBuildingSelectWinManager->SendActiveBuildingStyleCheckboxChangedMessage(true, style);
 	}
 }
 
 void __thiscall cSC4BuildingSelectWinProc::RemoveActiveStyle(uint32_t style)
 {
+
+	cISC4TractDeveloper* const pTractDeveloper = spBuildingSelectWinManager->GetTractDeveloper();
+
 	// This is a copy of the existing active style list, not a reference to it.
 	// We will call SetActiveStyles to update SC4's copy after we modify it.
-	eastl::vector<uint32_t> activeStyles = spTractDeveloper->GetActiveStyles();
+	eastl::vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
 	bool itemRemoved = false;
 
 	for (auto it = activeStyles.begin(); it != activeStyles.end(); it++)
@@ -296,8 +282,8 @@ void __thiscall cSC4BuildingSelectWinProc::RemoveActiveStyle(uint32_t style)
 
 	if (itemRemoved)
 	{
-		spTractDeveloper->SetActiveStyles(activeStyles);
-		SendActiveBuildingStyleCheckboxChangedMessage(false, style);
+		pTractDeveloper->SetActiveStyles(activeStyles);
+		spBuildingSelectWinManager->SendActiveBuildingStyleCheckboxChangedMessage(false, style);
 	}
 }
 

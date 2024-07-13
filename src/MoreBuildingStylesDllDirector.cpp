@@ -13,6 +13,7 @@
 #include "version.h"
 #include "GlobalPointers.h"
 #include "BuildingSelectWinProcHooks.h"
+#include "BuildingSelectWinManager.h"
 #include "BuildingStyleMessages.h"
 #include "AvailableBuildingStyles.h"
 #include "Logger.h"
@@ -43,8 +44,6 @@
 #include "EASTLConfigSC4.h"
 #include "EASTL\vector.h"
 
-static constexpr uint32_t kSC4MessagePostCityInit = 0x26D31EC1;
-static constexpr uint32_t kSC4MessagePreCityShutdown = 0x26D31EC2;
 static constexpr uint32_t kMessageCheatIssued = 0x230E27AC;
 
 static constexpr uint32_t kMoreBuildingStylesDirectorID = 0x3BF9E52C;
@@ -54,8 +53,7 @@ static constexpr uint32_t kActiveStyle = 0x4580A54D;
 
 static constexpr std::string_view PluginLogFileName = "SC4MoreBuildingStyles.log";
 
-cIGZMessageServer2* spMessageServer2 = nullptr;
-cISC4TractDeveloper* spTractDeveloper = nullptr;
+IBuildingSelectWinManager* spBuildingSelectWinManager = nullptr;
 
 class MoreBuildingStylesDllDirector : public cRZMessage2COMDirector
 {
@@ -178,24 +176,6 @@ public:
 		}
 	}
 
-	void PostCityInit(cIGZMessage2Standard* pStandardMsg)
-	{
-		// Gather the list of available styles from the "Building Select" dialog radio buttons.
-		AvailableBuildingStyles::GetInstance().Initialize();
-
-		cISC4City* pCity = reinterpret_cast<cISC4City*>(pStandardMsg->GetIGZUnknown());
-
-		if (pCity)
-		{
-			spTractDeveloper = pCity->GetTractDeveloper();
-		}
-	}
-
-	void PreCityShutdown()
-	{
-		spTractDeveloper = nullptr;
-	}
-
 	bool DoMessage(cIGZMessage2* pMessage)
 	{
 		cIGZMessage2Standard* pStandardMsg = static_cast<cIGZMessage2Standard*>(pMessage);
@@ -207,14 +187,10 @@ public:
 		case kMessageCheatIssued:
 			ProcessCheat(pStandardMsg);
 			break;
-		case kSC4MessagePostCityInit:
-			PostCityInit(pStandardMsg);
-			break;
-		case kSC4MessagePreCityShutdown:
-			PreCityShutdown();
-			break;
 		case kMessageBuildingStyleCheckboxChanged:
+#if _DEBUG
 			ActiveBuildingStyleCheckboxChanged(pStandardMsg);
+#endif // _DEBUG
 			break;
 		}
 
@@ -225,6 +201,7 @@ public:
 	{
 		Logger& logger = Logger::GetInstance();
 
+		spBuildingSelectWinManager = &buildingSelectWinManager;
 		BuildingSelectWinProcHooks::Install();
 
 		cISC4AppPtr pSC4App;
@@ -241,51 +218,27 @@ public:
 			}
 		}
 
-		cIGZFrameWork* const pFramework = RZGetFrameWork();
-
-		constexpr uint32_t GZMessageServer2SysServiceID = 0x4FA845B;
-		constexpr uint32_t GZIID_cIGZMesageServer2 = 0x652294C7;
-
-		if (pFramework->GetSystemService(
-			GZMessageServer2SysServiceID,
-			GZIID_cIGZMesageServer2,
-			reinterpret_cast<void**>(&spMessageServer2)))
+		if (!buildingSelectWinManager.Initialize())
 		{
-			std::vector<uint32_t> requiredNotifications;
-			requiredNotifications.push_back(kSC4MessagePostCityInit);
-			requiredNotifications.push_back(kSC4MessagePreCityShutdown);
-#ifdef _DEBUG
-			requiredNotifications.push_back(kMessageBuildingStyleCheckboxChanged);
-#endif // _DEBUG
-
-			for (uint32_t messageID : requiredNotifications)
-			{
-				if (!spMessageServer2->AddNotification(this, messageID))
-				{
-					logger.WriteLine(LogLevel::Error, "Failed to subscribe to the required notifications.");
-					return false;
-				}
-			}
-		}
-		else
-		{
-			spMessageServer2 = nullptr;
-			logger.WriteLine(LogLevel::Error, "Failed to subscribe to the required notifications.");
+			logger.WriteLine(LogLevel::Error, "Failed to initialize the building select window manager.");
 			return false;
 		}
+
+#ifdef _DEBUG
+		cIGZMessageServer2Ptr pMS2;
+
+		if (pMS2)
+		{
+			pMS2->AddNotification(this, kMessageBuildingStyleCheckboxChanged);
+		}
+#endif // _DEBUG
 
 		return true;
 	}
 
 	bool PreAppShutdown()
 	{
-		cIGZMessageServer2* pMsgServ = spMessageServer2;
-		spMessageServer2 = nullptr;
-
-		if (pMsgServ)
-		{
-			pMsgServ->Release();
-		}
+		buildingSelectWinManager.Shutdown();
 
 		return true;
 	}
@@ -317,6 +270,8 @@ private:
 
 		return temp.parent_path();
 	}
+
+	BuildingSelectWinManager buildingSelectWinManager;
 };
 
 cRZCOMDllDirector* RZGetCOMDllDirector() {

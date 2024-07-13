@@ -24,13 +24,6 @@ static const uint32_t kGZWin_SC4View3DWin = 0x9a47b417;
 
 static const uint32_t kGZIID_cISC4View3DWin = 0xFA47B3F9;
 
-AvailableBuildingStyles& AvailableBuildingStyles::GetInstance()
-{
-	static AvailableBuildingStyles instance;
-
-	return instance;
-}
-
 AvailableBuildingStyles::AvailableBuildingStyles()
 	: initialized(false)
 {
