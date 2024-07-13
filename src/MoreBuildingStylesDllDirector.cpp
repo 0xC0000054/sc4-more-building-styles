@@ -211,7 +211,7 @@ public:
 			PostCityInit(pStandardMsg);
 			break;
 		case kSC4MessagePreCityShutdown:
-			PreAppShutdown();
+			PreCityShutdown();
 			break;
 		case kMessageBuildingStyleCheckboxChanged:
 			ActiveBuildingStyleCheckboxChanged(pStandardMsg);
