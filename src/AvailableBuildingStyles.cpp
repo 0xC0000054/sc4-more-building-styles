@@ -16,6 +16,7 @@
 #include "cIGZWinBtn.h"
 #include "cISC4App.h"
 #include "cISC4View3DWin.h"
+#include "cRZAutoRefCount.h"
 #include "GZServPtrs.h"
 #include <map>
 
@@ -92,15 +93,13 @@ bool AvailableBuildingStyles::BuildingSelectWinEnumProc(cIGZWin* parent, uint32_
 	{
 		AvailableBuildingStyles* state = static_cast<AvailableBuildingStyles*>(pState);
 
-		cIGZWinBtn* pBtn = nullptr;
+		cRZAutoRefCount<cIGZWinBtn> pBtn;
 
-		if (child->QueryInterface(GZIID_cIGZWinBtn, reinterpret_cast<void**>(&pBtn)))
+		if (child->QueryInterface(GZIID_cIGZWinBtn, pBtn.AsPPVoid()))
 		{
 			cIGZString* caption = pBtn->GetCaption();
 
 			state->availableBuildingStyles.try_emplace(childID, caption->ToChar());
-
-			pBtn->Release();
 		}
 	}
 
