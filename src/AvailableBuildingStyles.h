@@ -14,6 +14,8 @@
 #include <map>
 #include <string>
 
+class cIGZWin;
+
 class AvailableBuildingStyles
 {
 public:
@@ -27,6 +29,8 @@ public:
 	const std::map<uint32_t, std::string>& GetBuildingStyles() const;
 
 private:
+
+	static bool BuildingSelectWinEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState);
 
 	std::map<uint32_t, std::string> availableBuildingStyles;
 	bool initialized;

@@ -29,38 +29,6 @@ AvailableBuildingStyles::AvailableBuildingStyles()
 {
 }
 
-struct BuildingSelectContext
-{
-	std::map<uint32_t, std::string> items;
-};
-
-static bool BuildingSelectWinEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
-{
-	constexpr uint32_t titleBarButton = 0x2BC619F3;
-	constexpr uint32_t minimizeButton = 0xEBC619FD;
-
-	// The title bar and minimize buttons are excluded, every other button
-	// in the dialog is a style radio button.
-
-	if (childID != titleBarButton && childID != minimizeButton)
-	{
-		BuildingSelectContext* state = static_cast<BuildingSelectContext*>(pState);
-
-		cIGZWinBtn* pBtn = nullptr;
-
-		if (child->QueryInterface(GZIID_cIGZWinBtn, reinterpret_cast<void**>(&pBtn)))
-		{
-			cIGZString* caption = pBtn->GetCaption();
-
-			state->items.try_emplace(childID, caption->ToChar());
-
-			pBtn->Release();
-		}
-	}
-
-	return true;
-}
-
 void AvailableBuildingStyles::Initialize()
 {
 	if (!initialized)
@@ -89,14 +57,10 @@ void AvailableBuildingStyles::Initialize()
 
 						// Enumerate the buttons in the child window to get the list of available styles.
 
-						BuildingSelectContext context;
-
 						pStyleListContainer->EnumChildren(
 							GZIID_cIGZWinBtn,
 							&BuildingSelectWinEnumProc,
-							&context);
-
-						this->availableBuildingStyles.swap(context.items);
+							this);
 					}
 				}
 			}
@@ -114,5 +78,32 @@ bool AvailableBuildingStyles::ContainsBuildingStyle(uint32_t style) const
 const std::map<uint32_t, std::string>& AvailableBuildingStyles::GetBuildingStyles() const
 {
 	return availableBuildingStyles;
+}
+
+bool AvailableBuildingStyles::BuildingSelectWinEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
+{
+	constexpr uint32_t titleBarButton = 0x2BC619F3;
+	constexpr uint32_t minimizeButton = 0xEBC619FD;
+
+	// The title bar and minimize buttons are excluded, every other button
+	// in the dialog is a style radio button.
+
+	if (childID != titleBarButton && childID != minimizeButton)
+	{
+		AvailableBuildingStyles* state = static_cast<AvailableBuildingStyles*>(pState);
+
+		cIGZWinBtn* pBtn = nullptr;
+
+		if (child->QueryInterface(GZIID_cIGZWinBtn, reinterpret_cast<void**>(&pBtn)))
+		{
+			cIGZString* caption = pBtn->GetCaption();
+
+			state->availableBuildingStyles.try_emplace(childID, caption->ToChar());
+
+			pBtn->Release();
+		}
+	}
+
+	return true;
 }
 
