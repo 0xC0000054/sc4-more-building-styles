@@ -22,7 +22,12 @@ After creating the patch you need to edit the UI to add more check boxes.
 The check box ID (e.g. `0x2003`) identifies the building style to the game, these IDs should be in the range of 0x2000 to 0x2fff.
 Finally you will need to update existing buildings to use the new building style IDs.
 
-### Cheat Codes
+### Auto-Historical Check Box
+
+The DLL supports an optional check box that will automatically mark new growable residential and commercial lots as historical.
+This check box uses the reserved id value `0x9476D8DA`.
+
+## Cheat Codes
 
 The plugin provides the following cheat codes:
 
@@ -32,7 +37,7 @@ display a message saying that mode is active.
 
 `DebugActiveStyles` writes the currently enabled style IDs to the plugin's log file.
 
-### For DLL Modders
+## For DLL Modders
 
 The DLL dispatches a message that when the user's selected styles change:
 ```cpp
