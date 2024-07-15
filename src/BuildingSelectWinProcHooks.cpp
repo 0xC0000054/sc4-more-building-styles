@@ -32,6 +32,7 @@
 
 #include "BuildingSelectWinProcHooks.h"
 #include "AvailableBuildingStyles.h"
+#include "BuildingStyleButtons.h"
 #include "BuildingStyleMessages.h"
 #include "GlobalPointers.h"
 #include "Logger.h"
@@ -115,10 +116,40 @@ constexpr uint32_t StylePanel_Expanded_TitleBar = 0x2bc619f3;
 constexpr uint32_t StylePanel_Collapsed_ToggleButton = 0xcbc61567;
 constexpr uint32_t StylePanel_Expanded_ToggleButton = 0xebc619fd;
 
+class cSC4BuildingSelectWinProc : public cIGZWinProc
+{
+public:
+
+	virtual bool DoWinProcMessage(cIGZWin* pWin, cGZMessage& pMsg);
+
+	virtual bool DoWinMsg(cIGZWin* pWin, uint32_t dwMessageID, uint32_t data1, uint32_t data2, uint32_t data3);
+
+	// We add our new member functions below the existing class methods.
+
+	void __thiscall EnableStyleButtons();
+
+	void __thiscall SetActiveStyleButtons();
+
+	void __thiscall AddActiveStyle(uint32_t style);
+
+	void __thiscall RemoveActiveStyle(uint32_t style);
+
+	// Class member variables.
+	// The first 4 bytes are occupied by the class vtable pointer.
+	uint32_t refCount;                 // 0x4
+	uint32_t initialized;              // 0x8
+	cIGZWin* window;                   // 0xc
+	cIGZWin* styleListContainer;       // 0x10
+	cIGZWin* styleChangeYearContainer; // 0x14
+	uint32_t isCollapsed;              // 0x18
+};
+
 static void NAKED_FUN DoWinProcMessageHookFn(void)
 {
+	static cSC4BuildingSelectWinProc* pThis;
 	static uint32_t buttonID;
 
+	_asm mov pThis, esi
 	_asm mov buttonID, eax
 	_asm pushad
 
@@ -152,6 +183,10 @@ static void NAKED_FUN DoWinProcMessageHookFn(void)
 		_asm push DoWinProcMessage_Hook_Button_HideBuildingStyleControl_Continue_Jump
 		_asm ret
 	}
+	else if (buttonID == AutoHistoricalButtonID)
+	{
+		spBuildingSelectWinManager->UpdateOptionalCheckBoxState(pThis->styleListContainer, AutoHistoricalButtonID);
+	}
 	else
 	{
 		// The available building styles must be the last button ids to be processed.
@@ -168,35 +203,6 @@ static void NAKED_FUN DoWinProcMessageHookFn(void)
 	_asm push DoWinProcMessage_Hook_ExitMethodJump
 	_asm ret
 }
-
-class cSC4BuildingSelectWinProc : public cIGZWinProc
-{
-public:
-
-	virtual bool DoWinProcMessage(cIGZWin* pWin, cGZMessage& pMsg);
-
-	virtual bool DoWinMsg(cIGZWin* pWin, uint32_t dwMessageID, uint32_t data1, uint32_t data2, uint32_t data3);
-
-	// We add our new member functions below the existing class methods.
-
-	void __thiscall EnableStyleButtons();
-
-	void __thiscall SetActiveStyleButtons();
-
-	void __thiscall AddActiveStyle(uint32_t style);
-
-	void __thiscall RemoveActiveStyle(uint32_t style);
-
-	// Class member variables.
-	// The first 4 bytes are occupied by the class vtable pointer.
-	uint32_t refCount;                 // 0x4
-	uint32_t initialized;              // 0x8
-	cIGZWin* window;                   // 0xc
-	cIGZWin* styleListContainer;       // 0x10
-	cIGZWin* styleChangeYearContainer; // 0x14
-	uint32_t isCollapsed;              // 0x18
-};
-
 
 void __thiscall cSC4BuildingSelectWinProc::EnableStyleButtons()
 {
@@ -238,6 +244,13 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 		bool selected = Contains(activeBuildingStyles, style);
 
 		GZWinUtil::SetButtonToggleState(this->styleListContainer, style, selected);
+	}
+
+	if (spBuildingSelectWinManager->UIHasOptionalCheckBox(AutoHistoricalButtonID))
+	{
+		bool selected = spBuildingSelectWinManager->GetOptionalCheckBoxState(AutoHistoricalButtonID);
+
+		GZWinUtil::SetButtonToggleState(this->styleListContainer, AutoHistoricalButtonID, selected);
 	}
 
 	EnableStyleButtons();

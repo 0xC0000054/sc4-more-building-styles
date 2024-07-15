@@ -13,10 +13,13 @@
 #pragma once
 #include "IBuildingSelectWinManager.h"
 #include "AvailableBuildingStyles.h"
+#include "BuildingSelectWinContext.h"
 #include "cIGZMessageTarget2.h"
 
 class cIGZMessage2Standard;
 class cIGZMessageServer2;
+class cISC4Lot;
+class cISC4LotManager;
 
 class BuildingSelectWinManager : public IBuildingSelectWinManager, private cIGZMessageTarget2
 {
@@ -36,18 +39,28 @@ private:
 
 	void PreCityShutdown();
 	void PostCityInit(cIGZMessage2Standard* pStandardMsg);
+	void Load(cIGZMessage2Standard* pStandardMsg);
+	void Save(cIGZMessage2Standard* pStandardMsg);
+	void StateChanged(cIGZMessage2Standard* pStandardMsg);
+	void LotActivated(cISC4Lot* pLot);
 
 	cISC4TractDeveloper* GetTractDeveloper() const override;
 
 	bool IsBuildingStyleAvailable(uint32_t style) const override;
 	const std::map<uint32_t, std::string>& GetAvailableBuildingStyles() const override;
 
+	bool UIHasOptionalCheckBox(uint32_t buttonID)  const override;
+	bool GetOptionalCheckBoxState(uint32_t buttonID) const override;
+	void UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32_t buttonID) override;
+
 	void SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t styleID) override;
 
 	uint32_t refCount;
 	cIGZMessageServer2* pMS2;
+	cISC4LotManager* pLotManager;
 	cISC4TractDeveloper* pTractDeveloper;
 	AvailableBuildingStyles availableBuildingStyles;
+	BuildingSelectWinContext context;
 	bool initialized;
 };
 

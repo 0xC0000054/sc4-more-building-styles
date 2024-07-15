@@ -28,11 +28,14 @@ public:
 
 	const std::map<uint32_t, std::string>& GetBuildingStyles() const;
 
+	bool UIHasOptionalCheckBox(uint32_t buttonID) const;
+
 private:
 
 	static bool BuildingSelectWinEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState);
 
 	std::map<uint32_t, std::string> availableBuildingStyles;
 	bool initialized;
+	bool hasAutoHistoricalCheckBox;
 };
 

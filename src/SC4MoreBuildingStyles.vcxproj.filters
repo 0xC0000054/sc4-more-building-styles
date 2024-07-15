@@ -99,6 +99,12 @@
     <ClCompile Include="SC4VersionDetection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BuildingSelectWinManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BuildingSelectWinContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -125,19 +131,10 @@
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4Region.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
-    <ClInclude Include="..\vendor\gzcom-dll\include\cISC4RegionalCity.h">
-      <Filter>Header Files\GZCOM</Filter>
-    </ClInclude>
-    <ClInclude Include="..\vendor\gzcom-dll\include\cISC4ResidentialSimulator.h">
-      <Filter>Header Files\GZCOM</Filter>
-    </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4Simulator.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4TractDeveloper.h">
-      <Filter>Header Files\GZCOM</Filter>
-    </ClInclude>
-    <ClInclude Include="..\vendor\gzcom-dll\include\cISC4PlumbingSimulator.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4App.h">
@@ -162,6 +159,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BuildingStyleMessages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingSelectWinManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IBuildingSelectWinManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingSelectWinContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingStyleButtons.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -30,6 +30,7 @@
     <ClCompile Include="..\vendor\gzcom-dll\src\EASTLAllocatorSC4.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\src\SC4UI.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\src\StringResourceManager.cpp" />
+    <ClCompile Include="BuildingSelectWinContext.cpp" />
     <ClCompile Include="BuildingSelectWinManager.cpp" />
     <ClCompile Include="BuildingSelectWinProcHooks.cpp" />
     <ClCompile Include="GZWinUtil.cpp" />
@@ -44,16 +45,15 @@
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4App.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4City.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4Occupant.h" />
-    <ClInclude Include="..\vendor\gzcom-dll\include\cISC4PlumbingSimulator.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4Region.h" />
-    <ClInclude Include="..\vendor\gzcom-dll\include\cISC4RegionalCity.h" />
-    <ClInclude Include="..\vendor\gzcom-dll\include\cISC4ResidentialSimulator.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4Simulator.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4TractDeveloper.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\StringResourceKey.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\StringResourceManager.h" />
+    <ClInclude Include="BuildingSelectWinContext.h" />
     <ClInclude Include="BuildingSelectWinManager.h" />
     <ClInclude Include="BuildingSelectWinProcHooks.h" />
+    <ClInclude Include="BuildingStyleButtons.h" />
     <ClInclude Include="BuildingStyleMessages.h" />
     <ClInclude Include="GlobalPointers.h" />
     <ClInclude Include="GZWinUtil.h" />

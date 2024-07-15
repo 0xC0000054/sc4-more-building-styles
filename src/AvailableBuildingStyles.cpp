@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "AvailableBuildingStyles.h"
+#include "BuildingStyleButtons.h"
 #include "cGZPersistResourceKey.h"
 #include "cIGZWin.h"
 #include "cIGZWinBtn.h"
@@ -26,7 +27,8 @@ static const uint32_t kGZWin_SC4View3DWin = 0x9a47b417;
 static const uint32_t kGZIID_cISC4View3DWin = 0xFA47B3F9;
 
 AvailableBuildingStyles::AvailableBuildingStyles()
-	: initialized(false)
+	: initialized(false),
+	  hasAutoHistoricalCheckBox(false)
 {
 }
 
@@ -81,6 +83,20 @@ const std::map<uint32_t, std::string>& AvailableBuildingStyles::GetBuildingStyle
 	return availableBuildingStyles;
 }
 
+bool AvailableBuildingStyles::UIHasOptionalCheckBox(uint32_t buttonID) const
+{
+	bool result = false;
+
+	switch (buttonID)
+	{
+	case AutoHistoricalButtonID:
+		result = hasAutoHistoricalCheckBox;
+		break;
+	}
+
+	return result;
+}
+
 bool AvailableBuildingStyles::BuildingSelectWinEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
 {
 	constexpr uint32_t titleBarButton = 0x2BC619F3;
@@ -93,13 +109,20 @@ bool AvailableBuildingStyles::BuildingSelectWinEnumProc(cIGZWin* parent, uint32_
 	{
 		AvailableBuildingStyles* state = static_cast<AvailableBuildingStyles*>(pState);
 
-		cRZAutoRefCount<cIGZWinBtn> pBtn;
-
-		if (child->QueryInterface(GZIID_cIGZWinBtn, pBtn.AsPPVoid()))
+		if (childID == AutoHistoricalButtonID)
 		{
-			cIGZString* caption = pBtn->GetCaption();
+			state->hasAutoHistoricalCheckBox = true;
+		}
+		else
+		{
+			cRZAutoRefCount<cIGZWinBtn> pBtn;
 
-			state->availableBuildingStyles.try_emplace(childID, caption->ToChar());
+			if (child->QueryInterface(GZIID_cIGZWinBtn, pBtn.AsPPVoid()))
+			{
+				cIGZString* caption = pBtn->GetCaption();
+
+				state->availableBuildingStyles.try_emplace(childID, caption->ToChar());
+			}
 		}
 	}
 
