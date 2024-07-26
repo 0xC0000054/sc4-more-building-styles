@@ -41,7 +41,7 @@ public:
 
 	/**
 	 * @brief Gets a comma-separated list of the style names for the specified building.
-	 * @param pOccupant A pointer to the building occupant.
+	 * @param pBuildingOccupant A pointer to the building occupant.
 	 * @param destination The destination string.
 	 * @return true on success; otherwise, false.
 	 */
