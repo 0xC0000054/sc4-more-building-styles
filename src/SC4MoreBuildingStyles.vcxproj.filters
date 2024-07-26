@@ -22,6 +22,9 @@
     <Filter Include="Header Files\GZCOM">
       <UniqueIdentifier>{55969e5e-2491-4049-8687-619fc7c065a7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Public Headers">
+      <UniqueIdentifier>{efffa4d9-0949-4c6d-90c5-34eb955590fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Logger.cpp">
@@ -105,6 +108,9 @@
     <ClCompile Include="BuildingSelectWinContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BuildingStyleInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -172,6 +178,12 @@
     </ClInclude>
     <ClInclude Include="BuildingStyleButtons.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingStyleInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\include\cIBuildingStyleInfo.h">
+      <Filter>Header Files\Public Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

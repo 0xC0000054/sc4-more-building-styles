@@ -14,6 +14,7 @@
 #include "GlobalPointers.h"
 #include "BuildingSelectWinProcHooks.h"
 #include "BuildingSelectWinManager.h"
+#include "BuildingStyleInfo.h"
 #include "BuildingStyleMessages.h"
 #include "AvailableBuildingStyles.h"
 #include "Logger.h"
@@ -60,6 +61,8 @@ class MoreBuildingStylesDllDirector : public cRZMessage2COMDirector
 public:
 
 	MoreBuildingStylesDllDirector()
+		: buildingSelectWinManager(),
+		  buildingStyleInfo(buildingSelectWinManager)
 	{
 		std::filesystem::path dllFolderPath = GetDllFolderPath();
 
@@ -74,6 +77,23 @@ public:
 	uint32_t GetDirectorID() const
 	{
 		return kMoreBuildingStylesDirectorID;
+	}
+
+	bool GetClassObject(uint32_t rclsid, uint32_t riid, void** ppvObj)
+	{
+		bool result = false;
+
+		if (rclsid == GZCLSID_cIBuildingStyleInfo)
+		{
+			result = buildingStyleInfo.QueryInterface(riid, ppvObj);
+		}
+
+		return result;
+	}
+
+	void EnumClassObjects(ClassObjectEnumerationCallback pCallback, void* pContext)
+	{
+		pCallback(GZCLSID_cIBuildingStyleInfo, 0, pContext);
 	}
 
 	void ActiveBuildingStyleCheckboxChanged(cIGZMessage2Standard* pStandardMsg)
@@ -272,6 +292,7 @@ private:
 	}
 
 	BuildingSelectWinManager buildingSelectWinManager;
+	BuildingStyleInfo buildingStyleInfo;
 };
 
 cRZCOMDllDirector* RZGetCOMDllDirector() {

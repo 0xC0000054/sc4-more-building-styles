@@ -34,6 +34,8 @@ display a message saying that mode is active.
 
 ## For DLL Modders
 
+### Style Changed Message
+
 The DLL dispatches a message that when the user's selected styles change:
 ```cpp
 // Sent when a style is checked on unchecked in the building style list.
@@ -60,6 +62,16 @@ if (pSC4App)
     }
 }
 ```
+
+### cIBuildingStyleInfo GZCOM Class
+
+This class allows other DLLS to query the style ids and names for the building styles that are present in the
+game's `Building Style Control` window.    
+It also provides a function to get a building occupant's supported styles as a string containing a comma-separated
+list of style names, only styles that are present in the game's `Building Style Control` window will be included in
+that list.
+
+See [cIBuildingStyleInfo.h](src/public/include/cIBuildingStyleInfo.h) for details.
 
 ## Download
 

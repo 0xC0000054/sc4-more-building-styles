@@ -33,6 +33,7 @@
     <ClCompile Include="BuildingSelectWinContext.cpp" />
     <ClCompile Include="BuildingSelectWinManager.cpp" />
     <ClCompile Include="BuildingSelectWinProcHooks.cpp" />
+    <ClCompile Include="BuildingStyleInfo.cpp" />
     <ClCompile Include="GZWinUtil.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="MoreBuildingStylesDllDirector.cpp" />
@@ -54,12 +55,14 @@
     <ClInclude Include="BuildingSelectWinManager.h" />
     <ClInclude Include="BuildingSelectWinProcHooks.h" />
     <ClInclude Include="BuildingStyleButtons.h" />
+    <ClInclude Include="BuildingStyleInfo.h" />
     <ClInclude Include="BuildingStyleMessages.h" />
     <ClInclude Include="GlobalPointers.h" />
     <ClInclude Include="GZWinUtil.h" />
     <ClInclude Include="IBuildingSelectWinManager.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="AvailableBuildingStyles.h" />
+    <ClInclude Include="public\include\cIBuildingStyleInfo.h" />
     <ClInclude Include="SC4VersionDetection.h" />
     <ClInclude Include="version.h" />
   </ItemGroup>
@@ -112,7 +115,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\include;..\vendor\EASTL\include;..\vendor\EABase\include\Common;.\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\include;..\vendor\EASTL\include;..\vendor\EABase\include\Common;.\;.\public\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -136,7 +139,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\include;..\vendor\EASTL\include;..\vendor\EABase\include\Common;.\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\include;..\vendor\EASTL\include;..\vendor\EABase\include\Common;.\;.\public\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
