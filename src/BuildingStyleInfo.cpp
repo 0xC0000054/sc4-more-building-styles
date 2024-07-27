@@ -177,7 +177,12 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 			}
 
 			// Check that at least one style name has been written to the destination.
-			result = destination.Strlen() > 0;
+			if (destination.Strlen() > 0)
+			{
+				// Remove the trailing separator from the last style in the list.
+				destination.Resize(destination.Strlen() - separator.size());
+				result = true;
+			}
 		}
 	}
 
