@@ -18,6 +18,7 @@
 #include "BuildingStyleMessages.h"
 #include "AvailableBuildingStyles.h"
 #include "Logger.h"
+#include "TractDeveloperHooks.h"
 #include "cIGZCOM.h"
 #include "cIGZCheatCodeManager.h"
 #include "cIGZFrameWork.h"
@@ -223,6 +224,7 @@ public:
 
 		spBuildingSelectWinManager = &buildingSelectWinManager;
 		BuildingSelectWinProcHooks::Install();
+		TractDeveloperHooks::Install();
 
 		cISC4AppPtr pSC4App;
 

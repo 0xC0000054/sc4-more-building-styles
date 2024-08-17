@@ -111,6 +111,12 @@
     <ClCompile Include="BuildingStyleInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TractDeveloperHooks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Patcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -184,6 +190,12 @@
     </ClInclude>
     <ClInclude Include="public\include\cIBuildingStyleInfo.h">
       <Filter>Header Files\Public Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TractDeveloperHooks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Patcher.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

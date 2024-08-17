@@ -36,6 +36,7 @@
 #include "BuildingStyleMessages.h"
 #include "GlobalPointers.h"
 #include "Logger.h"
+#include "Patcher.h"
 #include "SC4VersionDetection.h"
 #include "GZWinUtil.h"
 #include "cIGZWin.h"
@@ -75,31 +76,7 @@ namespace
 
 		return false;
 	}
-
-	void InstallJump(uintptr_t address, uintptr_t destination)
-	{
-		DWORD oldProtect;
-		THROW_IF_WIN32_BOOL_FALSE(VirtualProtect(reinterpret_cast<void*>(address), 5, PAGE_EXECUTE_READWRITE, &oldProtect));
-
-		*((uint8_t*)address) = 0xE9;
-		*((uintptr_t*)(address + 1)) = destination - address - 5;
-	}
-
-	void InstallCallHook(uintptr_t address, void (*pfnFunc)(void))
-	{
-		DWORD oldProtect;
-		THROW_IF_WIN32_BOOL_FALSE(VirtualProtect(reinterpret_cast<void*>(address), 5, PAGE_EXECUTE_READWRITE, &oldProtect));
-
-		*((uint8_t*)address) = 0xE8;
-		*((uintptr_t*)(address + 1)) = reinterpret_cast<uintptr_t>(pfnFunc) - address - 5;
-	}
 }
-
-#ifdef __clang__
-#define NAKED_FUN __attribute__((naked))
-#else
-#define NAKED_FUN __declspec(naked)
-#endif
 
 static uintptr_t DoWinProcMessage_Hook_Button_StyleControlRadio_CycleEveryNYears_Continue_Jump;
 static uintptr_t DoWinProcMessage_Hook_Button_StyleControlRadio_UseAllStylesAtOnce_Continue_Jump;
@@ -391,14 +368,14 @@ void BuildingSelectWinProcHooks::Install()
 	{
 		try
 		{
-			InstallJump(DoWinProcMessage_Hook_InjectPoint, reinterpret_cast<uintptr_t>(&DoWinProcMessageHookFn));
-			InstallCallHook(DoWinProcMessage_EnableStyleButtons_Call_1, enable_buttons_shim.pfnVoid);
-			InstallCallHook(DoWinProcMessage_EnableStyleButtons_Call_2, enable_buttons_shim.pfnVoid);
-			InstallCallHook(DoWinProcMessage_AddActiveStyle_Call, add_active_style_shim.pfnVoid);
-			InstallCallHook(DoWinProcMessage_RemoveActiveStyle_Call, remove_active_style_shim.pfnVoid);
+			Patcher::InstallJump(DoWinProcMessage_Hook_InjectPoint, reinterpret_cast<uintptr_t>(&DoWinProcMessageHookFn));
+			Patcher::InstallCallHook(DoWinProcMessage_EnableStyleButtons_Call_1, enable_buttons_shim.pfnVoid);
+			Patcher::InstallCallHook(DoWinProcMessage_EnableStyleButtons_Call_2, enable_buttons_shim.pfnVoid);
+			Patcher::InstallCallHook(DoWinProcMessage_AddActiveStyle_Call, add_active_style_shim.pfnVoid);
+			Patcher::InstallCallHook(DoWinProcMessage_RemoveActiveStyle_Call, remove_active_style_shim.pfnVoid);
 
-			InstallJump(ShowWindow_Jump_InjectPoint, ShowWindow_Jump_Target);
-			InstallCallHook(ShowWindow_SetActiveStyleButtons_Call, set_active_style_shim.pfnVoid);
+			Patcher::InstallJump(ShowWindow_Jump_InjectPoint, ShowWindow_Jump_Target);
+			Patcher::InstallCallHook(ShowWindow_SetActiveStyleButtons_Call, set_active_style_shim.pfnVoid);
 
 			logger.WriteLine(LogLevel::Info, "Installed the building select window patch.");
 		}
