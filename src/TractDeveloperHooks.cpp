@@ -148,6 +148,7 @@ static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 		}
 #else
 		_asm popad
+		_asm mov edx, dword ptr[esi + 0x118]
 		_asm push 0x704cc3
 		_asm ret
 #endif // HAVE_LOT_CONFIG
