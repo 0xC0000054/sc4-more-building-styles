@@ -135,7 +135,7 @@ static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 		_asm ret
 #endif // HAVE_LOT_CONFIG
 
-		}
+	}
 	else
 	{
 		// Change style every N years.
