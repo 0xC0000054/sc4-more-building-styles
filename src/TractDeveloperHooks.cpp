@@ -11,11 +11,13 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "TractDeveloperHooks.h"
+#include "cIGZString.h"
 #include "cISC4BuildingOccupant.h"
 #include "cISC4LotConfiguration.h"
 #include "cISC4TractDeveloper.h"
 #include "Logger.h"
 #include "Patcher.h"
+#include "SC4String.h"
 #include "SC4VersionDetection.h"
 
 #include "wil/result.h"
@@ -85,7 +87,10 @@ static_assert(offsetof(cSC4TractDeveloper, notUsingAllStylesAtOnce) == 0x12c);
 struct cSC4LotConfiguration
 {
 	void* vtable;
-	uint8_t unknown1[0x7c];
+	uint32_t refCount;
+	uint32_t id;
+	SC4String name;
+	uint8_t unknown1[0x60];
 	SC4Vector<uint32_t> buildingOccupantGroups;
 };
 
@@ -113,6 +118,74 @@ static bool LotConfigurationHasStyle(const cSC4LotConfiguration* pLotConfigurati
 	return false;
 }
 
+static void LotPurposeTypeDoesNotSupportStyles(
+	const cSC4LotConfiguration* pLotConfiguration,
+	cISC4BuildingOccupant::PurposeType purposeType)
+{
+	const char* name = "Unknown";
+
+	switch (purposeType)
+	{
+	case cISC4BuildingOccupant::PurposeType::None:
+		name = "None";
+		break;
+	case cISC4BuildingOccupant::PurposeType::Residence:
+		name = "Residence";
+		break;
+	case cISC4BuildingOccupant::PurposeType::Services:
+		name = "Services";
+		break;
+	case cISC4BuildingOccupant::PurposeType::Office:
+		name = "Office";
+		break;
+	case cISC4BuildingOccupant::PurposeType::Tourism:
+		name = "Tourism";
+		break;
+	case cISC4BuildingOccupant::PurposeType::Agriculture:
+		name = "Agriculture";
+		break;
+	case cISC4BuildingOccupant::PurposeType::Processing:
+		name = "Processing";
+		break;
+	case cISC4BuildingOccupant::PurposeType::Manufacturing:
+		name = "Manufacturing";
+		break;
+	case cISC4BuildingOccupant::PurposeType::HighTech:
+		name = "HighTech";
+		break;
+	case cISC4BuildingOccupant::PurposeType::Other:
+		name = "Other";
+		break;
+	}
+
+	Logger::GetInstance().WriteLineFormatted(
+		LogLevel::Info,
+		"0x%08x (%s): Purpose type %d (%s) does not support building styles.",
+		pLotConfiguration->id,
+		pLotConfiguration->name.AsIGZString()->ToChar(),
+		static_cast<uint32_t>(purposeType),
+		name);
+}
+
+static void LogStyleSupported(const cSC4LotConfiguration* pLotConfiguration, uint32_t style)
+{
+	Logger::GetInstance().WriteLineFormatted(
+		LogLevel::Info,
+		"0x%08x (%s) supports building style 0x%x.",
+		pLotConfiguration->id,
+		pLotConfiguration->name.AsIGZString()->ToChar(),
+		style);
+}
+
+static void LogNoSupportedStyles(const cSC4LotConfiguration* pLotConfiguration)
+{
+	Logger::GetInstance().WriteLineFormatted(
+		LogLevel::Info,
+		"0x%08x (%s) doesn't have any supported building styles.",
+		pLotConfiguration->id,
+		pLotConfiguration->name.AsIGZString()->ToChar());
+}
+
 static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 {
 	static const cSC4TractDeveloper* pThis;
@@ -129,6 +202,8 @@ static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 		|| lotPurpose < cISC4BuildingOccupant::PurposeType::Residence
 		|| lotPurpose > cISC4BuildingOccupant::PurposeType::Office)
 	{
+		LotPurposeTypeDoesNotSupportStyles(pLotConfiguration, lotPurpose);
+
 		_asm popad
 		_asm push IsLotConfigurationSuitable_CompatableStyleFound_Continue
 		_asm ret
@@ -143,22 +218,30 @@ static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 		{
 			if (LotConfigurationHasStyle(pLotConfiguration, *pStyle))
 			{
+				LogStyleSupported(pLotConfiguration, *pStyle);
+
 				_asm popad
 				_asm push IsLotConfigurationSuitable_CompatableStyleFound_Continue
 				_asm ret
 			}
 			++pStyle;
 		}
+
+		LogNoSupportedStyles(pLotConfiguration);
 	}
 	else
 	{
 		// Change style every N years.
 		if (LotConfigurationHasStyle(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]))
 		{
+			LogStyleSupported(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]);
+
 			_asm popad
 			_asm push IsLotConfigurationSuitable_CompatableStyleFound_Continue
 			_asm ret
 		}
+
+		LogNoSupportedStyles(pLotConfiguration);
 	}
 
 	_asm popad
