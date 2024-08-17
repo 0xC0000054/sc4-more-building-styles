@@ -82,26 +82,47 @@ static_assert(offsetof(cSC4TractDeveloper, activeStyles) == 0x118);
 static_assert(offsetof(cSC4TractDeveloper, currentStyleIndex) == 0x124);
 static_assert(offsetof(cSC4TractDeveloper, notUsingAllStylesAtOnce) == 0x12c);
 
+struct cSC4LotConfiguration
+{
+	void* vtable;
+	uint8_t unknown1[0x7c];
+	SC4Vector<uint32_t> buildingOccupantGroups;
+};
+
+static_assert(offsetof(cSC4LotConfiguration, buildingOccupantGroups) == 0x80);
+
 static uintptr_t IsLotConfigurationSuitable_CompatableStyleFound_Continue;
 static uintptr_t IsLotConfigurationSuitable_NoCompatableStyle_Continue;
 
-//#define HAVE_LOT_CONFIG
+static bool LotConfigurationHasStyle(const cSC4LotConfiguration* pLotConfiguration, uint32_t style)
+{
+	const SC4Vector<uint32_t>& buildingOccupantGroups = pLotConfiguration->buildingOccupantGroups;
+
+	const uint32_t* pOccupantGroup = buildingOccupantGroups.mpBegin;
+
+	while (pOccupantGroup != buildingOccupantGroups.mpEnd)
+	{
+		if (*pOccupantGroup == style)
+		{
+			return true;
+		}
+
+		++pOccupantGroup;
+	}
+
+	return false;
+}
 
 static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 {
 	static const cSC4TractDeveloper* pThis;
-#ifdef HAVE_LOT_CONFIG
-	static cISC4LotConfiguration* pLotConfiguration;
-#endif // HAVE_LOT_CONFIG
-
+	static const cSC4LotConfiguration* pLotConfiguration;
 	static cISC4BuildingOccupant::PurposeType lotPurpose;
 	static const uint32_t* pStyle;
 
 	_asm mov pThis, esi
 	_asm mov lotPurpose, ebp
-#ifdef HAVE_LOT_CONFIG
 	_asm mov pLotConfiguration, edi
-#endif // HAVE_LOT_CONFIG
 	_asm pushad
 
 	if (pThis->activeStyles.empty()
@@ -116,12 +137,11 @@ static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 	if (pThis->notUsingAllStylesAtOnce == 0)
 	{
 		// Use all styles at once.
-#ifdef HAVE_LOT_CONFIG
 		pStyle = pThis->activeStyles.mpBegin;
 
 		while (pStyle != pThis->activeStyles.mpEnd)
 		{
-			if (pLotConfiguration->IsCompatibleWithStyleType(*pStyle))
+			if (LotConfigurationHasStyle(pLotConfiguration, *pStyle))
 			{
 				_asm popad
 				_asm push IsLotConfigurationSuitable_CompatableStyleFound_Continue
@@ -129,29 +149,16 @@ static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 			}
 			++pStyle;
 		}
-#else
-		_asm popad
-		_asm push 0x704cf6
-		_asm ret
-#endif // HAVE_LOT_CONFIG
-
 	}
 	else
 	{
 		// Change style every N years.
-#ifdef HAVE_LOT_CONFIG
-		if (pLotConfiguration->IsCompatibleWithStyleType(pThis->activeStyles[pThis->currentStyleIndex]))
+		if (LotConfigurationHasStyle(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]))
 		{
 			_asm popad
 			_asm push IsLotConfigurationSuitable_CompatableStyleFound_Continue
 			_asm ret
 		}
-#else
-		_asm popad
-		_asm mov edx, dword ptr[esi + 0x118]
-		_asm push 0x704cc3
-		_asm ret
-#endif // HAVE_LOT_CONFIG
 	}
 
 	_asm popad
