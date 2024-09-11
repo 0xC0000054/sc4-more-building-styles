@@ -186,43 +186,37 @@ static void LogNoSupportedStyles(const cSC4LotConfiguration* pLotConfiguration)
 		pLotConfiguration->name.AsIGZString()->ToChar());
 }
 
-static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
+static bool DoesLotSupportBuildingStyles(
+	const cSC4TractDeveloper* pThis,
+	const cSC4LotConfiguration* pLotConfiguration,
+	cISC4BuildingOccupant::PurposeType purpose)
 {
-	static const cSC4TractDeveloper* pThis;
-	static const cSC4LotConfiguration* pLotConfiguration;
-	static cISC4BuildingOccupant::PurposeType lotPurpose;
-	static const uint32_t* pStyle;
-
-	_asm mov pThis, esi
-	_asm mov lotPurpose, ebp
-	_asm mov pLotConfiguration, edi
-	_asm pushad
-
 	if (pThis->activeStyles.empty()
-		|| lotPurpose < cISC4BuildingOccupant::PurposeType::Residence
-		|| lotPurpose > cISC4BuildingOccupant::PurposeType::Office)
+		|| purpose < cISC4BuildingOccupant::PurposeType::Residence
+		|| purpose > cISC4BuildingOccupant::PurposeType::Office)
 	{
-		LotPurposeTypeDoesNotSupportStyles(pLotConfiguration, lotPurpose);
-
-		_asm popad
-		_asm push IsLotConfigurationSuitable_CompatableStyleFound_Continue
-		_asm ret
+		LotPurposeTypeDoesNotSupportStyles(pLotConfiguration, purpose);
+		return false;
 	}
 
+	return true;
+}
+
+static bool IsLotCompatibleWithActiveStyles(
+	const cSC4TractDeveloper* pThis,
+	const cSC4LotConfiguration* pLotConfiguration)
+{
 	if (pThis->notUsingAllStylesAtOnce == 0)
 	{
 		// Use all styles at once.
-		pStyle = pThis->activeStyles.mpBegin;
+		uint32_t* pStyle = pThis->activeStyles.mpBegin;
 
 		while (pStyle != pThis->activeStyles.mpEnd)
 		{
 			if (LotConfigurationHasStyle(pLotConfiguration, *pStyle))
 			{
 				LogStyleSupported(pLotConfiguration, *pStyle);
-
-				_asm popad
-				_asm push IsLotConfigurationSuitable_CompatableStyleFound_Continue
-				_asm ret
+				return true;
 			}
 			++pStyle;
 		}
@@ -235,18 +229,47 @@ static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 		if (LotConfigurationHasStyle(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]))
 		{
 			LogStyleSupported(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]);
-
-			_asm popad
-			_asm push IsLotConfigurationSuitable_CompatableStyleFound_Continue
-			_asm ret
+			return true;
 		}
-
-		LogNoSupportedStyles(pLotConfiguration);
 	}
 
-	_asm popad
-	_asm push IsLotConfigurationSuitable_NoCompatableStyle_Continue
-	_asm ret
+	LogNoSupportedStyles(pLotConfiguration);
+	return false;
+}
+
+static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
+{
+	__asm
+	{
+		push eax // store
+		push ecx // store
+		push edx // store
+		push ebp // lot purpose type
+		push edi // cISC4LotConfiguration*
+		push esi // cSC4TractDeveloper this pointer
+		call DoesLotSupportBuildingStyles // (cdecl)
+		add esp, 12
+		test al, al
+		jz compatableStyleFound // If building styles are not supported report that the style is compatible
+		push edi // cISC4LotConfiguration*
+		push esi // cSC4TractDeveloper this pointer
+		call IsLotCompatibleWithActiveStyles // (cdecl)
+		add esp, 8
+		test al, al
+		jz noCompatableStyleFound
+		compatableStyleFound:
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push IsLotConfigurationSuitable_CompatableStyleFound_Continue
+		ret
+		noCompatableStyleFound:
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push IsLotConfigurationSuitable_NoCompatableStyle_Continue
+		ret
+	}
 }
 
 void TractDeveloperHooks::Install()
