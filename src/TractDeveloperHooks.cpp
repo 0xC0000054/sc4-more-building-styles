@@ -340,7 +340,7 @@ static bool DoesBuildingSupportStyles(
 	return true;
 }
 
-static bool DoesBuildingSupportStyle(const cSC4TractDeveloper* pThis, uint32_t buildingType)
+static bool BuildingHasStyleOccupantGroup(const cSC4TractDeveloper* pThis, uint32_t buildingType)
 {
 	bool result = false;
 
@@ -454,8 +454,8 @@ static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 		mov ecx, dword ptr[esp + 0x38]
 		push ecx // building type
 		push esi // this pointer
-		call DoesBuildingSupportStyle
-		add esp, 12
+		call BuildingHasStyleOccupantGroup
+		add esp, 8
 		test al, al
 		jz noCompatableStyleFound
 		compatableStyleFound:
