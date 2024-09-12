@@ -143,72 +143,84 @@ static bool HasOccupantGroupValue(
 	return false;
 }
 
-static void LotPurposeTypeDoesNotSupportStyles(
-	const cSC4LotConfiguration* pLotConfiguration,
+static bool PurposeTypeSupportsBuildingStyles(cISC4BuildingOccupant::PurposeType purpose)
+{
+	return purpose >= cISC4BuildingOccupant::PurposeType::Residence
+		&& purpose <= cISC4BuildingOccupant::PurposeType::Office;
+}
+
+static void LogPurposeTypeDoesNotSupportStyles(
+	uint32_t id,
+	const char* const name,
 	cISC4BuildingOccupant::PurposeType purposeType)
 {
-	const char* name = "Unknown";
+	const char* purposeName = "Unknown";
 
 	switch (purposeType)
 	{
 	case cISC4BuildingOccupant::PurposeType::None:
-		name = "None";
+		purposeName = "None";
 		break;
 	case cISC4BuildingOccupant::PurposeType::Residence:
-		name = "Residence";
+		purposeName = "Residence";
 		break;
 	case cISC4BuildingOccupant::PurposeType::Services:
-		name = "Services";
+		purposeName = "Services";
 		break;
 	case cISC4BuildingOccupant::PurposeType::Office:
-		name = "Office";
+		purposeName = "Office";
 		break;
 	case cISC4BuildingOccupant::PurposeType::Tourism:
-		name = "Tourism";
+		purposeName = "Tourism";
 		break;
 	case cISC4BuildingOccupant::PurposeType::Agriculture:
-		name = "Agriculture";
+		purposeName = "Agriculture";
 		break;
 	case cISC4BuildingOccupant::PurposeType::Processing:
-		name = "Processing";
+		purposeName = "Processing";
 		break;
 	case cISC4BuildingOccupant::PurposeType::Manufacturing:
-		name = "Manufacturing";
+		purposeName = "Manufacturing";
 		break;
 	case cISC4BuildingOccupant::PurposeType::HighTech:
-		name = "HighTech";
+		purposeName = "HighTech";
 		break;
 	case cISC4BuildingOccupant::PurposeType::Other:
-		name = "Other";
+		purposeName = "Other";
 		break;
 	}
 
 	Logger::GetInstance().WriteLineFormatted(
 		LogLevel::Info,
 		"0x%08x (%s): Purpose type %d (%s) does not support building styles.",
-		pLotConfiguration->id,
-		pLotConfiguration->name.AsIGZString()->ToChar(),
+		id,
+		name,
 		static_cast<uint32_t>(purposeType),
-		name);
+		purposeName);
 }
 
-static void LogStyleSupported(const cSC4LotConfiguration* pLotConfiguration, uint32_t style)
+static void LogStyleSupported(
+	uint32_t id,
+	const char* const name,
+	uint32_t style)
 {
 	Logger::GetInstance().WriteLineFormatted(
 		LogLevel::Info,
 		"0x%08x (%s) supports building style 0x%x.",
-		pLotConfiguration->id,
-		pLotConfiguration->name.AsIGZString()->ToChar(),
+		id,
+		name,
 		style);
 }
 
-static void LogNoSupportedStyles(const cSC4LotConfiguration* pLotConfiguration)
+static void LogNoSupportedStyles(
+	uint32_t id,
+	const char* const name)
 {
 	Logger::GetInstance().WriteLineFormatted(
 		LogLevel::Info,
 		"0x%08x (%s) doesn't have any supported building styles.",
-		pLotConfiguration->id,
-		pLotConfiguration->name.AsIGZString()->ToChar());
+		id,
+		name);
 }
 
 static bool DoesLotSupportBuildingStyles(
@@ -217,10 +229,12 @@ static bool DoesLotSupportBuildingStyles(
 	cISC4BuildingOccupant::PurposeType purpose)
 {
 	if (pThis->activeStyles.empty()
-		|| purpose < cISC4BuildingOccupant::PurposeType::Residence
-		|| purpose > cISC4BuildingOccupant::PurposeType::Office)
+		|| !PurposeTypeSupportsBuildingStyles(purpose))
 	{
-		LotPurposeTypeDoesNotSupportStyles(pLotConfiguration, purpose);
+		LogPurposeTypeDoesNotSupportStyles(
+			pLotConfiguration->id,
+			pLotConfiguration->name.AsIGZString()->ToChar(),
+			purpose);
 		return false;
 	}
 
@@ -240,25 +254,35 @@ static bool IsLotCompatibleWithActiveStyles(
 		{
 			if (LotConfigurationHasStyle(pLotConfiguration, *pStyle))
 			{
-				LogStyleSupported(pLotConfiguration, *pStyle);
+				LogStyleSupported(
+					pLotConfiguration->id,
+					pLotConfiguration->name.AsIGZString()->ToChar(),
+					*pStyle);
 				return true;
 			}
 			++pStyle;
 		}
 
-		LogNoSupportedStyles(pLotConfiguration);
+		LogNoSupportedStyles(
+			pLotConfiguration->id,
+			pLotConfiguration->name.AsIGZString()->ToChar());
 	}
 	else
 	{
 		// Change style every N years.
 		if (LotConfigurationHasStyle(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]))
 		{
-			LogStyleSupported(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]);
+			LogStyleSupported(
+				pLotConfiguration->id,
+				pLotConfiguration->name.AsIGZString()->ToChar(),
+				pThis->activeStyles[pThis->currentStyleIndex]);
 			return true;
 		}
 	}
 
-	LogNoSupportedStyles(pLotConfiguration);
+	LogNoSupportedStyles(
+		pLotConfiguration->id,
+		pLotConfiguration->name.AsIGZString()->ToChar());
 	return false;
 }
 
@@ -297,81 +321,26 @@ static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 	}
 }
 
-static void BuildingPurposeTypeDoesNotSupportStyles(
+static bool DoesBuildingSupportStyles(
 	const cSC4TractDeveloper* pThis,
 	uint32_t buildingType,
-	cISC4BuildingOccupant::PurposeType purposeType)
+	cISC4BuildingOccupant::PurposeType purpose)
 {
-	const char* name = "Unknown";
-
-	switch (purposeType)
+	if (pThis->activeStyles.empty()
+		|| !PurposeTypeSupportsBuildingStyles(purpose))
 	{
-	case cISC4BuildingOccupant::PurposeType::None:
-		name = "None";
-		break;
-	case cISC4BuildingOccupant::PurposeType::Residence:
-		name = "Residence";
-		break;
-	case cISC4BuildingOccupant::PurposeType::Services:
-		name = "Services";
-		break;
-	case cISC4BuildingOccupant::PurposeType::Office:
-		name = "Office";
-		break;
-	case cISC4BuildingOccupant::PurposeType::Tourism:
-		name = "Tourism";
-		break;
-	case cISC4BuildingOccupant::PurposeType::Agriculture:
-		name = "Agriculture";
-		break;
-	case cISC4BuildingOccupant::PurposeType::Processing:
-		name = "Processing";
-		break;
-	case cISC4BuildingOccupant::PurposeType::Manufacturing:
-		name = "Manufacturing";
-		break;
-	case cISC4BuildingOccupant::PurposeType::HighTech:
-		name = "HighTech";
-		break;
-	case cISC4BuildingOccupant::PurposeType::Other:
-		name = "Other";
-		break;
+		LogPurposeTypeDoesNotSupportStyles(
+			buildingType,
+			pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+			purpose);
+
+		return false;
 	}
 
-	Logger::GetInstance().WriteLineFormatted(
-		LogLevel::Info,
-		"0x%08x (%s): Purpose type %u (%s) does not support building styles.",
-		buildingType,
-		pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-		static_cast<uint32_t>(purposeType),
-		name);
+	return true;
 }
 
-static void BuildingSupportsStyle(
-	const cSC4TractDeveloper* pThis,
-	uint32_t buildingType,
-	uint32_t style)
-{
-	Logger::GetInstance().WriteLineFormatted(
-		LogLevel::Info,
-		"0x%08x (%s) supports building style 0x%x.",
-		buildingType,
-		pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-		style);
-}
-
-static void BuildingDoesNotSupportStyle(
-	const cSC4TractDeveloper* pThis,
-	uint32_t buildingType)
-{
-	Logger::GetInstance().WriteLineFormatted(
-		LogLevel::Info,
-		"0x%08x (%s) doesn't have any supported building styles.",
-		buildingType,
-		pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
-}
-
-static bool __stdcall BuildingSupportsStyle(const cSC4TractDeveloper* pThis, uint32_t buildingType)
+static bool DoesBuildingSupportStyle(const cSC4TractDeveloper* pThis, uint32_t buildingType)
 {
 	bool result = false;
 
@@ -410,7 +379,10 @@ static bool __stdcall BuildingSupportsStyle(const cSC4TractDeveloper* pThis, uin
 								if (HasOccupantGroupValue(pOccupantGroupData, count, *pStyle))
 								{
 #ifdef _DEBUG
-									BuildingSupportsStyle(pThis, buildingType, *pStyle);
+									LogStyleSupported(
+										buildingType,
+										pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+										*pStyle);
 #endif // _DEBUG
 									result = true;
 									break;
@@ -421,7 +393,9 @@ static bool __stdcall BuildingSupportsStyle(const cSC4TractDeveloper* pThis, uin
 #ifdef _DEBUG
 							if (!result)
 							{
-								BuildingDoesNotSupportStyle(pThis, buildingType);
+								LogNoSupportedStyles(
+									buildingType,
+									pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
 							}
 #endif // _DEBUG
 						}
@@ -433,11 +407,16 @@ static bool __stdcall BuildingSupportsStyle(const cSC4TractDeveloper* pThis, uin
 #ifdef _DEBUG
 							if (result)
 							{
-								BuildingSupportsStyle(pThis, buildingType, activeStyle);
+								LogStyleSupported(
+									buildingType,
+									pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+									activeStyle);
 							}
 							else
 							{
-								BuildingDoesNotSupportStyle(pThis, buildingType);
+								LogNoSupportedStyles(
+									buildingType,
+									pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
 							}
 #endif // _DEBUG
 						}
@@ -455,38 +434,43 @@ static uintptr_t IsBuildingCompatible_NoCompatableStyle_Continue;
 
 static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 {
-	static const cSC4TractDeveloper* pThis;
-	static cISC4BuildingOccupant::PurposeType buildingPurpose;
-	static uint32_t buildingType;
-	static const uint32_t* pStyle;
-
-	_asm pushad
-	_asm mov pThis, esi
-	_asm mov eax, dword ptr[edi]
-	_asm mov buildingPurpose, eax
-	_asm mov eax, dword ptr[esp + 0x38]
-	_asm mov buildingType, eax
-
-	if (pThis->activeStyles.empty()
-		|| buildingPurpose < cISC4BuildingOccupant::PurposeType::Residence
-		|| buildingPurpose > cISC4BuildingOccupant::PurposeType::Office)
+	__asm
 	{
-		BuildingPurposeTypeDoesNotSupportStyles(pThis, buildingType, buildingPurpose);
-		_asm popad
-		_asm push IsBuildingCompatible_CompatableStyleFound_Continue
-		_asm ret
+		push eax // store
+		push ecx // store
+		push edx // store
+		mov eax, dword ptr[edi]
+		push eax // purpose
+		// TODO: The esp + 0x38 stack offset below is wrong. It was taken from the disassembly at offset 0x00704eaa
+		// The target variable is the second parameter (building IID), stored at esp + 4 at the start of the hooked function.
+		mov ecx, dword ptr[esp + 0x38]
+		push ecx // building type
+		push esi // this pointer
+		call DoesBuildingSupportStyles // (cdecl)
+		add esp, 12
+		test al, al
+		jz compatableStyleFound // If building styles are not supported report that the style is compatible
+		// TODO: Recalculate the stack offset of the second method parameter. See the other TODO above.
+		mov ecx, dword ptr[esp + 0x38]
+		push ecx // building type
+		push esi // this pointer
+		call DoesBuildingSupportStyle
+		add esp, 12
+		test al, al
+		jz noCompatableStyleFound
+		compatableStyleFound:
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push IsBuildingCompatible_CompatableStyleFound_Continue
+		ret
+		noCompatableStyleFound:
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push IsBuildingCompatible_NoCompatableStyle_Continue
+		ret
 	}
-
-	if (BuildingSupportsStyle(pThis, buildingType))
-	{
-		_asm popad
-		_asm push IsBuildingCompatible_CompatableStyleFound_Continue
-		_asm ret
-	}
-
-	_asm popad
-	_asm push IsBuildingCompatible_NoCompatableStyle_Continue
-	_asm ret
 }
 
 void TractDeveloperHooks::Install()
