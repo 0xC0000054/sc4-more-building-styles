@@ -121,64 +121,99 @@ public:
 	uint32_t isCollapsed;              // 0x18
 };
 
+static void UpdateOptionalCheckBoxState(const cSC4BuildingSelectWinProc* pThis, uint32_t buttonID)
+{
+	spBuildingSelectWinManager->UpdateOptionalCheckBoxState(pThis->styleListContainer, buttonID);
+}
+
+static bool IsBuildingStyleAvailable(uint32_t style)
+{
+	return spBuildingSelectWinManager->IsBuildingStyleAvailable(style);
+}
+
 static void NAKED_FUN DoWinProcMessageHookFn(void)
 {
-	static cSC4BuildingSelectWinProc* pThis;
-	static uint32_t buttonID;
+	__asm
+	{
+		// esi is the this pointer
+		// eax is the button id
+		push eax // store
+		push ecx // store
+		push edx // store
+		cmp eax, StyleControlRadio_CycleEveryNYears
+		jz cycleStyleEveryNYears
+		cmp eax, StyleControlRadio_UseAllStylesAtOnce
+		jz useAllStylesAtOnce
+		cmp eax, StylePanel_Collapsed_TitleBar
+		jz stylePanelTitleBar_ToggleVisibility
+		cmp eax, StylePanel_Expanded_TitleBar
+		jz stylePanelTitleBar_ToggleVisibility
+		cmp eax, StylePanel_Collapsed_ToggleButton
+		jz stylePanelCollapsedToggle
+		cmp eax, StylePanel_Expanded_ToggleButton
+		jz stylePanelExpandedToggle
+		cmp eax, AutoHistoricalButtonID
+		jz updateOptionalCheckBoxState
+		// Any button id below this line should be a style id
+		push eax
+		call IsBuildingStyleAvailable // (cdecl)
+		add esp, 4
+		test al, al
+		jz exit_method
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push DoWinProcMessage_Hook_StyleValidJump
+		ret
 
-	_asm mov pThis, esi
-	_asm mov buttonID, eax
-	_asm pushad
+		cycleStyleEveryNYears:
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push DoWinProcMessage_Hook_Button_StyleControlRadio_CycleEveryNYears_Continue_Jump
+		ret
 
-	if (buttonID == StyleControlRadio_CycleEveryNYears)
-	{
-		_asm popad
-		_asm push DoWinProcMessage_Hook_Button_StyleControlRadio_CycleEveryNYears_Continue_Jump
-		_asm ret
-	}
-	else if (buttonID == StyleControlRadio_UseAllStylesAtOnce)
-	{
-		_asm popad
-		_asm push DoWinProcMessage_Hook_Button_StyleControlRadio_UseAllStylesAtOnce_Continue_Jump
-		_asm ret
-	}
-	else if (buttonID == StylePanel_Collapsed_TitleBar || buttonID == StylePanel_Expanded_TitleBar)
-	{
-		_asm popad
-		_asm push DoWinProcMessage_Hook_Button_StylePanelTitleBar_ToggleVisibility_Continue_Jump
-		_asm ret
-	}
-	else if (buttonID == StylePanel_Collapsed_ToggleButton)
-	{
-		_asm popad
-		_asm push DoWinProcMessage_Hook_Button_ShowBuildingStyleControl_Continue_Jump
-		_asm ret
-	}
-	else if (buttonID == StylePanel_Expanded_ToggleButton)
-	{
-		_asm popad
-		_asm push DoWinProcMessage_Hook_Button_HideBuildingStyleControl_Continue_Jump
-		_asm ret
-	}
-	else if (buttonID == AutoHistoricalButtonID)
-	{
-		spBuildingSelectWinManager->UpdateOptionalCheckBoxState(pThis->styleListContainer, AutoHistoricalButtonID);
-	}
-	else
-	{
-		// The available building styles must be the last button ids to be processed.
-		// A building style radio button could use any button ID not in the above list.
-		if (spBuildingSelectWinManager->IsBuildingStyleAvailable(buttonID))
-		{
-			_asm popad
-			_asm push DoWinProcMessage_Hook_StyleValidJump
-			_asm ret
-		}
-	}
+		useAllStylesAtOnce:
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push DoWinProcMessage_Hook_Button_StyleControlRadio_UseAllStylesAtOnce_Continue_Jump
+		ret
 
-	_asm popad
-	_asm push DoWinProcMessage_Hook_ExitMethodJump
-	_asm ret
+		stylePanelTitleBar_ToggleVisibility:
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push DoWinProcMessage_Hook_Button_StylePanelTitleBar_ToggleVisibility_Continue_Jump
+		ret
+
+		stylePanelCollapsedToggle:
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push DoWinProcMessage_Hook_Button_ShowBuildingStyleControl_Continue_Jump
+		ret
+
+		stylePanelExpandedToggle:
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push DoWinProcMessage_Hook_Button_HideBuildingStyleControl_Continue_Jump
+		ret
+
+		updateOptionalCheckBoxState:
+		push eax // button id
+		push esi // this pointer
+		call UpdateOptionalCheckBoxState // (cdecl)
+		add esp, 8
+
+		exit_method:
+		pop edx // restore
+		pop ecx // restore
+		pop eax // restore
+		push DoWinProcMessage_Hook_ExitMethodJump
+		ret
+	}
 }
 
 void __thiscall cSC4BuildingSelectWinProc::EnableStyleButtons()
