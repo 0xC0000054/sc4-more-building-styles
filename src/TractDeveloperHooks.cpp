@@ -434,6 +434,8 @@ static uintptr_t IsBuildingCompatible_NoCompatableStyle_Continue;
 
 static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 {
+	// TODO: The EBP register need to be restored to some unknown value before the hook function exits.
+
 	__asm
 	{
 		push eax // store
@@ -441,30 +443,27 @@ static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 		push edx // store
 		mov eax, dword ptr[edi]
 		push eax // purpose
-		// TODO: The esp + 0x38 stack offset below is wrong. It was taken from the disassembly at offset 0x00704eaa
-		// The target variable is the second parameter (building IID), stored at esp + 4 at the start of the hooked function.
-		mov ecx, dword ptr[esp + 0x38]
-		push ecx // building type
+		push ebp // building type
 		push esi // this pointer
 		call DoesBuildingSupportStyles // (cdecl)
 		add esp, 12
 		test al, al
 		jz compatableStyleFound // If building styles are not supported report that the style is compatible
-		// TODO: Recalculate the stack offset of the second method parameter. See the other TODO above.
-		mov ecx, dword ptr[esp + 0x38]
-		push ecx // building type
+		push ebp // building type
 		push esi // this pointer
 		call BuildingHasStyleOccupantGroup
 		add esp, 8
 		test al, al
 		jz noCompatableStyleFound
 		compatableStyleFound:
+		//pop ebp // The games original code does this, but it doesn't work here.
 		pop edx // restore
 		pop ecx // restore
 		pop eax // restore
 		push IsBuildingCompatible_CompatableStyleFound_Continue
 		ret
 		noCompatableStyleFound:
+		//pop ebp // The games original code does this, but it doesn't work here.
 		pop edx // restore
 		pop ecx // restore
 		pop eax // restore
