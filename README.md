@@ -32,6 +32,15 @@ display a message saying that mode is active.
 
 `DebugActiveStyles` writes the currently enabled style IDs to the plugin's log file.
 
+## SC4MoreBuildingStyles INI File
+
+This file contains two settings that control whether the growable building style debug logging code will write to the
+plugin's log file.
+It is recommended that you only enable these options for experimentation. They will slow down your game and quickly produce
+a large log file.
+
+As an example from one of my tests, a 22 second run with both options enabled produced a ~2 MB log file with ~15,500 lines.
+
 ## For DLL Modders
 
 ### Style Changed Message
@@ -87,7 +96,7 @@ The plugin may work on Windows 7 or later with the [Microsoft Visual C++ 2022 x8
 ## Installation
 
 1. Close SimCity 4.
-2. Copy `SC4MoreBuildingStyles.dll` into the Plugins folder in the SimCity 4 installation directory.
+2. Copy `SC4MoreBuildingStyles.dll` and `SC4MoreBuildingStyles.ini` into the Plugins folder in the SimCity 4 installation directory.
 3. Start SimCity 4.
 
 ## Troubleshooting
@@ -107,6 +116,8 @@ See [LICENSE.txt](LICENSE.txt) for more information.
 [EASTL](https://github.com/electronicarts/EASTL) Located in the vendor folder, BSD 3-Clause License.    
 [Windows Implementation Library](https://github.com/microsoft/wil) - MIT License    
 [SC4Fix](https://github.com/nsgomez/sc4fix) - MIT License.    
+[Boost.Algorithm](https://www.boost.org/doc/libs/1_84_0/libs/algorithm/doc/html/index.html) - Boost Software License, Version 1.0.    
+[Boost.PropertyTree](https://www.boost.org/doc/libs/1_84_0/doc/html/property_tree.html) - Boost Software License, Version 1.0.
 
 # Source Code
 

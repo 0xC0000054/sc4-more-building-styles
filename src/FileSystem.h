@@ -11,8 +11,11 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "IBuildingSelectWinManager.h"
-#include "Preferences.h"
+#include <filesystem>
 
-extern IBuildingSelectWinManager* spBuildingSelectWinManager;
-extern const Preferences* spPreferences;
+namespace FileSystem
+{
+	std::filesystem::path GetConfigFilePath();
+	std::filesystem::path GetLogFilePath();
+};
+

@@ -22,6 +22,7 @@
 #include "cISC4BuildingOccupant.h"
 #include "cISC4LotConfiguration.h"
 #include "cRZAutoRefCount.h"
+#include "GlobalPointers.h"
 #include "GZServPtrs.h"
 #include "Logger.h"
 #include "Patcher.h"
@@ -231,10 +232,13 @@ static bool DoesLotSupportBuildingStyles(
 	if (pThis->activeStyles.empty()
 		|| !PurposeTypeSupportsBuildingStyles(purpose))
 	{
-		LogPurposeTypeDoesNotSupportStyles(
-			pLotConfiguration->id,
-			pLotConfiguration->name.AsIGZString()->ToChar(),
-			purpose);
+		if (spPreferences->LogLotStyleSelection())
+		{
+			LogPurposeTypeDoesNotSupportStyles(
+				pLotConfiguration->id,
+				pLotConfiguration->name.AsIGZString()->ToChar(),
+				purpose);
+		}
 		return false;
 	}
 
@@ -254,35 +258,47 @@ static bool IsLotCompatibleWithActiveStyles(
 		{
 			if (LotConfigurationHasStyle(pLotConfiguration, *pStyle))
 			{
-				LogStyleSupported(
-					pLotConfiguration->id,
-					pLotConfiguration->name.AsIGZString()->ToChar(),
-					*pStyle);
+				if (spPreferences->LogLotStyleSelection())
+				{
+					LogStyleSupported(
+						pLotConfiguration->id,
+						pLotConfiguration->name.AsIGZString()->ToChar(),
+						*pStyle);
+				}
 				return true;
 			}
 			++pStyle;
 		}
 
-		LogNoSupportedStyles(
-			pLotConfiguration->id,
-			pLotConfiguration->name.AsIGZString()->ToChar());
+		if (spPreferences->LogLotStyleSelection())
+		{
+			LogNoSupportedStyles(
+				pLotConfiguration->id,
+				pLotConfiguration->name.AsIGZString()->ToChar());
+		}
 	}
 	else
 	{
 		// Change style every N years.
 		if (LotConfigurationHasStyle(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]))
 		{
-			LogStyleSupported(
-				pLotConfiguration->id,
-				pLotConfiguration->name.AsIGZString()->ToChar(),
-				pThis->activeStyles[pThis->currentStyleIndex]);
+			if (spPreferences->LogLotStyleSelection())
+			{
+				LogStyleSupported(
+					pLotConfiguration->id,
+					pLotConfiguration->name.AsIGZString()->ToChar(),
+					pThis->activeStyles[pThis->currentStyleIndex]);
+			}
 			return true;
 		}
 	}
 
-	LogNoSupportedStyles(
-		pLotConfiguration->id,
-		pLotConfiguration->name.AsIGZString()->ToChar());
+	if (spPreferences->LogLotStyleSelection())
+	{
+		LogNoSupportedStyles(
+			pLotConfiguration->id,
+			pLotConfiguration->name.AsIGZString()->ToChar());
+	}
 	return false;
 }
 
@@ -329,10 +345,13 @@ static bool DoesBuildingSupportStyles(
 	if (pThis->activeStyles.empty()
 		|| !PurposeTypeSupportsBuildingStyles(purpose))
 	{
-		LogPurposeTypeDoesNotSupportStyles(
-			buildingType,
-			pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-			purpose);
+		if (spPreferences->LogBuildingStyleSelection())
+		{
+			LogPurposeTypeDoesNotSupportStyles(
+				buildingType,
+				pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+				purpose);
+		}
 
 		return false;
 	}
@@ -378,47 +397,47 @@ static bool BuildingHasStyleOccupantGroup(const cSC4TractDeveloper* pThis, uint3
 							{
 								if (HasOccupantGroupValue(pOccupantGroupData, count, *pStyle))
 								{
-#ifdef _DEBUG
-									LogStyleSupported(
-										buildingType,
-										pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-										*pStyle);
-#endif // _DEBUG
+									if (spPreferences->LogBuildingStyleSelection())
+									{
+										LogStyleSupported(
+											buildingType,
+											pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+											*pStyle);
+									}
 									result = true;
 									break;
 								}
 								++pStyle;
 							}
 
-#ifdef _DEBUG
-							if (!result)
+							if (!result && spPreferences->LogBuildingStyleSelection())
 							{
 								LogNoSupportedStyles(
 									buildingType,
 									pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
 							}
-#endif // _DEBUG
 						}
 						else
 						{
 							uint32_t activeStyle = pThis->activeStyles[pThis->currentStyleIndex];
 
 							result = HasOccupantGroupValue(pOccupantGroupData, count, activeStyle);
-#ifdef _DEBUG
-							if (result)
+							if (spPreferences->LogBuildingStyleSelection())
 							{
-								LogStyleSupported(
-									buildingType,
-									pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-									activeStyle);
+								if (result)
+								{
+									LogStyleSupported(
+										buildingType,
+										pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+										activeStyle);
+								}
+								else
+								{
+									LogNoSupportedStyles(
+										buildingType,
+										pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
+								}
 							}
-							else
-							{
-								LogNoSupportedStyles(
-									buildingType,
-									pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
-							}
-#endif // _DEBUG
 						}
 					}
 				}

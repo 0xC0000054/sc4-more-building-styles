@@ -34,12 +34,14 @@
     <ClCompile Include="BuildingSelectWinManager.cpp" />
     <ClCompile Include="BuildingSelectWinProcHooks.cpp" />
     <ClCompile Include="BuildingStyleInfo.cpp" />
+    <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="GZWinUtil.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="MoreBuildingStylesDllDirector.cpp" />
     <ClCompile Include="AvailableBuildingStyles.cpp" />
     <ClCompile Include="Patcher.cpp" />
     <ClCompile Include="SC4VersionDetection.cpp" />
+    <ClCompile Include="Preferences.cpp" />
     <ClCompile Include="TractDeveloperHooks.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -59,6 +61,7 @@
     <ClInclude Include="BuildingStyleButtons.h" />
     <ClInclude Include="BuildingStyleInfo.h" />
     <ClInclude Include="BuildingStyleMessages.h" />
+    <ClInclude Include="FileSystem.h" />
     <ClInclude Include="GlobalPointers.h" />
     <ClInclude Include="GZWinUtil.h" />
     <ClInclude Include="IBuildingSelectWinManager.h" />
@@ -67,12 +70,13 @@
     <ClInclude Include="Patcher.h" />
     <ClInclude Include="public\include\cIBuildingStyleInfo.h" />
     <ClInclude Include="SC4VersionDetection.h" />
+    <ClInclude Include="Preferences.h" />
     <ClInclude Include="TractDeveloperHooks.h" />
     <ClInclude Include="version.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
-    <None Include="packages.config" />
+    <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />
@@ -110,6 +114,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -159,13 +166,5 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="packages\Microsoft.Windows.ImplementationLibrary.1.0.231216.1\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('packages\Microsoft.Windows.ImplementationLibrary.1.0.231216.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\Microsoft.Windows.ImplementationLibrary.1.0.231216.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Windows.ImplementationLibrary.1.0.231216.1\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
-  </Target>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

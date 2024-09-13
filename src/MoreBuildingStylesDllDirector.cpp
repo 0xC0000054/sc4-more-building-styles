@@ -17,7 +17,9 @@
 #include "BuildingStyleInfo.h"
 #include "BuildingStyleMessages.h"
 #include "AvailableBuildingStyles.h"
+#include "FileSystem.h"
 #include "Logger.h"
+#include "Preferences.h"
 #include "TractDeveloperHooks.h"
 #include "cIGZCOM.h"
 #include "cIGZCheatCodeManager.h"
@@ -53,9 +55,8 @@ static constexpr uint32_t kMoreBuildingStylesDirectorID = 0x3BF9E52C;
 static constexpr uint32_t kDebugActiveStyles = 0x730FF429;
 static constexpr uint32_t kActiveStyle = 0x4580A54D;
 
-static constexpr std::string_view PluginLogFileName = "SC4MoreBuildingStyles.log";
-
 IBuildingSelectWinManager* spBuildingSelectWinManager = nullptr;
+const Preferences* spPreferences = nullptr;
 
 class MoreBuildingStylesDllDirector : public cRZMessage2COMDirector
 {
@@ -65,10 +66,7 @@ public:
 		: buildingSelectWinManager(),
 		  buildingStyleInfo(buildingSelectWinManager)
 	{
-		std::filesystem::path dllFolderPath = GetDllFolderPath();
-
-		std::filesystem::path logFilePath = dllFolderPath;
-		logFilePath /= PluginLogFileName;
+		std::filesystem::path logFilePath = FileSystem::GetLogFilePath();
 
 		Logger& logger = Logger::GetInstance();
 		logger.Init(logFilePath, LogLevel::Error);
@@ -222,6 +220,9 @@ public:
 	{
 		Logger& logger = Logger::GetInstance();
 
+		preferences.Load();
+		spPreferences = &preferences;
+
 		spBuildingSelectWinManager = &buildingSelectWinManager;
 		BuildingSelectWinProcHooks::Install();
 		TractDeveloperHooks::Install();
@@ -283,18 +284,9 @@ public:
 	}
 
 private:
-
-	std::filesystem::path GetDllFolderPath()
-	{
-		wil::unique_cotaskmem_string modulePath = wil::GetModuleFileNameW(wil::GetModuleInstanceHandle());
-
-		std::filesystem::path temp(modulePath.get());
-
-		return temp.parent_path();
-	}
-
 	BuildingSelectWinManager buildingSelectWinManager;
 	BuildingStyleInfo buildingStyleInfo;
+	Preferences preferences;
 };
 
 cRZCOMDllDirector* RZGetCOMDllDirector() {

@@ -11,8 +11,19 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "IBuildingSelectWinManager.h"
-#include "Preferences.h"
 
-extern IBuildingSelectWinManager* spBuildingSelectWinManager;
-extern const Preferences* spPreferences;
+class Preferences final
+{
+public:
+	Preferences();
+
+	void Load();
+
+	bool LogBuildingStyleSelection() const;
+	bool LogLotStyleSelection() const;
+
+private:
+	bool logBuildingStyleSelection;
+	bool logLotStyleSelection;
+};
+
