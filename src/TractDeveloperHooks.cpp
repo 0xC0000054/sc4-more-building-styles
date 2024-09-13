@@ -434,10 +434,13 @@ static uintptr_t IsBuildingCompatible_NoCompatableStyle_Continue;
 
 static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 {
-	// TODO: The EBP register need to be restored to some unknown value before the hook function exits.
-
 	__asm
 	{
+		// First we push EBX and XOR it with itself to set it to zero.
+		// This is done by code that runs after our inject point, and all of the exit conditions after that point
+		// include a POP EBX call before returning.
+		push ebx
+		xor ebx, ebx
 		push eax // store
 		push ecx // store
 		push edx // store
@@ -456,17 +459,17 @@ static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 		test al, al
 		jz noCompatableStyleFound
 		compatableStyleFound:
-		//pop ebp // The games original code does this, but it doesn't work here.
 		pop edx // restore
 		pop ecx // restore
 		pop eax // restore
+		// EBX is not popped because SC4's code will handle that.
 		push IsBuildingCompatible_CompatableStyleFound_Continue
 		ret
 		noCompatableStyleFound:
-		//pop ebp // The games original code does this, but it doesn't work here.
 		pop edx // restore
 		pop ecx // restore
 		pop eax // restore
+		// EBX is not popped because SC4's code will handle that.
 		push IsBuildingCompatible_NoCompatableStyle_Continue
 		ret
 	}
