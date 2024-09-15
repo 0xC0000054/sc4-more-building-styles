@@ -41,6 +41,7 @@
     <ClCompile Include="MoreBuildingStylesDllDirector.cpp" />
     <ClCompile Include="AvailableBuildingStyles.cpp" />
     <ClCompile Include="Patcher.cpp" />
+    <ClCompile Include="SC4NotificationDialog.cpp" />
     <ClCompile Include="SC4VersionDetection.cpp" />
     <ClCompile Include="Preferences.cpp" />
     <ClCompile Include="StringViewUtil.cpp" />
@@ -75,6 +76,7 @@
     <ClInclude Include="AvailableBuildingStyles.h" />
     <ClInclude Include="Patcher.h" />
     <ClInclude Include="public\include\cIBuildingStyleInfo.h" />
+    <ClInclude Include="SC4NotificationDialog.h" />
     <ClInclude Include="SC4VersionDetection.h" />
     <ClInclude Include="Preferences.h" />
     <ClInclude Include="StringViewUtil.h" />

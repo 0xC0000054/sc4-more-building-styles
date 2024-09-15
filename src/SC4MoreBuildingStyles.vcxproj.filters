@@ -129,6 +129,9 @@
     <ClCompile Include="StringViewUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SC4NotificationDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -228,6 +231,9 @@
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
     <ClInclude Include="StringViewUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SC4NotificationDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

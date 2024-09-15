@@ -35,6 +35,7 @@
 #include "cRZMessage2Standard.h"
 #include "cRZBaseString.h"
 #include "GZServPtrs.h"
+#include "SC4NotificationDialog.h"
 
 #include <array>
 #include <filesystem>
@@ -153,9 +154,8 @@ public:
 		else if (cheatID == kActiveStyle)
 		{
 			cISC4AppPtr pSC4App;
-			cIGZWinMgrPtr pWinMgr;
 
-			if (pSC4App && pWinMgr)
+			if (pSC4App)
 			{
 				cISC4City* pCity = pSC4App->GetCity();
 
@@ -167,12 +167,9 @@ public:
 					{
 						if (pTractDeveloper->IsUsingAllStylesAtOnce())
 						{
-							pWinMgr->GZMsgBox(
+							SC4NotificationDialog::ShowDialog(
 								cRZBaseString("All styles are being built at once."),
-								cRZBaseString("ActiveStyle"),
-								0,
-								false,
-								0);
+								cRZBaseString("ActiveStyle"));
 						}
 						else
 						{
@@ -182,12 +179,9 @@ public:
 
 							std::snprintf(buffer, sizeof(buffer), "0x%X", currentStyle);
 
-							pWinMgr->GZMsgBox(
+							SC4NotificationDialog::ShowDialog(
 								cRZBaseString(buffer),
-								cRZBaseString("ActiveStyle"),
-								0,
-								false,
-								0);
+								cRZBaseString("ActiveStyle"));
 						}
 					}
 				}
