@@ -32,6 +32,12 @@ display a message saying that mode is active.
 
 `DebugActiveStyles` writes the currently enabled style IDs to the plugin's log file.
 
+## Industrial Building Styles
+
+Building style support for the 4 industrial zone types are controlled by 4 INI file entries that should be placed
+in the style mod DAT files.
+See the [industrial-building-styles](industrial-building-styles) folder for a template file and the format details.
+
 ## SC4MoreBuildingStyles INI File
 
 This file contains two settings that control whether the growable building style debug logging code will write to the

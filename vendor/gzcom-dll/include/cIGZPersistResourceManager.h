@@ -57,7 +57,7 @@ public:
 	virtual uint32_t EnumerateDBSegments(cIGZPersistDBSegment** unknown1, uint32_t* unknown2) = 0;
 	virtual bool EnumerateDBSegments(EnumerateDBSegmentsCallback* pCallback, cIGZPersistDBSegment* unknown2) = 0;
 
-	virtual bool OpenDBRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** unknown2, bool unknown3) = 0;
+	virtual bool OpenDBRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** ppRecord, bool openWrite) = 0;
 	virtual bool CloseDBRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** unknown2) = 0;
 	virtual bool AddCacheStrategy(cIGZPersistCacheStrategy* cacheStrategy) = 0;
 	virtual bool RemoveCacheStrategy(cIGZPersistCacheStrategy* cacheStrategy) = 0;

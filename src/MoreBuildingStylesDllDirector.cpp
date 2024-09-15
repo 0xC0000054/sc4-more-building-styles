@@ -220,7 +220,7 @@ public:
 	{
 		Logger& logger = Logger::GetInstance();
 
-		preferences.Load();
+		preferences.Load(mpCOM);
 		spPreferences = &preferences;
 
 		spBuildingSelectWinManager = &buildingSelectWinManager;

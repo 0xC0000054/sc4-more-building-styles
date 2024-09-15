@@ -146,8 +146,27 @@ static bool HasOccupantGroupValue(
 
 static bool PurposeTypeSupportsBuildingStyles(cISC4BuildingOccupant::PurposeType purpose)
 {
-	return purpose >= cISC4BuildingOccupant::PurposeType::Residence
-		&& purpose <= cISC4BuildingOccupant::PurposeType::Office;
+	switch (purpose)
+	{
+		break;
+	case cISC4BuildingOccupant::PurposeType::Residence:
+	case cISC4BuildingOccupant::PurposeType::Services:
+	case cISC4BuildingOccupant::PurposeType::Office:
+		return true;
+	case cISC4BuildingOccupant::PurposeType::Agriculture:
+		return spPreferences->AgriculturePurposeTypeSupportsBuildingStyles();
+	case cISC4BuildingOccupant::PurposeType::Processing:
+		return spPreferences->ProcessingPurposeTypeSupportsBuildingStyles();
+	case cISC4BuildingOccupant::PurposeType::Manufacturing:
+		return spPreferences->ManufacturingPurposeTypeSupportsBuildingStyles();
+	case cISC4BuildingOccupant::PurposeType::HighTech:
+		return spPreferences->HighTechPurposeTypeSupportsBuildingStyles();
+	case cISC4BuildingOccupant::PurposeType::None:
+	case cISC4BuildingOccupant::PurposeType::Tourism:
+	case cISC4BuildingOccupant::PurposeType::Other:
+	default:
+		return false;
+	}
 }
 
 static void LogPurposeTypeDoesNotSupportStyles(

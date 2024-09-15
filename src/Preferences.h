@@ -12,18 +12,32 @@
 
 #pragma once
 
+class cIGZCOM;
+
 class Preferences final
 {
 public:
 	Preferences();
 
-	void Load();
+	void Load(cIGZCOM* const pCOM);
 
 	bool LogBuildingStyleSelection() const;
 	bool LogLotStyleSelection() const;
 
+	bool AgriculturePurposeTypeSupportsBuildingStyles() const;
+	bool ProcessingPurposeTypeSupportsBuildingStyles() const;
+	bool ManufacturingPurposeTypeSupportsBuildingStyles() const;
+	bool HighTechPurposeTypeSupportsBuildingStyles() const;
+
 private:
+	void LoadPreferencesFromDllConfigFile();
+	void LoadPreferencesFromDBPFFiles(cIGZCOM* const pCOM);
+
 	bool logBuildingStyleSelection;
 	bool logLotStyleSelection;
+	bool agriculturePurposeTypeSupportsBuildingStyles;
+	bool processingPurposeTypeSupportsBuildingStyles;
+	bool manufacturingPurposeTypeSupportsBuildingStyles;
+	bool highTechPurposeTypeSupportsBuildingStyles;
 };
 

@@ -25,6 +25,23 @@ class cRZAutoRefCount
 			}
 		}
 
+		cRZAutoRefCount(const cRZAutoRefCount&) = delete;
+		cRZAutoRefCount& operator=(const cRZAutoRefCount&) = delete;
+
+		cRZAutoRefCount(cRZAutoRefCount&& other) noexcept
+		{
+			this->pObject = other.pObject;
+			other.pObject = nullptr;
+		}
+
+		cRZAutoRefCount& operator=(cRZAutoRefCount&& other) noexcept
+		{
+			this->pObject = other.pObject;
+			other.pObject = nullptr;
+
+			return *this;
+		}
+
 		cRZAutoRefCount<T>& operator=(T* pOther) {
 			if (pObject != pOther) {
 				if (pObject) {
