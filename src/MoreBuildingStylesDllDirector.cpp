@@ -50,6 +50,8 @@
 #include "EASTL\vector.h"
 
 static constexpr uint32_t kMessageCheatIssued = 0x230E27AC;
+static constexpr uint32_t kSC4MessagePostCityInitComplete = 0xEA8AE29A;
+static constexpr uint32_t kSC4MessagePostCityShutdown = 0x26D31EC3;
 
 static constexpr uint32_t kMoreBuildingStylesDirectorID = 0x3BF9E52C;
 
@@ -64,7 +66,8 @@ class MoreBuildingStylesDllDirector : public cRZMessage2COMDirector
 public:
 
 	MoreBuildingStylesDllDirector()
-		: buildingSelectWinManager(),
+		: pCity(nullptr),
+		  buildingSelectWinManager(),
 		  buildingStyleInfo(buildingSelectWinManager)
 	{
 		std::filesystem::path logFilePath = FileSystem::GetLogFilePath();
@@ -119,70 +122,97 @@ public:
 			added ? "added" : "removed");
 	}
 
+	void PostCityInitComplete(cIGZMessage2Standard* pStandardMsg)
+	{
+		pCity = static_cast<cISC4City*>(pStandardMsg->GetVoid1());
+
+		if (pCity)
+		{
+			cISC4AppPtr pSC4App;
+
+			if (pSC4App)
+			{
+				cIGZCheatCodeManager* pCheatCodeManager = pSC4App->GetCheatCodeManager();
+
+				if (pCheatCodeManager)
+				{
+					pCheatCodeManager->AddNotification2(this, 0);
+					pCheatCodeManager->RegisterCheatCode(kDebugActiveStyles, cRZBaseString("DebugActiveStyles"));
+					pCheatCodeManager->RegisterCheatCode(kActiveStyle, cRZBaseString("ActiveStyle"));
+				}
+			}
+		}
+	}
+
+	void PostCityShutdown()
+	{
+		pCity = nullptr;
+
+		cISC4AppPtr pSC4App;
+
+		if (pSC4App)
+		{
+			cIGZCheatCodeManager* pCheatCodeManager = pSC4App->GetCheatCodeManager();
+
+			if (pCheatCodeManager)
+			{
+				pCheatCodeManager->UnregisterCheatCode(kDebugActiveStyles);
+				pCheatCodeManager->UnregisterCheatCode(kActiveStyle);
+				pCheatCodeManager->RemoveNotification2(this, 0);
+			}
+		}
+	}
+
 	void ProcessCheat(cIGZMessage2Standard* pStandardMsg)
 	{
 		uint32_t cheatID = static_cast<uint32_t>(pStandardMsg->GetData1());
 
 		if (cheatID == kDebugActiveStyles)
 		{
-			cISC4AppPtr pSC4App;
-
-			if (pSC4App)
+			if (pCity)
 			{
-				cISC4City* pCity = pSC4App->GetCity();
+				const cISC4TractDeveloper* pTractDeveloper = pCity->GetTractDeveloper();
 
-				if (pCity)
+				if (pTractDeveloper)
 				{
-					const cISC4TractDeveloper* pTractDeveloper = pCity->GetTractDeveloper();
+					const eastl::vector<uint32_t>& activeStyles = pTractDeveloper->GetActiveStyles();
 
-					if (pTractDeveloper)
+					Logger& logger = Logger::GetInstance();
+
+					logger.WriteLineFormatted(LogLevel::Info, "%d active styles:", activeStyles.size());
+
+					for (uint32_t style : activeStyles)
 					{
-						const eastl::vector<uint32_t>& activeStyles = pTractDeveloper->GetActiveStyles();
-
-						Logger& logger = Logger::GetInstance();
-
-						logger.WriteLineFormatted(LogLevel::Info, "%d active styles:", activeStyles.size());
-
-						for (uint32_t style : activeStyles)
-						{
-							logger.WriteLineFormatted(LogLevel::Info, "0x%08X", style);
-						}
+						logger.WriteLineFormatted(LogLevel::Info, "0x%08X", style);
 					}
 				}
 			}
 		}
 		else if (cheatID == kActiveStyle)
 		{
-			cISC4AppPtr pSC4App;
-
-			if (pSC4App)
+			if (pCity)
 			{
-				cISC4City* pCity = pSC4App->GetCity();
+				const cISC4TractDeveloper* pTractDeveloper = pCity->GetTractDeveloper();
 
-				if (pCity)
+				if (pTractDeveloper)
 				{
-					const cISC4TractDeveloper* pTractDeveloper = pCity->GetTractDeveloper();
-
-					if (pTractDeveloper)
+					if (pTractDeveloper->IsUsingAllStylesAtOnce())
 					{
-						if (pTractDeveloper->IsUsingAllStylesAtOnce())
-						{
-							SC4NotificationDialog::ShowDialog(
-								cRZBaseString("All styles are being built at once."),
-								cRZBaseString("ActiveStyle"));
-						}
-						else
-						{
-							uint32_t currentStyle = pTractDeveloper->GetCurrentStyle();
+						SC4NotificationDialog::ShowDialog(
+							cRZBaseString("All styles are being built at once."),
+							cRZBaseString("ActiveStyle"));
+					}
+					else
+					{
+						uint32_t currentStyle = pTractDeveloper->GetCurrentStyle();
 
-							char buffer[128]{};
+						char buffer[128]{};
 
-							std::snprintf(buffer, sizeof(buffer), "0x%X", currentStyle);
+						std::snprintf(buffer, sizeof(buffer), "0x%X", currentStyle);
 
-							SC4NotificationDialog::ShowDialog(
-								cRZBaseString(buffer),
-								cRZBaseString("ActiveStyle"));
-						}
+						SC4NotificationDialog::ShowDialog(
+							cRZBaseString(buffer),
+							cRZBaseString("ActiveStyle"));
 					}
 				}
 			}
@@ -199,6 +229,12 @@ public:
 		{
 		case kMessageCheatIssued:
 			ProcessCheat(pStandardMsg);
+			break;
+		case kSC4MessagePostCityInitComplete:
+			PostCityInitComplete(pStandardMsg);
+			break;
+		case kSC4MessagePostCityShutdown:
+			PostCityShutdown();
 			break;
 		case kMessageBuildingStyleCheckboxChanged:
 #if _DEBUG
@@ -221,34 +257,28 @@ public:
 		BuildingSelectWinProcHooks::Install();
 		TractDeveloperHooks::Install();
 
-		cISC4AppPtr pSC4App;
-
-		if (pSC4App)
-		{
-			cIGZCheatCodeManager* pCheatMgr = pSC4App->GetCheatCodeManager();
-
-			if (pCheatMgr)
-			{
-				pCheatMgr->AddNotification2(this, 0);
-				pCheatMgr->RegisterCheatCode(kDebugActiveStyles, cRZBaseString("DebugActiveStyles"));
-				pCheatMgr->RegisterCheatCode(kActiveStyle, cRZBaseString("ActiveStyle"));
-			}
-		}
-
 		if (!buildingSelectWinManager.Initialize())
 		{
 			logger.WriteLine(LogLevel::Error, "Failed to initialize the building select window manager.");
 			return false;
 		}
 
-#ifdef _DEBUG
 		cIGZMessageServer2Ptr pMS2;
 
 		if (pMS2)
 		{
-			pMS2->AddNotification(this, kMessageBuildingStyleCheckboxChanged);
-		}
+			std::vector<uint32_t> requiredNotifications;
+			requiredNotifications.push_back(kSC4MessagePostCityInitComplete);
+			requiredNotifications.push_back(kSC4MessagePostCityShutdown);
+#ifdef _DEBUG
+			requiredNotifications.push_back(kMessageBuildingStyleCheckboxChanged);
 #endif // _DEBUG
+
+			for (const uint32_t& messageID : requiredNotifications)
+			{
+				pMS2->AddNotification(this, messageID);
+			}
+		}
 
 		return true;
 	}
@@ -278,6 +308,7 @@ public:
 	}
 
 private:
+	cISC4City* pCity;
 	BuildingSelectWinManager buildingSelectWinManager;
 	BuildingStyleInfo buildingStyleInfo;
 	Preferences preferences;
