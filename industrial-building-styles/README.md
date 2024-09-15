@@ -1,20 +1,22 @@
 # Industrial Building Style Template
 
-This folder contains a DBPF file with the 4 INI entries that are used to enable building styles for the industrial zones.    
-Building style support for the specified zone, the supported values of the _Enabled_ field are:
+This folder contains a DBPF file with the 4 INI entries that are used to enable building styles for the industrial building categories.    
+Building style support for the specified building category, the supported values of the _Enabled_ field are:
 
-False - building styles are disabled for the zone.
-True  - building styles are enabled for the zone.
+False - building styles are disabled for the building category.
+True  - building styles are enabled for the building category.
 
 Both values are case insensitive.
 
-When building styles are disabled for a zone, the zone will
-behave as if it is compatible with all active building styles.
-This is the game's built-in behavior for the industrial zones.
+When building styles are disabled for an industrial building category, that building category will
+behave as if it is compatible with all active building styles. This is the game's built-in behavior for the
+industrial building categories.
+If building styles enabled for an industrial building category, it will act as a blocker on industrial development
+for that building category unless there is a pool of buildings that are compatible with the active styles. 
 
 # Making Your Own INI Files
 
-The TGI values and INI files section name varies depending on the industrial zone, see the sections
+The TGI values and INI files section name varies depending on the industrial building category, see the sections
 below for details.
 
 All of the INI file sections must have a single field named _Enabled_, whose value is _True_ or _False_.
