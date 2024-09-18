@@ -19,7 +19,8 @@ Finally you will need to update existing buildings to use the new building style
 
 ### Auto-Historical Check Box
 
-The DLL supports an optional check box that will automatically mark new growable residential and commercial lots as historical.
+The DLL supports an optional check box that will automatically mark new growable lots that use building styles as historical.
+Industrial buildings are only marked as historical if industrial building styles are enabled for that building type.
 This check box uses the reserved id value `0x9476D8DA`.
 
 ## Cheat Codes
@@ -34,7 +35,7 @@ display a message saying that mode is active.
 
 ## Industrial Building Styles
 
-Building style support for the 4 industrial zone types are controlled by 4 INI file entries that should be placed
+Building style support for the 4 industrial building types are controlled by 4 INI file entries that should be placed
 in the style mod DAT files.
 See the [industrial-building-styles](industrial-building-styles) folder for a template file and the format details.
 

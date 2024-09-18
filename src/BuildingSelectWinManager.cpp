@@ -16,6 +16,7 @@
 #include "cIGZMessage2Standard.h"
 #include "cIGZMessageServer2.h"
 #include "cIGZPersistDBSegment.h"
+#include "cISC4BuildingOccupant.h"
 #include "cISC4City.h"
 #include "cISC4Lot.h"
 #include "cISC4LotManager.h"
@@ -23,6 +24,7 @@
 #include "cRZAutoRefCount.h"
 #include "cRZCOMDllDirector.h"
 #include "cRZMessage2Standard.h"
+#include "GlobalPointers.h"
 #include "GZCLSIDDefs.h"
 #include "Logger.h"
 
@@ -48,30 +50,30 @@ constexpr uint32_t GZIID_cIGZMesageServer2 = 0x652294C7;
 
 namespace
 {
-	bool IsResidentialOrCommercialZone(cISC4ZoneManager::ZoneType zoneType)
+	bool BuildingStylesAreSupported(const cISC4BuildingOccupant* pBuildingOccupant)
 	{
-		switch (zoneType)
+		if (pBuildingOccupant)
 		{
-		case cISC4ZoneManager::ZoneType::ResidentialLowDensity:
-		case cISC4ZoneManager::ZoneType::ResidentialMediumDensity:
-		case cISC4ZoneManager::ZoneType::ResidentialHighDensity:
-		case cISC4ZoneManager::ZoneType::CommercialLowDensity:
-		case cISC4ZoneManager::ZoneType::CommercialMediumDensity:
-		case cISC4ZoneManager::ZoneType::CommercialHighDensity:
-			return true;
-		case cISC4ZoneManager::ZoneType::None:
-		case cISC4ZoneManager::ZoneType::Agriculture:
-		case cISC4ZoneManager::ZoneType::IndustrialMediumDensity:
-		case cISC4ZoneManager::ZoneType::IndustrialHighDensity:
-		case cISC4ZoneManager::ZoneType::Military:
-		case cISC4ZoneManager::ZoneType::Airport:
-		case cISC4ZoneManager::ZoneType::Seaport:
-		case cISC4ZoneManager::ZoneType::Spaceport:
-		case cISC4ZoneManager::ZoneType::Landfill:
-		case cISC4ZoneManager::ZoneType::Plopped:
-		default:
-			return false;
+			const cISC4BuildingOccupant::BuildingProfile& profile = pBuildingOccupant->GetBuildingProfile();
+
+			switch (profile.purpose)
+			{
+			case cISC4BuildingOccupant::PurposeType::Residence:
+			case cISC4BuildingOccupant::PurposeType::Services:
+			case cISC4BuildingOccupant::PurposeType::Office:
+				return true;
+			case cISC4BuildingOccupant::PurposeType::Agriculture:
+				return spPreferences->AgriculturePurposeTypeSupportsBuildingStyles();
+			case cISC4BuildingOccupant::PurposeType::Processing:
+				return spPreferences->ProcessingPurposeTypeSupportsBuildingStyles();
+			case cISC4BuildingOccupant::PurposeType::Manufacturing:
+				return spPreferences->ManufacturingPurposeTypeSupportsBuildingStyles();
+			case cISC4BuildingOccupant::PurposeType::HighTech:
+				return spPreferences->HighTechPurposeTypeSupportsBuildingStyles();
+			}
 		}
+
+		return false;
 	}
 }
 
@@ -256,7 +258,7 @@ void BuildingSelectWinManager::LotActivated(cISC4Lot* pLotCopy)
 {
 	if (context.AutomaticallyMarkBuildingsAsHistorical())
 	{
-		if (IsResidentialOrCommercialZone(pLotCopy->GetZoneType()))
+		if (BuildingStylesAreSupported(pLotCopy->GetBuilding()))
 		{
 			// The lot that is sent in the lot state changed message is a
 			// temporary copy, so modifying it will have no effect.
