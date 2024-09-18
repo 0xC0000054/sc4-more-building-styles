@@ -148,7 +148,6 @@ static bool PurposeTypeSupportsBuildingStyles(cISC4BuildingOccupant::PurposeType
 {
 	switch (purpose)
 	{
-		break;
 	case cISC4BuildingOccupant::PurposeType::Residence:
 	case cISC4BuildingOccupant::PurposeType::Services:
 	case cISC4BuildingOccupant::PurposeType::Office:
