@@ -13,41 +13,19 @@
 #include "GZWinUtil.h"
 #include "cIGZWin.h"
 #include "cIGZWinBtn.h"
+#include "cRZAutoRefCount.h"
 
 static const uint32_t cGZWin_Flag_Enabled = 2;
-
-namespace
-{
-	cIGZWinBtn* GetChildButtonRecursive(cIGZWin* win, uint32_t buttonID)
-	{
-		cIGZWinBtn* button = nullptr;
-
-		cIGZWin* child = win->GetChildWindowFromIDRecursive(buttonID);
-
-		if (child)
-		{
-			if (!child->QueryInterface(GZIID_cIGZWinBtn, reinterpret_cast<void**>(&button)))
-			{
-				button = nullptr;
-			}
-		}
-
-		return button;
-	}
-
-}
 
 bool GZWinUtil::GetButtonToggleState(cIGZWin* win, uint32_t buttonID)
 {
 	bool result = false;
 
-	cIGZWinBtn* button = GetChildButtonRecursive(win, buttonID);
+	cRZAutoRefCount<cIGZWinBtn> button;
 
-	if (button)
+	if (win->GetChildAsRecursive(buttonID, GZIID_cIGZWinBtn, button.AsPPVoid()))
 	{
 		result = button->IsOn();
-
-		button->Release();
 	}
 
 	return result;
@@ -55,9 +33,9 @@ bool GZWinUtil::GetButtonToggleState(cIGZWin* win, uint32_t buttonID)
 
 void GZWinUtil::SetButtonToggleState(cIGZWin* win, uint32_t buttonID, bool toggleState)
 {
-	cIGZWinBtn* button = GetChildButtonRecursive(win, buttonID);
+	cRZAutoRefCount<cIGZWinBtn> button;
 
-	if (button)
+	if (win->GetChildAsRecursive(buttonID, GZIID_cIGZWinBtn, button.AsPPVoid()))
 	{
 		if (toggleState)
 		{
@@ -67,8 +45,6 @@ void GZWinUtil::SetButtonToggleState(cIGZWin* win, uint32_t buttonID, bool toggl
 		{
 			button->ToggleOff();
 		}
-
-		button->Release();
 	}
 }
 

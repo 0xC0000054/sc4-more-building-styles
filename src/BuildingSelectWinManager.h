@@ -49,7 +49,6 @@ private:
 	bool IsBuildingStyleAvailable(uint32_t style) const override;
 	const std::map<uint32_t, std::string>& GetAvailableBuildingStyles() const override;
 
-	bool UIHasOptionalCheckBox(uint32_t buttonID)  const override;
 	bool GetOptionalCheckBoxState(uint32_t buttonID) const override;
 	void UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32_t buttonID) override;
 

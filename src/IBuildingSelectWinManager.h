@@ -21,13 +21,11 @@ class cIGZWin;
 class IBuildingSelectWinManager
 {
 public:
-
 	virtual cISC4TractDeveloper* GetTractDeveloper() const = 0;
 
 	virtual bool IsBuildingStyleAvailable(uint32_t style) const = 0;
 	virtual const std::map<uint32_t, std::string>& GetAvailableBuildingStyles() const = 0;
 
-	virtual bool UIHasOptionalCheckBox(uint32_t buttonID) const = 0;
 	virtual bool GetOptionalCheckBoxState(uint32_t buttonID) const = 0;
 	virtual void UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32_t buttonID) = 0;
 

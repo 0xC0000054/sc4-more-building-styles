@@ -296,11 +296,6 @@ const std::map<uint32_t, std::string>& BuildingSelectWinManager::GetAvailableBui
 	return availableBuildingStyles.GetBuildingStyles();
 }
 
-bool BuildingSelectWinManager::UIHasOptionalCheckBox(uint32_t buttonID)  const
-{
-	return availableBuildingStyles.UIHasOptionalCheckBox(buttonID);
-}
-
 bool BuildingSelectWinManager::GetOptionalCheckBoxState(uint32_t buttonID) const
 {
 	return context.GetOptionalCheckBoxState(buttonID);

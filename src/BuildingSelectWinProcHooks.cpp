@@ -40,6 +40,7 @@
 #include "SC4VersionDetection.h"
 #include "GZWinUtil.h"
 #include "cIGZWin.h"
+#include "cIGZWinBtn.h"
 #include "cIGZWinProc.h"
 #include "cIGZMessageServer2.h"
 #include "cRZMessage2Standard.h"
@@ -117,13 +118,13 @@ public:
 	uint32_t initialized;              // 0x8
 	cIGZWin* window;                   // 0xc
 	cIGZWin* styleListContainer;       // 0x10
-	cIGZWin* styleChangeYearContainer; // 0x14
+	cIGZWin* styleRadioContainer;      // 0x14
 	uint32_t isCollapsed;              // 0x18
 };
 
 static void UpdateOptionalCheckBoxState(const cSC4BuildingSelectWinProc* pThis, uint32_t buttonID)
 {
-	spBuildingSelectWinManager->UpdateOptionalCheckBoxState(pThis->styleListContainer, buttonID);
+	spBuildingSelectWinManager->UpdateOptionalCheckBoxState(pThis->window, buttonID);
 }
 
 static bool IsBuildingStyleAvailable(uint32_t style)
@@ -244,6 +245,23 @@ void __thiscall cSC4BuildingSelectWinProc::EnableStyleButtons()
 	}
 }
 
+static void InitializeOptionalCheckBox(cSC4BuildingSelectWinProc* pThis, uint32_t buttonID)
+{
+	cRZAutoRefCount<cIGZWinBtn> button;
+
+	if (pThis->window->GetChildAsRecursive(buttonID, GZIID_cIGZWinBtn, button.AsPPVoid()))
+	{
+		if (spBuildingSelectWinManager->GetOptionalCheckBoxState(buttonID))
+		{
+			button->ToggleOn();
+		}
+		else
+		{
+			button->ToggleOff();
+		}
+	}
+}
+
 void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 {
 	const std::map<uint32_t, std::string>& allBuildingStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
@@ -258,12 +276,7 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 		GZWinUtil::SetButtonToggleState(this->styleListContainer, style, selected);
 	}
 
-	if (spBuildingSelectWinManager->UIHasOptionalCheckBox(AutoHistoricalButtonID))
-	{
-		bool selected = spBuildingSelectWinManager->GetOptionalCheckBoxState(AutoHistoricalButtonID);
-
-		GZWinUtil::SetButtonToggleState(this->styleListContainer, AutoHistoricalButtonID, selected);
-	}
+	InitializeOptionalCheckBox(this, AutoHistoricalButtonID);
 
 	EnableStyleButtons();
 }
