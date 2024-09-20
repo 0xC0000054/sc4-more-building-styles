@@ -14,7 +14,9 @@ This mod patches the game's memory to remove that restriction.
 Adding new style check boxes requires creating a patch that overrides the default
 Building Style Control UI, TGI `0x00000000,0x96a006b0,0x6bc61f19` in `SimCity_1.dat`.    
 After creating the patch you need to edit the UI to add more check boxes.
-The check box ID (e.g. `0x2003`) identifies the building style to the game, these IDs should be in the range of 0x2000 to 0x2fff.
+The check box ID (e.g. `0x2003`) identifies the building style to the game.    
+The building style IDs are assigned in the [SimCity 4 Building Styles Index](https://community.simtropolis.com/forums/topic/763276-building-styles-master-iid/) thread, you will need to use the
+16 Maxis/community styles or request your own public and/or private building style ID range in that thread.   
 Finally you will need to update existing buildings to use the new building style IDs.
 
 ### Auto-Historical Check Box
