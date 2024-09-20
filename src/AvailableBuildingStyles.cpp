@@ -90,7 +90,10 @@ bool AvailableBuildingStyles::BuildingSelectWinEnumProc(cIGZWin* parent, uint32_
 	// The title bar, minimize button, and optional buttons are excluded, every other button
 	// in the dialog is a style radio button.
 
-	if (childID != titleBarButton && childID != minimizeButton && childID != AutoHistoricalButtonID)
+	if (childID != titleBarButton
+		&& childID != minimizeButton
+		&& childID != AutoHistoricalButtonID
+		&& childID != AutoGrowifyButtonID)
 	{
 		AvailableBuildingStyles* state = static_cast<AvailableBuildingStyles*>(pState);
 
