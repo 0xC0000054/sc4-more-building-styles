@@ -16,6 +16,7 @@
 #include "cISC4Occupant.h"
 #include "cRZAutoRefCount.h"
 #include "cRZBaseString.h"
+#include "GlobalPointers.h"
 #include "IBuildingSelectWinManager.h"
 
 namespace
@@ -39,6 +40,18 @@ namespace
 				case cISC4BuildingOccupant::PurposeType::Services:
 				case cISC4BuildingOccupant::PurposeType::Office:
 					result = true;
+					break;
+				case cISC4BuildingOccupant::PurposeType::Agriculture:
+					result = spPreferences->AgriculturePurposeTypeSupportsBuildingStyles();
+					break;
+				case cISC4BuildingOccupant::PurposeType::Processing:
+					result = spPreferences->ProcessingPurposeTypeSupportsBuildingStyles();
+					break;
+				case cISC4BuildingOccupant::PurposeType::Manufacturing:
+					result = spPreferences->ManufacturingPurposeTypeSupportsBuildingStyles();
+					break;
+				case cISC4BuildingOccupant::PurposeType::HighTech:
+					result = spPreferences->HighTechPurposeTypeSupportsBuildingStyles();
 					break;
 				}
 			}
