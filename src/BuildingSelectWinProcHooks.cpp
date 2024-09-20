@@ -97,7 +97,6 @@ constexpr uint32_t StylePanel_Expanded_ToggleButton = 0xebc619fd;
 class cSC4BuildingSelectWinProc : public cIGZWinProc
 {
 public:
-
 	virtual bool DoWinProcMessage(cIGZWin* pWin, cGZMessage& pMsg);
 
 	virtual bool DoWinMsg(cIGZWin* pWin, uint32_t dwMessageID, uint32_t data1, uint32_t data2, uint32_t data3);
@@ -303,7 +302,6 @@ void __thiscall cSC4BuildingSelectWinProc::AddActiveStyle(uint32_t style)
 
 void __thiscall cSC4BuildingSelectWinProc::RemoveActiveStyle(uint32_t style)
 {
-
 	cISC4TractDeveloper* const pTractDeveloper = spBuildingSelectWinManager->GetTractDeveloper();
 
 	// This is a copy of the existing active style list, not a reference to it.
