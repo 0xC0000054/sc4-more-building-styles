@@ -155,6 +155,8 @@ static void NAKED_FUN DoWinProcMessageHookFn(void)
 		jz stylePanelExpandedToggle
 		cmp eax, AutoHistoricalButtonID
 		jz updateOptionalCheckBoxState
+		cmp eax, AutoGrowifyButtonID
+		jz updateOptionalCheckBoxState
 		// Any button id below this line should be a style id
 		push eax
 		call IsBuildingStyleAvailable // (cdecl)
@@ -277,6 +279,7 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 	}
 
 	InitializeOptionalCheckBox(this, AutoHistoricalButtonID);
+	InitializeOptionalCheckBox(this, AutoGrowifyButtonID);
 
 	EnableStyleButtons();
 }

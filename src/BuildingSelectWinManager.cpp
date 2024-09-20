@@ -19,7 +19,9 @@
 #include "cISC4BuildingOccupant.h"
 #include "cISC4City.h"
 #include "cISC4Lot.h"
+#include "cISC4LotConfiguration.h"
 #include "cISC4LotManager.h"
+#include "cISC4SimGrid.h"
 #include "cISC4TractDeveloper.h"
 #include "cRZAutoRefCount.h"
 #include "cRZCOMDllDirector.h"
@@ -50,7 +52,76 @@ constexpr uint32_t GZIID_cIGZMesageServer2 = 0x652294C7;
 
 namespace
 {
-	bool BuildingStylesAreSupported(const cISC4BuildingOccupant* pBuildingOccupant)
+	cISC4ZoneManager::ZoneType GetFirstCompatibleZoneType(
+		const cISC4LotConfiguration* pLotConfiguration,
+		cISC4ZoneManager::ZoneType start,
+		cISC4ZoneManager::ZoneType end)
+	{
+		using T = std::underlying_type<cISC4ZoneManager::ZoneType>::type;
+
+		const T startIndex = static_cast<T>(start);
+		const T endIndex = static_cast<T>(end);
+
+		for (T i = startIndex; i <= endIndex; i++)
+		{
+			cISC4ZoneManager::ZoneType value = static_cast<cISC4ZoneManager::ZoneType>(i);
+
+			if (pLotConfiguration->IsCompatibleWithZoneType(value))
+			{
+				return value;
+			}
+		}
+
+		return cISC4ZoneManager::ZoneType::None;
+	}
+
+	cISC4ZoneManager::ZoneType GetGrowifyZoneType(cISC4Lot* pLotCopy)
+	{
+		cISC4ZoneManager::ZoneType zoneType = cISC4ZoneManager::ZoneType::None;
+
+		const cISC4BuildingOccupant* pBuildingOccupant = pLotCopy->GetBuilding();
+		const cISC4LotConfiguration* pLotConfiguration = pLotCopy->GetLotConfiguration();
+
+		if (pBuildingOccupant && pLotConfiguration)
+		{
+			const cISC4BuildingOccupant::BuildingProfile& profile = pBuildingOccupant->GetBuildingProfile();
+
+			switch (profile.purpose)
+			{
+			case cISC4BuildingOccupant::PurposeType::Residence:
+				zoneType = GetFirstCompatibleZoneType(
+					pLotConfiguration,
+					cISC4ZoneManager::ZoneType::ResidentialLowDensity,
+					cISC4ZoneManager::ZoneType::ResidentialHighDensity);
+				break;
+			case cISC4BuildingOccupant::PurposeType::Services:
+			case cISC4BuildingOccupant::PurposeType::Office:
+				zoneType = GetFirstCompatibleZoneType(
+					pLotConfiguration,
+					cISC4ZoneManager::ZoneType::CommercialLowDensity,
+					cISC4ZoneManager::ZoneType::CommercialHighDensity);
+				break;
+			case cISC4BuildingOccupant::PurposeType::Agriculture:
+				zoneType = GetFirstCompatibleZoneType(
+					pLotConfiguration,
+					cISC4ZoneManager::ZoneType::Agriculture,
+					cISC4ZoneManager::ZoneType::Agriculture);
+				break;
+			case cISC4BuildingOccupant::PurposeType::Processing:
+			case cISC4BuildingOccupant::PurposeType::Manufacturing:
+			case cISC4BuildingOccupant::PurposeType::HighTech:
+				zoneType = GetFirstCompatibleZoneType(
+					pLotConfiguration,
+					cISC4ZoneManager::ZoneType::IndustrialMediumDensity,
+					cISC4ZoneManager::ZoneType::IndustrialHighDensity);
+				break;
+			}
+		}
+
+		return zoneType;
+	}
+
+	bool IndustrialBuildingSupportsBuildingStyles(const cISC4BuildingOccupant* pBuildingOccupant)
 	{
 		if (pBuildingOccupant)
 		{
@@ -58,10 +129,6 @@ namespace
 
 			switch (profile.purpose)
 			{
-			case cISC4BuildingOccupant::PurposeType::Residence:
-			case cISC4BuildingOccupant::PurposeType::Services:
-			case cISC4BuildingOccupant::PurposeType::Office:
-				return true;
 			case cISC4BuildingOccupant::PurposeType::Agriculture:
 				return spPreferences->AgriculturePurposeTypeSupportsBuildingStyles();
 			case cISC4BuildingOccupant::PurposeType::Processing:
@@ -75,6 +142,30 @@ namespace
 
 		return false;
 	}
+
+	bool BuildingStylesAreSupported(cISC4ZoneManager::ZoneType zoneType, cISC4Lot* pLotCopy)
+	{
+		bool result = false;
+
+		switch (zoneType)
+		{
+		case cISC4ZoneManager::ZoneType::ResidentialLowDensity:
+		case cISC4ZoneManager::ZoneType::ResidentialMediumDensity:
+		case cISC4ZoneManager::ZoneType::ResidentialHighDensity:
+		case cISC4ZoneManager::ZoneType::CommercialLowDensity:
+		case cISC4ZoneManager::ZoneType::CommercialMediumDensity:
+		case cISC4ZoneManager::ZoneType::CommercialHighDensity:
+			result = true;
+			break;
+		case cISC4ZoneManager::ZoneType::Agriculture:
+		case cISC4ZoneManager::ZoneType::IndustrialMediumDensity:
+		case cISC4ZoneManager::ZoneType::IndustrialHighDensity:
+			result = IndustrialBuildingSupportsBuildingStyles(pLotCopy->GetBuilding());
+			break;
+		}
+
+		return result;
+	}
 }
 
 BuildingSelectWinManager::BuildingSelectWinManager()
@@ -82,6 +173,7 @@ BuildingSelectWinManager::BuildingSelectWinManager()
 	  pMS2(nullptr),
 	  pLotManager(nullptr),
 	  pTractDeveloper(nullptr),
+	  pZoneManager(nullptr),
 	  initialized(false)
 {
 }
@@ -207,6 +299,7 @@ void BuildingSelectWinManager::PreCityShutdown()
 {
 	pLotManager = nullptr;
 	pTractDeveloper = nullptr;
+	pZoneManager = nullptr;
 }
 
 void BuildingSelectWinManager::PostCityInit(cIGZMessage2Standard* pStandardMsg)
@@ -222,6 +315,7 @@ void BuildingSelectWinManager::PostCityInit(cIGZMessage2Standard* pStandardMsg)
 	{
 		pLotManager = pCity->GetLotManager();
 		pTractDeveloper = pCity->GetTractDeveloper();
+		pZoneManager = pCity->GetZoneManager();
 	}
 }
 
@@ -256,9 +350,36 @@ void BuildingSelectWinManager::StateChanged(cIGZMessage2Standard* pStandardMsg)
 
 void BuildingSelectWinManager::LotActivated(cISC4Lot* pLotCopy)
 {
-	if (context.AutomaticallyMarkBuildingsAsHistorical())
+	const cISC4ZoneManager::ZoneType zoneType = pLotCopy->GetZoneType();
+
+	if (zoneType == cISC4ZoneManager::ZoneType::Plopped)
 	{
-		if (BuildingStylesAreSupported(pLotCopy->GetBuilding()))
+		if (context.AutomaticallyGrowifyPloppedBuildings())
+		{
+			const cISC4ZoneManager::ZoneType growifyZone = GetGrowifyZoneType(pLotCopy);
+
+			if (growifyZone != cISC4ZoneManager::ZoneType::None)
+			{
+				// The lot that is sent in the lot state changed message is a
+				// temporary copy, so modifying it will have no effect.
+				//
+				// To work around this limitation we get the lot's location
+				// and use that to get the real lot from the lot manager.
+
+				int32_t lotX = 0;
+				int32_t lotZ = 0;
+
+				pLotCopy->GetLocation(lotX, lotZ);
+
+				GrowifyLot(pLotManager->GetLot(lotX, lotZ, false), growifyZone);
+			}
+		}
+	}
+	else if (zoneType >= cISC4ZoneManager::ZoneType::ResidentialLowDensity
+		  && zoneType <= cISC4ZoneManager::ZoneType::IndustrialHighDensity)
+	{
+		if (context.AutomaticallyMarkBuildingsAsHistorical()
+			&& BuildingStylesAreSupported(zoneType, pLotCopy))
 		{
 			// The lot that is sent in the lot state changed message is a
 			// temporary copy, so modifying it will have no effect.
@@ -277,6 +398,36 @@ void BuildingSelectWinManager::LotActivated(cISC4Lot* pLotCopy)
 			{
 				pRealLot->SetHistorical(true);
 			}
+		}
+	}
+}
+
+void BuildingSelectWinManager::GrowifyLot(
+	cISC4Lot* pLot,
+	cISC4ZoneManager::ZoneType zoneType)
+{
+	if (pLot && pZoneManager)
+	{
+		cISC4SimGrid<int8_t>* pZoneGrid = pZoneManager->GetZoneGrid();
+
+		SC4Rect<int32_t> lotBounds{};
+		pLot->GetBoundingRect(lotBounds);
+
+		for (int32_t x = lotBounds.topLeftX; x <= lotBounds.bottomRightX; x++)
+		{
+			for (int32_t z = lotBounds.topLeftY; z <= lotBounds.bottomRightY; z++)
+			{
+				// Update the zone type for each cell that the lot occupies.
+				pZoneGrid->SetTractValue(x, z, static_cast<int8_t>(zoneType));
+			}
+		}
+
+		// Update the cached zone data for the lot.
+		pLot->UpdateZoneType();
+
+		if (context.AutomaticallyMarkBuildingsAsHistorical())
+		{
+			pLot->SetHistorical(true);
 		}
 	}
 }

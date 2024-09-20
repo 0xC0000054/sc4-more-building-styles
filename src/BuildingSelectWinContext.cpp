@@ -45,7 +45,8 @@ namespace
 }
 
 BuildingSelectWinContext::BuildingSelectWinContext()
-	: automaticallyMarkBuildingsAsHistorical(false)
+	: automaticallyMarkBuildingsAsHistorical(false),
+	  automaticallyGrowifyPloppedBuildings(false)
 {
 }
 
@@ -70,7 +71,12 @@ void BuildingSelectWinContext::LoadFromDBSegment(cIGZPersistDBSegment* pSegment)
 
 				if (pSC4IStream->GetUint32(version))
 				{
-					if (version == 1)
+					if (version == 2)
+					{
+						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
+						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
+					}
+					else if (version == 1)
 					{
 						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
 					}
@@ -97,8 +103,9 @@ void BuildingSelectWinContext::SaveToDBSegment(cIGZPersistDBSegment* pSegment) c
 
 			if (pSC4DBSegment->OpenOStream(key, pSC4OStream.AsPPObj(), true))
 			{
-				pSC4OStream->SetUint32(1); // version
+				pSC4OStream->SetUint32(2); // version
 				WriteBoolean(pSC4OStream, automaticallyMarkBuildingsAsHistorical);
+				WriteBoolean(pSC4OStream, automaticallyGrowifyPloppedBuildings);
 			}
 		}
 	}
@@ -109,13 +116,23 @@ bool BuildingSelectWinContext::AutomaticallyMarkBuildingsAsHistorical() const
 	return automaticallyMarkBuildingsAsHistorical;
 }
 
+bool BuildingSelectWinContext::AutomaticallyGrowifyPloppedBuildings() const
+{
+	return automaticallyGrowifyPloppedBuildings;
+}
+
 bool BuildingSelectWinContext::GetOptionalCheckBoxState(uint32_t buttonID) const
 {
 	bool result = false;
 
-	if (buttonID == AutoHistoricalButtonID)
+	switch (buttonID)
 	{
+	case AutoHistoricalButtonID:
 		result = automaticallyMarkBuildingsAsHistorical;
+		break;
+	case AutoGrowifyButtonID:
+		result = automaticallyGrowifyPloppedBuildings;
+		break;
 	}
 
 	return result;
@@ -123,8 +140,13 @@ bool BuildingSelectWinContext::GetOptionalCheckBoxState(uint32_t buttonID) const
 
 void BuildingSelectWinContext::UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32_t buttonID)
 {
-	if (buttonID == AutoHistoricalButtonID)
+	switch (buttonID)
 	{
+	case AutoHistoricalButtonID:
 		automaticallyMarkBuildingsAsHistorical = GZWinUtil::GetButtonToggleState(pWin, AutoHistoricalButtonID);
+		break;
+	case AutoGrowifyButtonID:
+		automaticallyGrowifyPloppedBuildings = GZWinUtil::GetButtonToggleState(pWin, AutoGrowifyButtonID);
+		break;
 	}
 }

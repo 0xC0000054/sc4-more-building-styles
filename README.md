@@ -23,6 +23,12 @@ The DLL supports an optional check box that will automatically mark new growable
 Industrial buildings are only marked as historical if industrial building styles are enabled for that building type.
 This check box uses the reserved id value `0x9476D8DA`.
 
+### Auto-Growify Check Box
+
+The DLL supports an optional check box that will automatically convert plopped growables to use a growable zone type.
+The growified lots will be marked as historical based on the value of the Auto-Historical check box described above.
+This check box uses the reserved id value `0xB510A368`.
+
 ## Cheat Codes
 
 The plugin provides the following cheat codes:

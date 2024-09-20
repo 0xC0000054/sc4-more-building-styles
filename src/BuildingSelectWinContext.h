@@ -29,9 +29,11 @@ public:
 	void UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32_t buttonID);
 
 	bool AutomaticallyMarkBuildingsAsHistorical() const;
+	bool AutomaticallyGrowifyPloppedBuildings() const;
 
 private:
 
 	bool automaticallyMarkBuildingsAsHistorical;
+	bool automaticallyGrowifyPloppedBuildings;
 };
 

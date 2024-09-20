@@ -15,6 +15,7 @@
 #include "AvailableBuildingStyles.h"
 #include "BuildingSelectWinContext.h"
 #include "cIGZMessageTarget2.h"
+#include "cISC4ZoneManager.h"
 
 class cIGZMessage2Standard;
 class cIGZMessageServer2;
@@ -44,6 +45,8 @@ private:
 	void StateChanged(cIGZMessage2Standard* pStandardMsg);
 	void LotActivated(cISC4Lot* pLot);
 
+	void GrowifyLot(cISC4Lot* pLotCopy, cISC4ZoneManager::ZoneType zoneType);
+
 	cISC4TractDeveloper* GetTractDeveloper() const override;
 
 	bool IsBuildingStyleAvailable(uint32_t style) const override;
@@ -58,6 +61,7 @@ private:
 	cIGZMessageServer2* pMS2;
 	cISC4LotManager* pLotManager;
 	cISC4TractDeveloper* pTractDeveloper;
+	cISC4ZoneManager* pZoneManager;
 	AvailableBuildingStyles availableBuildingStyles;
 	BuildingSelectWinContext context;
 	bool initialized;
