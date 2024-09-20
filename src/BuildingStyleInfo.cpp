@@ -12,8 +12,11 @@
 
 #include "BuildingStyleInfo.h"
 #include "cIGZString.h"
+#include "cIGZVariant.h"
 #include "cISC4BuildingOccupant.h"
 #include "cISC4Occupant.h"
+#include "cISCProperty.h"
+#include "cISCPropertyHolder.h"
 #include "cRZAutoRefCount.h"
 #include "cRZBaseString.h"
 #include "GlobalPointers.h"
@@ -169,24 +172,40 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 
 		if (availableBuildingStyles.size() > 0)
 		{
-			const uint32_t lastItemIndex = availableBuildingStyles.size() - 1;
 			const std::string_view separator(", ");
-			size_t index = 0;
 
-			for (const auto& item : availableBuildingStyles)
+			const cISCPropertyHolder* pPropertyHolder = pOccupant->AsPropertyHolder();
+
+			if (pPropertyHolder)
 			{
-				if (pOccupant->IsOccupantGroup(item.first))
+				constexpr uint32_t kOccupantGroupsProperty = 0xAA1DD396;
+
+				const cISCProperty* pOccupantGroupsProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
+
+				if (pOccupantGroupsProperty)
 				{
-					const std::string& styleName = item.second;
+					const cIGZVariant* pVariant = pOccupantGroupsProperty->GetPropertyValue();
 
-					destination.Append(styleName.c_str(), styleName.size());
-
-					if (index < lastItemIndex)
+					if (pVariant)
 					{
-						destination.Append(separator.data(), separator.size());
+						const uint32_t* pData = pVariant->RefUint32();
+						const uint32_t count = pVariant->GetCount();
+
+						for (uint32_t i = 0; i < count; i++)
+						{
+							const uint32_t occupantGroup = pData[i];
+							const auto item = availableBuildingStyles.find(occupantGroup);
+
+							if (item != availableBuildingStyles.end())
+							{
+								const std::string& styleName = item->second;
+
+								destination.Append(styleName.c_str(), styleName.size());
+								destination.Append(separator.data(), separator.size());
+							}
+						}
 					}
 				}
-				index++;
 			}
 
 			// Check that at least one style name has been written to the destination.
