@@ -31,11 +31,84 @@
 
 #include "wil/result.h"
 
-template<typename T> struct SC4Vector
+template<typename T> class SC4VectorIterator
 {
-	T* mpBegin;
-	T* mpEnd;
-	void* pAllocator;
+public:
+	using iterator_category = std::forward_iterator_tag;
+	using difference_type = std::ptrdiff_t;
+	using value_type = T;
+	using pointer = value_type*;
+	using reference = value_type&;
+
+	SC4VectorIterator(pointer pValue) : mpValue(pValue)
+	{
+	}
+
+	~SC4VectorIterator()
+	{
+	}
+
+	reference operator*() const
+	{
+		return *mpValue;
+	}
+
+	pointer operator->()
+	{
+		return mpValue;
+	}
+
+	// Prefix increment
+	SC4VectorIterator& operator++()
+	{
+		mpValue = mpValue + 1;
+		return *this;
+	}
+
+	// Postfix increment
+	SC4VectorIterator operator++(int)
+	{
+		SC4VectorIterator tmp = *this;
+		++(*this);
+		return tmp;
+	}
+
+	static friend bool operator== (const SC4VectorIterator& a, const SC4VectorIterator& b)
+	{
+		return a.mpValue == b.mpValue;
+	};
+	static friend bool operator!= (const SC4VectorIterator& a, const SC4VectorIterator& b)
+	{
+		return a.mpValue != b.mpValue;
+	};
+private:
+	pointer mpValue;
+};
+
+template<typename T> class SC4Vector
+{
+public:
+	typedef SC4VectorIterator<const T> const_iterator;
+
+	const_iterator begin() const
+	{
+		return const_iterator(mpBegin);
+	}
+
+	const_iterator end() const
+	{
+		return const_iterator(mpEnd);
+	}
+
+	const_iterator cbegin() const
+	{
+		return const_iterator(mpBegin);
+	}
+
+	const_iterator cend() const
+	{
+		return const_iterator(mpEnd);
+	}
 
 	bool empty() const
 	{
@@ -46,6 +119,11 @@ template<typename T> struct SC4Vector
 	{
 		return mpBegin[index];
 	}
+
+private:
+	T* mpBegin;
+	T* mpEnd;
+	void* pAllocator;
 };
 
 struct cSC4TractDeveloper
@@ -112,16 +190,12 @@ static bool LotConfigurationHasStyle(const cSC4LotConfiguration* pLotConfigurati
 {
 	const SC4Vector<uint32_t>& buildingOccupantGroups = pLotConfiguration->buildingOccupantGroups;
 
-	const uint32_t* pOccupantGroup = buildingOccupantGroups.mpBegin;
-
-	while (pOccupantGroup != buildingOccupantGroups.mpEnd)
+	for (const auto& occupantGroup : buildingOccupantGroups)
 	{
-		if (*pOccupantGroup == style)
+		if (occupantGroup == style)
 		{
 			return true;
 		}
-
-		++pOccupantGroup;
 	}
 
 	return false;
@@ -270,22 +344,21 @@ static bool IsLotCompatibleWithActiveStyles(
 	if (pThis->notUsingAllStylesAtOnce == 0)
 	{
 		// Use all styles at once.
-		uint32_t* pStyle = pThis->activeStyles.mpBegin;
+		const SC4Vector<uint32_t>& activeStyles = pThis->activeStyles;
 
-		while (pStyle != pThis->activeStyles.mpEnd)
+		for (const auto& style : activeStyles)
 		{
-			if (LotConfigurationHasStyle(pLotConfiguration, *pStyle))
+			if (LotConfigurationHasStyle(pLotConfiguration, style))
 			{
 				if (spPreferences->LogLotStyleSelection())
 				{
 					LogStyleSupported(
 						pLotConfiguration->id,
 						pLotConfiguration->name.AsIGZString()->ToChar(),
-						*pStyle);
+						style);
 				}
 				return true;
 			}
-			++pStyle;
 		}
 
 		if (spPreferences->LogLotStyleSelection())
@@ -409,23 +482,22 @@ static bool BuildingHasStyleOccupantGroup(const cSC4TractDeveloper* pThis, uint3
 						if (pThis->notUsingAllStylesAtOnce == 0)
 						{
 							// Use all styles at once.
-							const uint32_t* pStyle = pThis->activeStyles.mpBegin;
+							const SC4Vector<uint32_t>& activeStyles = pThis->activeStyles;
 
-							while (pStyle != pThis->activeStyles.mpEnd)
+							for (const auto& style : activeStyles)
 							{
-								if (HasOccupantGroupValue(pOccupantGroupData, count, *pStyle))
+								if (HasOccupantGroupValue(pOccupantGroupData, count, style))
 								{
 									if (spPreferences->LogBuildingStyleSelection())
 									{
 										LogStyleSupported(
 											buildingType,
 											pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-											*pStyle);
+											style);
 									}
 									result = true;
 									break;
 								}
-								++pStyle;
 							}
 
 							if (!result && spPreferences->LogBuildingStyleSelection())
