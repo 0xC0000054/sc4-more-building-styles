@@ -447,14 +447,14 @@ const std::map<uint32_t, std::string>& BuildingSelectWinManager::GetAvailableBui
 	return availableBuildingStyles.GetBuildingStyles();
 }
 
-bool BuildingSelectWinManager::GetOptionalCheckBoxState(uint32_t buttonID) const
+IBuildingSelectWinContext& BuildingSelectWinManager::GetContext()
 {
-	return context.GetOptionalCheckBoxState(buttonID);
+	return context;
 }
 
-void BuildingSelectWinManager::UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32_t buttonID)
+const IBuildingSelectWinContext& BuildingSelectWinManager::GetContext() const
 {
-	context.UpdateOptionalCheckBoxState(pWin, buttonID);
+	return context;
 }
 
 void BuildingSelectWinManager::SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t styleID)

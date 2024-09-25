@@ -11,29 +11,33 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <cstdint>
+#include "IBuildingSelectWinContext.h"
 
 class cIGZPersistDBSegment;
 class cIGZWin;
 
-class BuildingSelectWinContext final
+class BuildingSelectWinContext final : public IBuildingSelectWinContext
 {
 public:
-
 	BuildingSelectWinContext();
 
 	void LoadFromDBSegment(cIGZPersistDBSegment* pSegment);
 	void SaveToDBSegment(cIGZPersistDBSegment* pSegment) const;
 
-	bool GetOptionalCheckBoxState(uint32_t buttonID) const;
-	void UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32_t buttonID);
-
 	bool AutomaticallyMarkBuildingsAsHistorical() const;
 	bool AutomaticallyGrowifyPloppedBuildings() const;
 
 private:
+	// IBuildingSelectWinContext
+
+	bool GetOptionalCheckBoxState(uint32_t buttonID) const override;
+	void UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32_t buttonID) override;
+
+	WallToWallOption GetWallToWallOption() const override;
+	void SetWallToWallOption(WallToWallOption value) override;
 
 	bool automaticallyMarkBuildingsAsHistorical;
 	bool automaticallyGrowifyPloppedBuildings;
+	WallToWallOption wallToWallOption;
 };
 

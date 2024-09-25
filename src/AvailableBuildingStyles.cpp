@@ -92,8 +92,7 @@ bool AvailableBuildingStyles::BuildingSelectWinEnumProc(cIGZWin* parent, uint32_
 
 	if (childID != titleBarButton
 		&& childID != minimizeButton
-		&& childID != AutoHistoricalButtonID
-		&& childID != AutoGrowifyButtonID)
+		&& OptionalButtonIDs.find(childID) == OptionalButtonIDs.end())
 	{
 		AvailableBuildingStyles* state = static_cast<AvailableBuildingStyles*>(pState);
 

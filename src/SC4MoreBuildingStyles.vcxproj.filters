@@ -236,6 +236,9 @@
     <ClInclude Include="SC4NotificationDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IBuildingSelectWinContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />

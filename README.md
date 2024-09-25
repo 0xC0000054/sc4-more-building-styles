@@ -31,6 +31,25 @@ The DLL supports an optional check box that will automatically convert plopped g
 The growified lots will be marked as historical based on the value of the Auto-Historical check box described above.
 This check box uses the reserved id value `0xB510A368`.
 
+### Wall-to-Wall (W2W) Radio Buttons
+
+The DLL supports optional radio buttons that control how the game handles W2W buildings.
+The 3 radio buttons are as follows:
+
+Mixed, both W2W and non-W2W buildings will be built. This is SC4's default behavior, and will also be used if the radio buttons are not present. This radio button uses the reserved id value `0x31150389`.    
+W2W Only, only W2W buildings will be built. This radio button uses the reserved id value `0x3115038A`.    
+Block W2W, no W2W buildings will be built. This radio button uses the reserved id value `0x3115038B`.
+
+W2W buildings are identified by the presence of a W2W occupant group in the
+building exemplar. The following W2W occupant group values are supported:
+
+More Building Style DLL W2W:  `0xD02C802E`    
+BTE: Comm. W2W:               `0xB5C00A05`    
+BTE: Res. W2W:                `0xB5C00B05`    
+BTE: W2W General:             `0xB5C00DDE`    
+SFBT: Hamburg W2W:            `0xB5C00F0A`    
+SFBT: Paris W2W:              `0xB5C00F0B`    
+
 ## Cheat Codes
 
 The plugin provides the following cheat codes:
@@ -131,6 +150,7 @@ See [LICENSE.txt](LICENSE.txt) for more information.
 [EASTL](https://github.com/electronicarts/EASTL) Located in the vendor folder, BSD 3-Clause License.    
 [Windows Implementation Library](https://github.com/microsoft/wil) - MIT License    
 [SC4Fix](https://github.com/nsgomez/sc4fix) - MIT License.    
+[Frozen](https://github.com/serge-sans-paille/frozen) - Apache 2.0 License.    
 [Boost.Algorithm](https://www.boost.org/doc/libs/1_84_0/libs/algorithm/doc/html/index.html) - Boost Software License, Version 1.0.    
 [Boost.PropertyTree](https://www.boost.org/doc/libs/1_84_0/doc/html/property_tree.html) - Boost Software License, Version 1.0.
 

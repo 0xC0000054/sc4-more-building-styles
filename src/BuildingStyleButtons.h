@@ -12,6 +12,7 @@
 
 #pragma once
 #include <cstdint>
+#include "frozen/unordered_set.h"
 
 // The button ids in this file are used to provide additional functionality in
 // the building style dialog beyond just allowing the user to add new styles.
@@ -26,3 +27,22 @@ static constexpr uint32_t AutoHistoricalButtonID = 0x9476D8DA;
 // In this case, the auto historical check box controls whether the growified lot
 // will be marked has historical.
 static constexpr uint32_t AutoGrowifyButtonID = 0xB510A368;
+// A radio button that makes the growable building algorithm build wall to wall
+// items alongside other building and lot types.
+// This is the game's standard behavior.
+static constexpr uint32_t WallToWallMixedRadioButtonID = 0x31150389;
+// A radio button that makes the growable building algorithm build only
+// wall to wall building and lots.
+static constexpr uint32_t WallToWallOnlyRadioButtonID = 0x3115038A;
+// A radio button that makes the growable building algorithm never build
+// wall to wall building and lots.
+static constexpr uint32_t WallToWallBlockRadioButtonID = 0x3115038B;
+
+constexpr frozen::unordered_set<uint32_t, 5> OptionalButtonIDs =
+{
+	AutoHistoricalButtonID,
+	AutoGrowifyButtonID,
+	WallToWallMixedRadioButtonID,
+	WallToWallOnlyRadioButtonID,
+	WallToWallBlockRadioButtonID
+};

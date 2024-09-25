@@ -29,7 +29,18 @@
 #include "SC4String.h"
 #include "SC4VersionDetection.h"
 
+#include "frozen/unordered_set.h"
 #include "wil/result.h"
+
+static constexpr frozen::unordered_set<uint32_t, 6> WallToWallOccupantGroups =
+{
+	0xD02C802E, // More Building Styles DLL W2W
+	0xB5C00A05, // BTE: Comm. W2W
+	0xB5C00B05, // BTE: Res. W2W
+	0xB5C00DDE, // BTE: W2W General
+	0xB5C00F0A, // SFBT: Hamburg W2W
+	0xB5C00F0B, // SFBT: Paris W2W
+};
 
 template<typename T> class SC4VectorIterator
 {
@@ -201,6 +212,23 @@ static bool LotConfigurationHasStyle(const cSC4LotConfiguration* pLotConfigurati
 	return false;
 }
 
+template<size_t N>
+static bool LotConfigurationHasStyle(
+	const cSC4LotConfiguration* pLotConfiguration,
+	const frozen::unordered_set<uint32_t, N>& styles)
+{
+	const SC4Vector<uint32_t>& buildingOccupantGroups = pLotConfiguration->buildingOccupantGroups;
+
+	for (const auto& occupantGroup : buildingOccupantGroups)
+	{
+		if (styles.find(occupantGroup) != styles.end())
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
 
 static bool HasOccupantGroupValue(
 	const uint32_t* const pOccupantGroupData,
@@ -210,6 +238,23 @@ static bool HasOccupantGroupValue(
 	for (uint32_t i = 0; i < occupantGroupCount; i++)
 	{
 		if (pOccupantGroupData[i] == value)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+template<size_t N>
+static bool HasOccupantGroupValue(
+	const uint32_t* const pOccupantGroupData,
+	uint32_t occupantGroupCount,
+	const frozen::unordered_set<uint32_t, N>& styles)
+{
+	for (uint32_t i = 0; i < occupantGroupCount; i++)
+	{
+		if (styles.find(pOccupantGroupData[i]) != styles.end())
 		{
 			return true;
 		}
@@ -316,6 +361,34 @@ static void LogNoSupportedStyles(
 		name);
 }
 
+static void LogWallToWallStyleOptionFailure(
+	uint32_t id,
+	const char* const name,
+	IBuildingSelectWinContext::WallToWallOption option)
+{
+	const char* description = nullptr;
+
+	switch (option)
+	{
+	case IBuildingSelectWinContext::WallToWallOption::Only:
+		description = "doesn't have a Wall-to-Wall occupant group.";
+		break;
+	case IBuildingSelectWinContext::WallToWallOption::Block:
+		description = "has a Wall-to-Wall occupant group.";
+		break;
+	}
+
+	if (description)
+	{
+		Logger::GetInstance().WriteLineFormatted(
+			LogLevel::Info,
+			"0x%08x (%s) %s.",
+			id,
+			name,
+			description);
+	}
+}
+
 static bool DoesLotSupportBuildingStyles(
 	const cSC4TractDeveloper* pThis,
 	const cSC4LotConfiguration* pLotConfiguration,
@@ -337,13 +410,51 @@ static bool DoesLotSupportBuildingStyles(
 	return true;
 }
 
+static bool CheckAdditionalLotStyleOptions(const cSC4LotConfiguration* pLotConfiguration)
+{
+	bool result = true;
+
+	const IBuildingSelectWinContext& context = spBuildingSelectWinManager->GetContext();
+	const IBuildingSelectWinContext::WallToWallOption wallToWallOption = context.GetWallToWallOption();
+
+	if (wallToWallOption != IBuildingSelectWinContext::WallToWallOption::Mixed)
+	{
+		switch (wallToWallOption)
+		{
+		case IBuildingSelectWinContext::WallToWallOption::Only:
+			result = LotConfigurationHasStyle(pLotConfiguration, WallToWallOccupantGroups);
+			break;
+		case IBuildingSelectWinContext::WallToWallOption::Block:
+			result = !LotConfigurationHasStyle(pLotConfiguration, WallToWallOccupantGroups);
+			break;
+		}
+
+		if (!result && spPreferences->LogLotStyleSelection())
+		{
+			LogWallToWallStyleOptionFailure(
+				pLotConfiguration->id,
+				pLotConfiguration->name.AsIGZString()->ToChar(),
+				wallToWallOption);
+		}
+	}
+
+	return result;
+}
+
 static bool IsLotCompatibleWithActiveStyles(
 	const cSC4TractDeveloper* pThis,
 	const cSC4LotConfiguration* pLotConfiguration)
 {
+	if (!CheckAdditionalLotStyleOptions(pLotConfiguration))
+	{
+		// CheckAdditionalLotStyleOptions already wrote a failure log message.
+		return false;
+	}
+
 	if (pThis->notUsingAllStylesAtOnce == 0)
 	{
 		// Use all styles at once.
+
 		const SC4Vector<uint32_t>& activeStyles = pThis->activeStyles;
 
 		for (const auto& style : activeStyles)
@@ -450,7 +561,44 @@ static bool DoesBuildingSupportStyles(
 	return true;
 }
 
-static bool BuildingHasStyleOccupantGroup(const cSC4TractDeveloper* pThis, uint32_t buildingType)
+static bool CheckAdditionalBuildingStyleOptions(
+	const cSC4TractDeveloper* pThis,
+	uint32_t buildingType,
+	const uint32_t* const pOccupantGroupData,
+	uint32_t occupantGroupCount)
+{
+	bool result = true;
+
+	const IBuildingSelectWinContext& context = spBuildingSelectWinManager->GetContext();
+	const IBuildingSelectWinContext::WallToWallOption wallToWallOption = context.GetWallToWallOption();
+
+	if (wallToWallOption != IBuildingSelectWinContext::WallToWallOption::Mixed)
+	{
+		switch (wallToWallOption)
+		{
+		case IBuildingSelectWinContext::WallToWallOption::Only:
+			result = HasOccupantGroupValue(pOccupantGroupData, occupantGroupCount, WallToWallOccupantGroups);
+			break;
+		case IBuildingSelectWinContext::WallToWallOption::Block:
+			result = !HasOccupantGroupValue(pOccupantGroupData, occupantGroupCount, WallToWallOccupantGroups);
+			break;
+		}
+
+		if (!result && spPreferences->LogLotStyleSelection())
+		{
+			LogWallToWallStyleOptionFailure(
+				buildingType,
+				pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+				wallToWallOption);
+		}
+	}
+
+	return result;
+}
+
+static bool BuildingHasStyleOccupantGroup(
+	const cSC4TractDeveloper* pThis,
+	uint32_t buildingType)
 {
 	bool result = false;
 
@@ -479,53 +627,60 @@ static bool BuildingHasStyleOccupantGroup(const cSC4TractDeveloper* pThis, uint3
 						const uint32_t* const pOccupantGroupData = pVariant->RefUint32();
 						const uint32_t count = pVariant->GetCount();
 
-						if (pThis->notUsingAllStylesAtOnce == 0)
+						// CheckAdditionalBuildingStyleOptions will write a log message if it fails.
+						if (CheckAdditionalBuildingStyleOptions(pThis, buildingType, pOccupantGroupData, count))
 						{
-							// Use all styles at once.
-							const SC4Vector<uint32_t>& activeStyles = pThis->activeStyles;
-
-							for (const auto& style : activeStyles)
+							if (pThis->notUsingAllStylesAtOnce == 0)
 							{
-								if (HasOccupantGroupValue(pOccupantGroupData, count, style))
+								// Use all styles at once.
+
+								const SC4Vector<uint32_t>& activeStyles = pThis->activeStyles;
+
+								for (const auto& style : activeStyles)
 								{
-									if (spPreferences->LogBuildingStyleSelection())
+									if (HasOccupantGroupValue(pOccupantGroupData, count, style))
 									{
-										LogStyleSupported(
-											buildingType,
-											pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-											style);
+										if (spPreferences->LogBuildingStyleSelection())
+										{
+											LogStyleSupported(
+												buildingType,
+												pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+												style);
+										}
+										result = true;
+										break;
 									}
-									result = true;
-									break;
 								}
-							}
 
-							if (!result && spPreferences->LogBuildingStyleSelection())
-							{
-								LogNoSupportedStyles(
-									buildingType,
-									pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
-							}
-						}
-						else
-						{
-							uint32_t activeStyle = pThis->activeStyles[pThis->currentStyleIndex];
-
-							result = HasOccupantGroupValue(pOccupantGroupData, count, activeStyle);
-							if (spPreferences->LogBuildingStyleSelection())
-							{
-								if (result)
-								{
-									LogStyleSupported(
-										buildingType,
-										pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-										activeStyle);
-								}
-								else
+								if (!result && spPreferences->LogBuildingStyleSelection())
 								{
 									LogNoSupportedStyles(
 										buildingType,
 										pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
+								}
+							}
+							else
+							{
+								// Change style every N years.
+
+								uint32_t activeStyle = pThis->activeStyles[pThis->currentStyleIndex];
+
+								result = HasOccupantGroupValue(pOccupantGroupData, count, activeStyle);
+								if (spPreferences->LogBuildingStyleSelection())
+								{
+									if (result)
+									{
+										LogStyleSupported(
+											buildingType,
+											pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+											activeStyle);
+									}
+									else
+									{
+										LogNoSupportedStyles(
+											buildingType,
+											pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
+									}
 								}
 							}
 						}

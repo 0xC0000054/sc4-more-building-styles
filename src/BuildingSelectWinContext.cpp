@@ -42,11 +42,106 @@ namespace
 
 		stream->SetVoid(&valueAsUint8, 1);
 	}
+
+	template<typename EnumType>
+	void ReadEnum(cISC4DBSegmentIStream* stream, EnumType& value)
+	{
+		static_assert(std::is_enum_v<EnumType>, "T must be an enum.");
+
+		using T = std::underlying_type_t<EnumType>;
+
+		T integerValue = 0;
+
+		if constexpr (std::is_same_v<T, uint8_t>)
+		{
+			stream->GetUint8(integerValue);
+		}
+		else if constexpr (std::is_same_v<T, int8_t>)
+		{
+			stream->GetSint8(integerValue);
+		}
+		else if constexpr (std::is_same_v<T, uint16_t>)
+		{
+			stream->GetUint16(integerValue);
+		}
+		else if constexpr (std::is_same_v<T, int16_t>)
+		{
+			stream->GetSint16(integerValue);
+		}
+		else if constexpr (std::is_same_v<T, uint32_t>)
+		{
+			stream->GetUint32(integerValue);
+		}
+		else if constexpr (std::is_same_v<T, int32_t>)
+		{
+			stream->GetSint32(integerValue);
+		}
+		else if constexpr (std::is_same_v<T, uint64_t>)
+		{
+			stream->GetUint64(integerValue);
+		}
+		else if constexpr (std::is_same_v<T, int64_t>)
+		{
+			stream->GetSint64(integerValue);
+		}
+		else
+		{
+			static_assert(false, "Unsupported enum underlying type.");
+		}
+
+		value = static_cast<EnumType>(integerValue);
+	}
+
+	template<typename EnumType>
+	void WriteEnum(cISC4DBSegmentOStream* stream, EnumType value)
+	{
+		static_assert(std::is_enum_v<EnumType>, "EnumType must be an enum.");
+
+		using T = std::underlying_type_t<EnumType>;
+
+		if constexpr (std::is_same_v<T, uint8_t>)
+		{
+			stream->SetUint8(static_cast<uint8_t>(value));
+		}
+		else if constexpr (std::is_same_v<T, int8_t>)
+		{
+			stream->SetSint8(static_cast<int8_t>(value));
+		}
+		else if constexpr (std::is_same_v<T, uint16_t>)
+		{
+			stream->SetUint16(static_cast<uint16_t>(value));
+		}
+		else if constexpr (std::is_same_v<T, int16_t>)
+		{
+			stream->SetSint16(static_cast<int16_t>(value));
+		}
+		else if constexpr (std::is_same_v<T, uint32_t>)
+		{
+			stream->SetUint32(static_cast<uint32_t>(value));
+		}
+		else if constexpr (std::is_same_v<T, int32_t>)
+		{
+			stream->SetSint32(static_cast<int32_t>(value));
+		}
+		else if constexpr (std::is_same_v<T, uint64_t>)
+		{
+			stream->SetUint64(static_cast<uint64_t>(value));
+		}
+		else if constexpr (std::is_same_v<T, int64_t>)
+		{
+			stream->SetSint64(static_cast<int64_t>(value));
+		}
+		else
+		{
+			static_assert(false, "Unsupported enum underlying type.");
+		}
+	}
 }
 
 BuildingSelectWinContext::BuildingSelectWinContext()
 	: automaticallyMarkBuildingsAsHistorical(false),
-	  automaticallyGrowifyPloppedBuildings(false)
+	  automaticallyGrowifyPloppedBuildings(false),
+	  wallToWallOption(WallToWallOption::Mixed)
 {
 }
 
@@ -71,7 +166,13 @@ void BuildingSelectWinContext::LoadFromDBSegment(cIGZPersistDBSegment* pSegment)
 
 				if (pSC4IStream->GetUint32(version))
 				{
-					if (version == 2)
+					if (version == 3)
+					{
+						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
+						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
+						ReadEnum(pSC4IStream, wallToWallOption);
+					}
+					else if (version == 2)
 					{
 						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
 						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
@@ -103,9 +204,10 @@ void BuildingSelectWinContext::SaveToDBSegment(cIGZPersistDBSegment* pSegment) c
 
 			if (pSC4DBSegment->OpenOStream(key, pSC4OStream.AsPPObj(), true))
 			{
-				pSC4OStream->SetUint32(2); // version
+				pSC4OStream->SetUint32(3); // version
 				WriteBoolean(pSC4OStream, automaticallyMarkBuildingsAsHistorical);
 				WriteBoolean(pSC4OStream, automaticallyGrowifyPloppedBuildings);
+				WriteEnum(pSC4OStream, wallToWallOption);
 			}
 		}
 	}
@@ -149,4 +251,14 @@ void BuildingSelectWinContext::UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32
 		automaticallyGrowifyPloppedBuildings = GZWinUtil::GetButtonToggleState(pWin, AutoGrowifyButtonID);
 		break;
 	}
+}
+
+IBuildingSelectWinContext::WallToWallOption BuildingSelectWinContext::GetWallToWallOption() const
+{
+	return wallToWallOption;
+}
+
+void BuildingSelectWinContext::SetWallToWallOption(WallToWallOption value)
+{
+	wallToWallOption = value;
 }

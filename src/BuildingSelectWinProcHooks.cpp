@@ -121,14 +121,83 @@ public:
 	uint32_t isCollapsed;              // 0x18
 };
 
-static void UpdateOptionalCheckBoxState(const cSC4BuildingSelectWinProc* pThis, uint32_t buttonID)
+enum ProcessUICheckBoxStatus : int32_t
 {
-	spBuildingSelectWinManager->UpdateOptionalCheckBoxState(pThis->window, buttonID);
+	 ProcessUICheckBoxStatusUnavailableBuildingStyle = 0,
+	 ProcessUICheckBoxStatusAvailableBuildingStyle,
+	 ProcessUICheckBoxStatusOptionalControl
+};
+
+static void UpdateWallToWallRadioButtons(
+	const cSC4BuildingSelectWinProc* pThis,
+	IBuildingSelectWinContext::WallToWallOption option,
+	bool setContextOption = true)
+{
+	if (setContextOption)
+	{
+		spBuildingSelectWinManager->GetContext().SetWallToWallOption(option);
+	}
+
+	switch (option)
+	{
+	case IBuildingSelectWinContext::WallToWallOption::Mixed:
+		GZWinUtil::SetButtonToggleState(pThis->window, WallToWallMixedRadioButtonID, true);
+		GZWinUtil::SetButtonToggleState(pThis->window, WallToWallOnlyRadioButtonID, false);
+		GZWinUtil::SetButtonToggleState(pThis->window, WallToWallBlockRadioButtonID, false);
+		break;
+	case IBuildingSelectWinContext::WallToWallOption::Only:
+		GZWinUtil::SetButtonToggleState(pThis->window, WallToWallOnlyRadioButtonID, true);
+		GZWinUtil::SetButtonToggleState(pThis->window, WallToWallMixedRadioButtonID, false);
+		GZWinUtil::SetButtonToggleState(pThis->window, WallToWallBlockRadioButtonID, false);
+		break;
+	case IBuildingSelectWinContext::WallToWallOption::Block:
+		GZWinUtil::SetButtonToggleState(pThis->window, WallToWallBlockRadioButtonID, true);
+		GZWinUtil::SetButtonToggleState(pThis->window, WallToWallMixedRadioButtonID, false);
+		GZWinUtil::SetButtonToggleState(pThis->window, WallToWallOnlyRadioButtonID, false);
+		break;
+	}
 }
 
-static bool IsBuildingStyleAvailable(uint32_t style)
+static bool ProcessOptionalUIButton(
+	const cSC4BuildingSelectWinProc* pThis,
+	uint32_t buttonID)
 {
-	return spBuildingSelectWinManager->IsBuildingStyleAvailable(style);
+	switch (buttonID)
+	{
+	case AutoHistoricalButtonID:
+	case AutoGrowifyButtonID:
+		spBuildingSelectWinManager->GetContext().UpdateOptionalCheckBoxState(pThis->window, buttonID);
+		return true;
+	case WallToWallMixedRadioButtonID:
+		UpdateWallToWallRadioButtons(pThis, IBuildingSelectWinContext::WallToWallOption::Mixed);
+		return true;
+	case WallToWallOnlyRadioButtonID:
+		UpdateWallToWallRadioButtons(pThis, IBuildingSelectWinContext::WallToWallOption::Only);
+		return true;
+	case WallToWallBlockRadioButtonID:
+		UpdateWallToWallRadioButtons(pThis, IBuildingSelectWinContext::WallToWallOption::Block);
+		return true;
+	default:
+		return false;
+	}
+}
+
+static ProcessUICheckBoxStatus ProcessUIButton(
+	const cSC4BuildingSelectWinProc* pThis,
+	uint32_t buttonID)
+{
+	ProcessUICheckBoxStatus result = ProcessUICheckBoxStatusUnavailableBuildingStyle;
+
+	if (ProcessOptionalUIButton(pThis, buttonID))
+	{
+		result = ProcessUICheckBoxStatusOptionalControl;
+	}
+	else if (spBuildingSelectWinManager->IsBuildingStyleAvailable(buttonID))
+	{
+		result = ProcessUICheckBoxStatusAvailableBuildingStyle;
+	}
+
+	return result;
 }
 
 static void NAKED_FUN DoWinProcMessageHookFn(void)
@@ -152,16 +221,13 @@ static void NAKED_FUN DoWinProcMessageHookFn(void)
 		jz stylePanelCollapsedToggle
 		cmp eax, StylePanel_Expanded_ToggleButton
 		jz stylePanelExpandedToggle
-		cmp eax, AutoHistoricalButtonID
-		jz updateOptionalCheckBoxState
-		cmp eax, AutoGrowifyButtonID
-		jz updateOptionalCheckBoxState
-		// Any button id below this line should be a style id
-		push eax
-		call IsBuildingStyleAvailable // (cdecl)
-		add esp, 4
-		test al, al
-		jz exit_method
+		// Any button id below this line should be a building style or optional button
+		push eax // button id
+		push esi // this pointer
+		call ProcessUIButton // (cdecl)
+		add esp, 8
+		cmp eax, ProcessUICheckBoxStatusAvailableBuildingStyle
+		jnz exit_method
 		pop edx // restore
 		pop ecx // restore
 		pop eax // restore
@@ -203,12 +269,6 @@ static void NAKED_FUN DoWinProcMessageHookFn(void)
 		push DoWinProcMessage_Hook_Button_HideBuildingStyleControl_Continue_Jump
 		ret
 
-		updateOptionalCheckBoxState:
-		push eax // button id
-		push esi // this pointer
-		call UpdateOptionalCheckBoxState // (cdecl)
-		add esp, 8
-
 		exit_method:
 		pop edx // restore
 		pop ecx // restore
@@ -246,21 +306,12 @@ void __thiscall cSC4BuildingSelectWinProc::EnableStyleButtons()
 	}
 }
 
-static void InitializeOptionalCheckBox(cSC4BuildingSelectWinProc* pThis, uint32_t buttonID)
+static void InitializeOptionalCheckBox(
+	cSC4BuildingSelectWinProc* pThis,
+	uint32_t buttonID,
+	const IBuildingSelectWinContext& context)
 {
-	cRZAutoRefCount<cIGZWinBtn> button;
-
-	if (pThis->window->GetChildAsRecursive(buttonID, GZIID_cIGZWinBtn, button.AsPPVoid()))
-	{
-		if (spBuildingSelectWinManager->GetOptionalCheckBoxState(buttonID))
-		{
-			button->ToggleOn();
-		}
-		else
-		{
-			button->ToggleOff();
-		}
-	}
+	GZWinUtil::SetButtonToggleState(pThis->window, buttonID, context.GetOptionalCheckBoxState(buttonID));
 }
 
 void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
@@ -277,8 +328,11 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 		GZWinUtil::SetButtonToggleState(this->styleListContainer, style, selected);
 	}
 
-	InitializeOptionalCheckBox(this, AutoHistoricalButtonID);
-	InitializeOptionalCheckBox(this, AutoGrowifyButtonID);
+	const IBuildingSelectWinContext& context = spBuildingSelectWinManager->GetContext();
+
+	InitializeOptionalCheckBox(this, AutoHistoricalButtonID, context);
+	InitializeOptionalCheckBox(this, AutoGrowifyButtonID, context);
+	UpdateWallToWallRadioButtons(this, context.GetWallToWallOption(), /*setContextOption*/false);
 
 	EnableStyleButtons();
 }
