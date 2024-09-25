@@ -3,7 +3,7 @@
 This folder contains a DBPF file with the 4 INI entries that are used to enable building styles for the industrial building categories.    
 Building style support for the specified building category, the supported values of the _Enabled_ field are:
 
-False - building styles are disabled for the building category.
+False - building styles are disabled for the building category.    
 True  - building styles are enabled for the building category.
 
 Both values are case insensitive.
