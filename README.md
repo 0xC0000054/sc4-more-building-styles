@@ -114,7 +114,7 @@ It also provides a function to get a building occupant's supported styles as a s
 list of style names, only styles that are present in the game's `Building Style Control` window will be included in
 that list.
 
-See [cIBuildingStyleInfo.h](src/public/include/cIBuildingStyleInfo.h) for details.
+See [cIBuildingStyleInfo.h](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/src/public/include/cIBuildingStyleInfo.h) for details.
 
 ## Download
 
