@@ -23,9 +23,6 @@
 #include <algorithm>
 
 static const uint32_t kGZWin_WinSC4App = 0x6104489a;
-static const uint32_t kGZWin_SC4View3DWin = 0x9a47b417;
-
-static const uint32_t kGZIID_cISC4View3DWin = 0xFA47B3F9;
 
 namespace
 {
@@ -115,8 +112,6 @@ void AvailableBuildingStyles::Initialize()
 
 					if (pStyleListContainer)
 					{
-						constexpr uint32_t GZIID_cIGZWinBtn = 0x8810;
-
 						// Enumerate the buttons in the child window to get the list of available styles.
 
 						BuildingStyleWinContext context(*pStyleListContainer);
