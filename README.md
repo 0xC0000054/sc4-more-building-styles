@@ -66,6 +66,26 @@ Building style support for the 4 industrial building types are controlled by 4 I
 in the style mod DAT files.
 See the [industrial-building-styles](industrial-building-styles) folder for a template file and the format details.
 
+## BuildingStyles INI File
+
+This file allows styles to be defined without editing the Building Style Control UI file.
+When the check box button ids for the Building Style Control are in the range of 0-127, these ids can be mapped to a
+specific style and style name in _BuildingStyles.ini_.
+
+The style entries are placed under a _BuildingStyles_ section and use the following format:
+```
+<UI button id> = <style id>,<style name>
+
+<UI button id> is a Building Style Control check box id in the range of 0-127.
+<style id> is the building style id assigned in the Building Style Index.
+<style name> is the style name in the format: <name> or LTEXT:<TGI key>
+
+Examples:
+
+0 = 0x2005,Mediterranean & Tropical
+1 = 0x2006,LTEXT:0x2026960b,0x6a231eaa,0x6bbbd875
+```
+
 ## SC4MoreBuildingStyles INI File
 
 This file contains two settings that control whether the growable building style debug logging code will write to the

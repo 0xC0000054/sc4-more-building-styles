@@ -30,4 +30,6 @@ namespace StringViewUtil
 		std::vector<std::string_view>& results);
 
 	std::string_view TrimWhiteSpace(const std::string_view& input);
+
+	bool TryParse(const std::string_view& input, uint32_t& outValue);
 }

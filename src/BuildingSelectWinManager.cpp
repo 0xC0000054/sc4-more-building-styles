@@ -437,12 +437,12 @@ cISC4TractDeveloper* BuildingSelectWinManager::GetTractDeveloper() const
 	return pTractDeveloper;
 }
 
-bool BuildingSelectWinManager::IsBuildingStyleAvailable(uint32_t style) const
+bool BuildingSelectWinManager::IsStyleButtonIDValid(uint32_t buttonID) const
 {
-	return availableBuildingStyles.ContainsBuildingStyle(style);
+	return availableBuildingStyles.IsStyleButtonIDValid(buttonID);
 }
 
-const std::map<uint32_t, std::string>& BuildingSelectWinManager::GetAvailableBuildingStyles() const
+const BuildingStyleCollection& BuildingSelectWinManager::GetAvailableBuildingStyles() const
 {
 	return availableBuildingStyles.GetBuildingStyles();
 }
@@ -457,15 +457,25 @@ const IBuildingSelectWinContext& BuildingSelectWinManager::GetContext() const
 	return context;
 }
 
-void BuildingSelectWinManager::SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t styleID)
+void BuildingSelectWinManager::SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t buttonID)
 {
 	cRZMessage2Standard message;
 	message.SetType(kMessageBuildingStyleCheckboxChanged);
 	message.SetData1(checked);
-	message.SetData2(styleID);
 
-	const std::map<uint32_t, std::string>& allStyles = availableBuildingStyles.GetBuildingStyles();
-	cRZBaseString name(allStyles.find(styleID)->second);
+	cRZBaseString name;
+
+	const BuildingStyleCollection& allStyles = availableBuildingStyles.GetBuildingStyles();
+
+	for (const auto& item : allStyles)
+	{
+		if (item.buttonID == buttonID)
+		{
+			message.SetData2(item.styleID);
+			name = item.styleName;
+			break;
+		}
+	}
 
 	message.SetVoid3(static_cast<cIGZString*>(&name));
 

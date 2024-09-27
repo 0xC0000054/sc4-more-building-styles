@@ -113,11 +113,11 @@ uint32_t BuildingStyleInfo::GetAvailableBuildingStyleIds(uint32_t* pStyles, uint
 	{
 		if (size > 0)
 		{
-			const std::map<uint32_t, std::string>& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
+			const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
 
 			for (const auto& item : availableBuildingStyles)
 			{
-				pStyles[styleCount] = item.first;
+				pStyles[styleCount] = item.styleID;
 				styleCount++;
 
 				if (styleCount >= size)
@@ -143,21 +143,18 @@ uint32_t BuildingStyleInfo::GetAvailableBuildingStyleIds(uint32_t* pStyles, uint
 
 bool BuildingStyleInfo::GetBuildingStyleName(uint32_t style, cIGZString& name) const
 {
-	bool result = false;
+	const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
 
-	const std::map<uint32_t, std::string>& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
-
-	const auto& item = availableBuildingStyles.find(style);
-
-	if (item != availableBuildingStyles.end())
+	for (const auto& item : availableBuildingStyles)
 	{
-		const std::string& styleName = item->second;
-
-		name.FromChar(styleName.c_str(), styleName.size());
-		result = true;
+		if (item.styleID == style)
+		{
+			name = item.styleName;
+			return true;
+		}
 	}
 
-	return result;
+	return false;
 }
 
 bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZString& destination) const
@@ -168,7 +165,7 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 
 	if (OccupantSupportsBuildingStyles(pOccupant))
 	{
-		const std::map<uint32_t, std::string>& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
+		const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
 
 		if (availableBuildingStyles.size() > 0)
 		{
@@ -188,20 +185,19 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 
 					if (pVariant)
 					{
-						const uint32_t* pData = pVariant->RefUint32();
+						const uint32_t* pOccupantGroup = pVariant->RefUint32();
 						const uint32_t count = pVariant->GetCount();
 
-						for (uint32_t i = 0; i < count; i++)
+						for (const auto& item : availableBuildingStyles)
 						{
-							const uint32_t occupantGroup = pData[i];
-							const auto item = availableBuildingStyles.find(occupantGroup);
-
-							if (item != availableBuildingStyles.end())
+							for (uint32_t i = 0; i < count; i++)
 							{
-								const std::string& styleName = item->second;
-
-								destination.Append(styleName.c_str(), styleName.size());
-								destination.Append(separator.data(), separator.size());
+								if (item.styleID == pOccupantGroup[i])
+								{
+									destination.Append(item.styleName);
+									destination.Append(separator.data(), separator.size());
+									break;
+								}
 							}
 						}
 					}
@@ -223,5 +219,15 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 
 bool BuildingStyleInfo::IsBuildingStyleAvailable(uint32_t style) const
 {
-	return buildingWinManager.IsBuildingStyleAvailable(style);
+	const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
+
+	for (const auto& item : availableBuildingStyles)
+	{
+		if (item.styleID == style)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }

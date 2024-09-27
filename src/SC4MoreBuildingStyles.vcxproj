@@ -33,7 +33,10 @@
     <ClCompile Include="BuildingSelectWinContext.cpp" />
     <ClCompile Include="BuildingSelectWinManager.cpp" />
     <ClCompile Include="BuildingSelectWinProcHooks.cpp" />
+    <ClCompile Include="BuildingStyleCollection.cpp" />
+    <ClCompile Include="BuildingStyleCollectionEntry.cpp" />
     <ClCompile Include="BuildingStyleInfo.cpp" />
+    <ClCompile Include="BuildingStyleIniFile.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="GZFileStreamBufAdapter.cpp" />
     <ClCompile Include="GZWinUtil.cpp" />
@@ -65,7 +68,10 @@
     <ClInclude Include="BuildingSelectWinManager.h" />
     <ClInclude Include="BuildingSelectWinProcHooks.h" />
     <ClInclude Include="BuildingStyleButtons.h" />
+    <ClInclude Include="BuildingStyleCollection.h" />
+    <ClInclude Include="BuildingStyleCollectionEntry.h" />
     <ClInclude Include="BuildingStyleInfo.h" />
+    <ClInclude Include="BuildingStyleIniFile.h" />
     <ClInclude Include="BuildingStyleMessages.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="GlobalPointers.h" />

@@ -15,20 +15,20 @@
 
 class cIGZWin;
 
-class AvailableBuildingStyles
+class BuildingStyleIniFile
 {
 public:
-	AvailableBuildingStyles();
+	// We currently support a maximum of 128 custom style
+	// check boxes, with a button id range of 0-127.
+	static constexpr uint32_t MaxStyleButtonID = 127;
 
-	// Initializes the list of available building styles.
-	void Initialize();
+	BuildingStyleIniFile(cIGZWin& styleListContainer);
 
-	bool IsStyleButtonIDValid(uint32_t buttonID) const;
-
-	const BuildingStyleCollection& GetBuildingStyles() const;
+	const BuildingStyleCollection& GetStyles() const;
 
 private:
-	BuildingStyleCollection availableBuildingStyles;
-	bool initialized;
+	void Load(cIGZWin& styleListContainer);
+
+	BuildingStyleCollection entries;
 };
 

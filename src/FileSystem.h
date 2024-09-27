@@ -15,6 +15,7 @@
 
 namespace FileSystem
 {
+	std::filesystem::path GetBuildingStylesIniFilePath();
 	std::filesystem::path GetConfigFilePath();
 	std::filesystem::path GetLogFilePath();
 };

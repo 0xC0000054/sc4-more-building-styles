@@ -8,7 +8,7 @@
 static const uint32_t kRZBaseStringIID = 0xab13a836;
 
 cRZBaseString::cRZBaseString(cIGZString const& szSource)
-	: mnRefCount(0), szData(szSource.ToChar()) {
+	: mnRefCount(0), szData(szSource.ToChar(), szSource.Strlen()) {
 	// Empty
 }
 
@@ -49,19 +49,17 @@ cRZBaseString::cRZBaseString(void)
 }
 
 cRZBaseString::cRZBaseString(const cRZBaseString& other)
-	: mnRefCount(0), szData(other.szData)
-{
+	: mnRefCount(0), szData(other.szData) {
+	// Empty
 }
 
 cRZBaseString::cRZBaseString(cRZBaseString&& other) noexcept
-	: mnRefCount(other.mnRefCount), szData(std::move(other.szData))
-{
+	: mnRefCount(other.mnRefCount), szData(std::move(other.szData)) {
+	// Empty
 }
 
-cRZBaseString& cRZBaseString::operator=(const cRZBaseString& other)
-{
-	if (this == &other)
-	{
+cRZBaseString& cRZBaseString::operator=(const cRZBaseString& other) {
+	if (this == &other) {
 		return *this;
 	}
 
@@ -70,15 +68,19 @@ cRZBaseString& cRZBaseString::operator=(const cRZBaseString& other)
 	return *this;
 }
 
-cRZBaseString& cRZBaseString::operator=(cRZBaseString&& other) noexcept
-{
-	if (this == &other)
-	{
+cRZBaseString& cRZBaseString::operator=(cRZBaseString&& other) noexcept {
+	if (this == &other)	{
 		return *this;
 	}
 
 	mnRefCount = other.mnRefCount;
 	szData = std::move(other.szData);
+
+	return *this;
+}
+
+cRZBaseString& cRZBaseString::operator=(const std::string_view& other) noexcept {
+	szData = other;
 
 	return *this;
 }

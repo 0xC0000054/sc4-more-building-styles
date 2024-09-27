@@ -58,13 +58,13 @@ namespace
 		return std::find(vector.begin(), vector.end(), value) != vector.end();
 	}
 
-	bool HasMoreThanOneStyleChecked(cIGZWin* container, const std::map<uint32_t, std::string>& styleButtons)
+	bool HasMoreThanOneStyleChecked(cIGZWin* container, const BuildingStyleCollection& styleButtons)
 	{
 		int32_t numberOfButtonsChecked = 0;
 
-		for (const std::pair<uint32_t, std::string>& item : styleButtons)
+		for (const auto& item : styleButtons)
 		{
-			if (GZWinUtil::GetButtonToggleState(container, item.first))
+			if (GZWinUtil::GetButtonToggleState(container, item.buttonID))
 			{
 				++numberOfButtonsChecked;
 
@@ -192,7 +192,7 @@ static ProcessUICheckBoxStatus ProcessUIButton(
 	{
 		result = ProcessUICheckBoxStatusOptionalControl;
 	}
-	else if (spBuildingSelectWinManager->IsBuildingStyleAvailable(buttonID))
+	else if (spBuildingSelectWinManager->IsStyleButtonIDValid(buttonID))
 	{
 		result = ProcessUICheckBoxStatusAvailableBuildingStyle;
 	}
@@ -280,23 +280,23 @@ static void NAKED_FUN DoWinProcMessageHookFn(void)
 
 void __thiscall cSC4BuildingSelectWinProc::EnableStyleButtons()
 {
-	const std::map<uint32_t, std::string>& styleButtons = spBuildingSelectWinManager->GetAvailableBuildingStyles();
+	const BuildingStyleCollection& styleButtons = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
 	if (HasMoreThanOneStyleChecked(this->styleListContainer, styleButtons))
 	{
 		// Enable all of the radio buttons.
-		for (const std::pair<uint32_t, std::string>& item : styleButtons)
+		for (const auto& item : styleButtons)
 		{
-			GZWinUtil::SetChildWindowEnabled(this->styleListContainer, item.first, true);
+			GZWinUtil::SetChildWindowEnabled(this->styleListContainer, item.buttonID, true);
 		}
 	}
 	else
 	{
 		// Disable the active radio button to prevent it from being deselected.
 		// This ensures that there is always at least one radio button active.
-		for (const std::pair<uint32_t, std::string>& item : styleButtons)
+		for (const auto& item : styleButtons)
 		{
-			uint32_t id = item.first;
+			uint32_t id = item.buttonID;
 			if (GZWinUtil::GetButtonToggleState(this->styleListContainer, id))
 			{
 				GZWinUtil::SetChildWindowEnabled(this->styleListContainer, id, false);
@@ -316,16 +316,15 @@ static void InitializeOptionalCheckBox(
 
 void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 {
-	const std::map<uint32_t, std::string>& allBuildingStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
+	const BuildingStyleCollection& allBuildingStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
 	const eastl::vector<uint32_t>& activeBuildingStyles = spBuildingSelectWinManager->GetTractDeveloper()->GetActiveStyles();
 
-	for (const std::pair<uint32_t, std::string>& item : allBuildingStyles)
+	for (const auto& item : allBuildingStyles)
 	{
-		uint32_t style = item.first;
-		bool selected = Contains(activeBuildingStyles, style);
+		bool selected = Contains(activeBuildingStyles, item.styleID);
 
-		GZWinUtil::SetButtonToggleState(this->styleListContainer, style, selected);
+		GZWinUtil::SetButtonToggleState(this->styleListContainer, item.buttonID, selected);
 	}
 
 	const IBuildingSelectWinContext& context = spBuildingSelectWinManager->GetContext();

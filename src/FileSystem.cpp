@@ -35,6 +35,14 @@ namespace
 	}
 }
 
+std::filesystem::path FileSystem::GetBuildingStylesIniFilePath()
+{
+	std::filesystem::path path = GetDllFolderPath();
+	path /= L"BuildingStyles.ini"sv;
+
+	return path;
+}
+
 std::filesystem::path FileSystem::GetConfigFilePath()
 {
 	std::filesystem::path path = GetDllFolderPath();

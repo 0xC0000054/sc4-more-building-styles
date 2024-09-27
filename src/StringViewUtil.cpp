@@ -12,6 +12,7 @@
 
 #include "StringViewUtil.h"
 #include "boost/algorithm/string.hpp"
+#include <charconv>
 
 bool StringViewUtil::EqualsIgnoreCase(const std::string_view& lhs, const std::string_view& rhs)
 {
@@ -104,4 +105,28 @@ void StringViewUtil::Split(
 std::string_view StringViewUtil::TrimWhiteSpace(const std::string_view& input)
 {
 	return boost::trim_copy(input);
+}
+
+bool StringViewUtil::TryParse(const std::string_view& input, uint32_t& outValue)
+{
+	const char* start = input.data();
+	const char* end = start + input.size();
+	int base = 10;
+
+	if (StartsWithIgnoreCase(input, "0x"))
+	{
+		// std::from_chars can't parse hexadecimal numbers with the 0x prefix.
+		start += 2;
+		base = 16;
+	}
+
+	const std::from_chars_result result = std::from_chars(start, end, outValue, base);
+
+	if (result.ec == std::errc{} && result.ptr == end)
+	{
+		return true;
+	}
+
+	outValue = 0;
+	return false;
 }

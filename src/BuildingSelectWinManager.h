@@ -49,13 +49,13 @@ private:
 
 	cISC4TractDeveloper* GetTractDeveloper() const override;
 
-	bool IsBuildingStyleAvailable(uint32_t style) const override;
-	const std::map<uint32_t, std::string>& GetAvailableBuildingStyles() const override;
+	bool IsStyleButtonIDValid(uint32_t style) const override;
+	const BuildingStyleCollection& GetAvailableBuildingStyles() const override;
 
 	IBuildingSelectWinContext& GetContext() override;
 	const IBuildingSelectWinContext& GetContext() const override;
 
-	void SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t styleID) override;
+	void SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t buttonID) override;
 
 	uint32_t refCount;
 	cIGZMessageServer2* pMS2;
