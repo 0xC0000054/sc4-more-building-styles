@@ -235,15 +235,9 @@ static bool HasOccupantGroupValue(
 	uint32_t occupantGroupCount,
 	uint32_t value)
 {
-	for (uint32_t i = 0; i < occupantGroupCount; i++)
-	{
-		if (pOccupantGroupData[i] == value)
-		{
-			return true;
-		}
-	}
+	const uint32_t* pDataEnd = pOccupantGroupData + occupantGroupCount;
 
-	return false;
+	return std::find(pOccupantGroupData, pDataEnd, value) != pDataEnd;
 }
 
 template<size_t N>

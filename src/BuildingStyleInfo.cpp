@@ -185,19 +185,15 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 
 					if (pVariant)
 					{
-						const uint32_t* pOccupantGroup = pVariant->RefUint32();
-						const uint32_t count = pVariant->GetCount();
+						const uint32_t* pDataStart = pVariant->RefUint32();
+						const uint32_t* pDataEnd = pDataStart + pVariant->GetCount();
 
 						for (const auto& item : availableBuildingStyles)
 						{
-							for (uint32_t i = 0; i < count; i++)
+							if (std::find(pDataStart, pDataEnd, item.styleID) != pDataEnd)
 							{
-								if (item.styleID == pOccupantGroup[i])
-								{
-									destination.Append(item.styleName);
-									destination.Append(separator.data(), separator.size());
-									break;
-								}
+								destination.Append(item.styleName);
+								destination.Append(separator.data(), separator.size());
 							}
 						}
 					}
