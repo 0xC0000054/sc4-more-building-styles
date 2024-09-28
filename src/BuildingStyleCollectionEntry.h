@@ -30,8 +30,8 @@ struct BuildingStyleCollectionEntry
 
 	bool operator==(const BuildingStyleCollectionEntry& other) const;
 	bool operator!=(const BuildingStyleCollectionEntry& other) const;
-	bool operator<(const BuildingStyleCollectionEntry & other) const;
-	bool operator<= (const BuildingStyleCollectionEntry & other) const;
+	bool operator<(const BuildingStyleCollectionEntry& other) const;
+	bool operator<= (const BuildingStyleCollectionEntry& other) const;
 	bool operator>(const BuildingStyleCollectionEntry& other) const;
 	bool operator>=(const BuildingStyleCollectionEntry& other) const;
 };
