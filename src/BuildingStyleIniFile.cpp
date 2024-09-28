@@ -28,33 +28,46 @@ namespace
 {
 	bool ParseStyleName(const std::string_view& input, cRZBaseString& styleName)
 	{
-		static constexpr std::string_view LtextPrefix = "LTEXT:"sv;
+		static constexpr std::string_view CaptionResPrefix = "CaptionRes:"sv;
 
-		if (StringViewUtil::StartsWithIgnoreCase(input, LtextPrefix))
+		if (StringViewUtil::StartsWithIgnoreCase(input, CaptionResPrefix))
 		{
-			const std::string_view tgiDataView = input.substr(LtextPrefix.size());
+			Logger& logger = Logger::GetInstance();
 
-			std::vector<std::string_view> tgiValues;
-			tgiValues.reserve(3);
+			const std::string_view captionResDataView = input.substr(CaptionResPrefix.size());
 
-			StringViewUtil::Split(tgiDataView, ',', tgiValues);
+			std::vector<std::string_view> captionResValues;
+			captionResValues.reserve(2);
 
-			if (tgiValues.size() != 3)
+			StringViewUtil::Split(captionResDataView, ',', captionResValues);
+
+			if (captionResValues.size() != 2)
 			{
+				logger.WriteLine(
+					LogLevel::Error,
+					"The CaptionRes values must be in the format: groupID,instanceID");
 				return false;
 			}
 
-			constexpr uint32_t LTEXTTypeID = 0x2026960B;
-
-			uint32_t type = 0;
 			uint32_t group = 0;
+
+			if (!StringViewUtil::TryParse(StringViewUtil::TrimWhiteSpace(captionResValues[0]), group))
+			{
+				logger.WriteLineFormatted(
+					LogLevel::Error,
+					"Failed to parse the CaptionRes groupID value: %s",
+					std::string(captionResValues[0]).c_str());
+				return false;
+			}
+
 			uint32_t instance = 0;
 
-			if (!StringViewUtil::TryParse(StringViewUtil::TrimWhiteSpace(tgiValues[0]), type)
-				|| type != LTEXTTypeID
-				|| !StringViewUtil::TryParse(StringViewUtil::TrimWhiteSpace(tgiValues[1]), group)
-				|| !StringViewUtil::TryParse(StringViewUtil::TrimWhiteSpace(tgiValues[2]), instance))
+			if (!StringViewUtil::TryParse(StringViewUtil::TrimWhiteSpace(captionResValues[1]), instance))
 			{
+				logger.WriteLineFormatted(
+					LogLevel::Error,
+					"Failed to parse the CaptionRes instanceID value: %s",
+					std::string(captionResValues[1]).c_str());
 				return false;
 			}
 
@@ -64,6 +77,11 @@ namespace
 
 			if (!StringResourceManager::GetLocalizedString(key, localizedString.AsPPObj()))
 			{
+				logger.WriteLineFormatted(
+					LogLevel::Error,
+					"Failed to load the caption resource from TGI: 0x2026960B,0x%08X,0x%08X",
+					group,
+					instance);
 				return false;
 			}
 
@@ -78,28 +96,91 @@ namespace
 	}
 
 	bool ParseStyleData(
+		uint32_t buttonID,
 		const std::string_view& input,
-		uint32_t& styleID,
-		cRZBaseString& styleName)
+		BuildingStyleIniFile::StyleEntry& entry)
 	{
-		const size_t commaIndex = input.find_first_of(',');
+		Logger& logger = Logger::GetInstance();
 
-		if (commaIndex == std::string_view::npos
-			|| (commaIndex + 1) >= input.size())
+		const size_t styleIDCommaIndex = input.find_first_of(',');
+
+		if (styleIDCommaIndex == std::string_view::npos
+			|| (styleIDCommaIndex + 1) >= input.size())
 		{
 			return false;
 		}
 
-		const std::string_view styleIDView = StringViewUtil::TrimWhiteSpace(input.substr(0, commaIndex));
+		const std::string_view styleIDView = StringViewUtil::TrimWhiteSpace(input.substr(0, styleIDCommaIndex));
 
-		if (!StringViewUtil::TryParse(styleIDView, styleID))
+		if (!StringViewUtil::EqualsIgnoreCase(styleIDView, "Show"sv))
 		{
+			if (!StringViewUtil::TryParse(styleIDView, entry.styleID))
+			{
+				logger.WriteLineFormatted(
+					LogLevel::Error,
+					"Failed to parse the style number '%s' for button id %u.",
+					std::string(styleIDView).c_str(),
+					buttonID);
+				return false;
+			}
+
+			if (entry.styleID == BuildingStyleIniFile::InvalidStyleID)
+			{
+				logger.WriteLineFormatted(
+					LogLevel::Error,
+					"The style id cannot have a value of %d.",
+					BuildingStyleIniFile::InvalidStyleID);
+				return false;
+			}
+		}
+
+		const std::string_view fontStyleView = StringViewUtil::TrimWhiteSpace(input.substr(styleIDCommaIndex + 1));
+
+		if (fontStyleView.empty())
+		{
+			logger.WriteLine(LogLevel::Error, "The font style section is empty.");
 			return false;
 		}
 
-		const std::string_view styleNameView = StringViewUtil::TrimWhiteSpace(input.substr(commaIndex + 1));
+		entry.boldText = false;
 
-		return ParseStyleName(styleNameView, styleName);
+		if (fontStyleView[0] != 'N')
+		{
+			if (fontStyleView[0] == 'B')
+			{
+				entry.boldText = true;
+			}
+			else
+			{
+				logger.WriteLineFormatted(
+					LogLevel::Error,
+					"Invalid font style character: %c. Must be N or B",
+					fontStyleView[0]);
+				return false;
+			}
+		}
+
+		bool result = true;
+
+		if (fontStyleView.size() > 2 && fontStyleView[1] == ',')
+		{
+			const std::string_view styleNameView = fontStyleView.substr(2);
+
+			result = ParseStyleName(styleNameView, entry.styleName);
+		}
+		else
+		{
+			if (entry.styleID == BuildingStyleIniFile::InvalidStyleID)
+			{
+				entry.styleName.Sprintf("Style Slot %d", buttonID);
+			}
+			else
+			{
+				entry.styleName.Sprintf("Style Slot %d (Style 0x%04X)", buttonID, entry.styleID);
+			}
+		}
+
+		return result;
 	}
 
 	bool CountStyleButtonsEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
@@ -142,7 +223,7 @@ BuildingStyleIniFile::BuildingStyleIniFile(cIGZWin& styleListContainer)
 	Load(styleListContainer);
 }
 
-const BuildingStyleCollection& BuildingStyleIniFile::GetStyles() const
+const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& BuildingStyleIniFile::GetStyles() const
 {
 	return entries;
 }
@@ -179,22 +260,12 @@ void BuildingStyleIniFile::Load(cIGZWin& styleListContainer)
 					{
 						if (buttonID <= maxStyleButtonIndex)
 						{
-							uint32_t styleID = 0;
-							cRZBaseString styleName;
+							StyleEntry entry;
 
-							if (ParseStyleData(item.second.data(), styleID, styleName))
+							// ParseStyleData will write an error message if it fails.
+							if (ParseStyleData(buttonID, item.second.data(), entry))
 							{
-								entries.insert(
-									buttonID,
-									styleID,
-									styleName);
-							}
-							else
-							{
-								logger.WriteLineFormatted(
-									LogLevel::Error,
-									"Failed to parse the style data for button id %d.",
-									buttonID);
+								entries.insert(std::make_pair(buttonID, entry));
 							}
 						}
 						else
@@ -214,9 +285,6 @@ void BuildingStyleIniFile::Load(cIGZWin& styleListContainer)
 							item.first.c_str());
 					}
 				}
-
-				// Sort the items in ascending order.
-				std::sort(entries.begin(), entries.end());
 			}
 			else
 			{

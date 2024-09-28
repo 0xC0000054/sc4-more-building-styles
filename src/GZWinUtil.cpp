@@ -56,7 +56,7 @@ bool GZWinUtil::GetChildWindowEnabled(cIGZWin* win, uint32_t childID)
 
 	if (child)
 	{
-		result = child->GetFlag(cGZWin_Flag_Enabled);
+		result = GetWindowEnabled(child);
 	}
 
 	return result;
@@ -68,6 +68,33 @@ void GZWinUtil::SetChildWindowEnabled(cIGZWin* win, uint32_t childID, bool enabl
 
 	if (child)
 	{
-		child->SetFlag(cGZWin_Flag_Enabled, enabled);
+		SetWindowEnabled(child, enabled);
+	}
+}
+
+bool GZWinUtil::GetWindowEnabled(cIGZWin* win)
+{
+	return win->GetFlag(cGZWin_Flag_Enabled);
+}
+
+void GZWinUtil::SetWindowEnabled(cIGZWin* win, bool enabled)
+{
+	win->SetFlag(cGZWin_Flag_Enabled, enabled);
+}
+
+bool GZWinUtil::GetWindowVisible(cIGZWin* win)
+{
+	return win->IsVisible();
+}
+
+void GZWinUtil::SetWindowVisible(cIGZWin* win, bool visible)
+{
+	if (visible)
+	{
+		win->ShowWindow();
+	}
+	else
+	{
+		win->HideWindow();
 	}
 }

@@ -18,10 +18,13 @@ class cIGZWin;
 namespace GZWinUtil
 {
 	bool GetButtonToggleState(cIGZWin* win, uint32_t buttonID);
-
 	void SetButtonToggleState(cIGZWin* win, uint32_t buttonID, bool toggleState);
 
 	bool GetChildWindowEnabled(cIGZWin* win, uint32_t childID);
-
 	void SetChildWindowEnabled(cIGZWin* win, uint32_t childID, bool enabled);
+	bool GetWindowEnabled(cIGZWin* win);
+	void SetWindowEnabled(cIGZWin* win, bool enabled);
+
+	bool GetWindowVisible(cIGZWin* win);
+	void SetWindowVisible(cIGZWin* win, bool visible);
 }

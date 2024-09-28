@@ -20,6 +20,7 @@
 #include "cISC4View3DWin.h"
 #include "cRZAutoRefCount.h"
 #include "GZServPtrs.h"
+#include "GZWinUtil.h"
 #include <algorithm>
 
 static const uint32_t kGZWin_WinSC4App = 0x6104489a;
@@ -33,7 +34,7 @@ namespace
 
 		BuildingStyleWinContext(cIGZWin& styleListContainer)
 			: buildingStyleIniFile(styleListContainer),
-			availableBuildingStyles()
+			  availableBuildingStyles()
 		{
 		}
 	};
@@ -58,16 +59,34 @@ namespace
 			{
 				if (childID <= BuildingStyleIniFile::MaxStyleButtonID)
 				{
-					const BuildingStyleCollection& styles = state->buildingStyleIniFile.GetStyles();
+					const auto& styles = state->buildingStyleIniFile.GetStyles();
 
-					for (const auto& item : styles)
+					const auto item = styles.find(childID);
+
+					if (item != styles.end())
 					{
-						if (item.buttonID == childID)
+						const BuildingStyleIniFile::StyleEntry& entry = item->second;
+
+						if (entry.styleID != BuildingStyleIniFile::InvalidStyleID)
 						{
-							state->availableBuildingStyles.insert(item);
-							pBtn->SetCaption(item.styleName);
-							break;
+							state->availableBuildingStyles.insert(item->first, entry.styleID, entry.styleName);
 						}
+						else
+						{
+							// The check box is a placeholder, visible but disabled.
+							GZWinUtil::SetWindowEnabled(pBtn->AsIGZWin(), false);
+						}
+
+						pBtn->SetCaption(entry.styleName);
+
+						constexpr uint32_t LedgerHeaderFontStyle = 0xE9C86B5A;
+						constexpr uint32_t DefaultFontStyle = 0x68963C4C;
+
+						pBtn->SetFontStyle(entry.boldText ? LedgerHeaderFontStyle : DefaultFontStyle);
+					}
+					else
+					{
+						GZWinUtil::SetWindowVisible(pBtn->AsIGZWin(), false);
 					}
 				}
 				else
