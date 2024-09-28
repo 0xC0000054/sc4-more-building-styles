@@ -1,5 +1,6 @@
 #include "../include/cRZBaseString.h"
 #include <algorithm>
+#include <memory>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -286,16 +287,39 @@ int32_t cRZBaseString::RFind(cIGZString const& szOther, uint32_t dwPos, bool bCa
 }
 
 cIGZString* cRZBaseString::Sprintf(char const* pszFormat, ...) {
-	// TODO: Is there a less hacky way of doing this?
 	va_list args;
 	va_start(args, pszFormat);
 
-	int nBufferSize = vsnprintf(NULL, 0, pszFormat, args);
-	char* pszResult = (char*)malloc(nBufferSize + 1);
-	vsnprintf(pszResult, nBufferSize, pszFormat, args);
+	va_list argsCopy;
+	va_copy(argsCopy, args);
 
-	szData.assign(pszResult);
-	free(pszResult);
+	int formattedStringLength = std::vsnprintf(nullptr, 0, pszFormat, argsCopy);
+
+	va_end(argsCopy);
+
+	if (formattedStringLength > 0)
+	{
+		size_t formattedStringLengthWithNull = static_cast<size_t>(formattedStringLength) + 1;
+
+		constexpr size_t stackBufferSize = 1024;
+
+		if (formattedStringLengthWithNull >= stackBufferSize)
+		{
+			std::unique_ptr<char[]> buffer = std::make_unique_for_overwrite<char[]>(formattedStringLengthWithNull);
+
+			std::vsnprintf(buffer.get(), formattedStringLengthWithNull, pszFormat, args);
+
+			szData.assign(buffer.get(), formattedStringLength);
+		}
+		else
+		{
+			char buffer[stackBufferSize]{};
+
+			std::vsnprintf(buffer, stackBufferSize, pszFormat, args);
+
+			szData.assign(buffer, formattedStringLength);
+		}
+	}
 
 	va_end(args);
 
