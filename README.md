@@ -43,12 +43,12 @@ Block W2W, no W2W buildings will be built. This radio button uses the reserved i
 W2W buildings are identified by the presence of a W2W occupant group in the
 building exemplar. The following W2W occupant group values are supported:
 
-More Building Style DLL W2W:  `0xD02C802E`    
-BTE: Comm. W2W:               `0xB5C00A05`    
-BTE: Res. W2W:                `0xB5C00B05`    
-BTE: W2W General:             `0xB5C00DDE`    
-SFBT: Hamburg W2W:            `0xB5C00F0A`    
-SFBT: Paris W2W:              `0xB5C00F0B`    
+BTE: Ind. W2W:     `0xD02C802E`    
+BTE: Comm. W2W:    `0xB5C00A05`    
+BTE: Res. W2W:     `0xB5C00B05`    
+BTE: W2W General:  `0xB5C00DDE`    
+SFBT: Hamburg W2W: `0xB5C00F0A`    
+SFBT: Paris W2W:   `0xB5C00F0B`    
 
 ## Cheat Codes
 

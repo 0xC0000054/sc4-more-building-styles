@@ -34,7 +34,7 @@
 
 static constexpr frozen::unordered_set<uint32_t, 6> WallToWallOccupantGroups =
 {
-	0xD02C802E, // More Building Styles DLL W2W
+	0xD02C802E, // BTE: Ind. W2W
 	0xB5C00A05, // BTE: Comm. W2W
 	0xB5C00B05, // BTE: Res. W2W
 	0xB5C00DDE, // BTE: W2W General
