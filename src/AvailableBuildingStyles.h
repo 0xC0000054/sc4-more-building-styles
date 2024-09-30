@@ -12,6 +12,7 @@
 
 #pragma once
 #include "BuildingStyleCollection.h"
+#include "BuildingStyleIniFile.h"
 
 class cIGZWin;
 
@@ -29,6 +30,7 @@ public:
 
 private:
 	BuildingStyleCollection availableBuildingStyles;
-	bool initialized;
+	BuildingStyleIniFile buildingStyleIniFile;
+	bool firstCityLoaded;
 };
 

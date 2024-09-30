@@ -23,20 +23,14 @@
 #include "GZWinUtil.h"
 #include <algorithm>
 
-static const uint32_t kGZWin_WinSC4App = 0x6104489a;
-
 namespace
 {
-	struct BuildingStyleWinContext
-	{
-		const BuildingStyleIniFile buildingStyleIniFile;
-		BuildingStyleCollection availableBuildingStyles;
+	typedef void(*BuildingStyleWinEnumCallback)(uint32_t buttonID, cIGZWinBtn* pBtn, void* pState);
 
-		BuildingStyleWinContext(cIGZWin& styleListContainer)
-			: buildingStyleIniFile(styleListContainer),
-			  availableBuildingStyles()
-		{
-		}
+	struct BuildingStyleWinEnumContext
+	{
+		BuildingStyleWinEnumCallback callback;
+		void* callbackState;
 	};
 
 	bool BuildingStyleWinEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
@@ -51,106 +45,186 @@ namespace
 			&& childID != minimizeButton
 			&& OptionalButtonIDs.find(childID) == OptionalButtonIDs.end())
 		{
-			BuildingStyleWinContext* state = static_cast<BuildingStyleWinContext*>(pState);
-
 			cRZAutoRefCount<cIGZWinBtn> pBtn;
 
 			if (child->QueryInterface(GZIID_cIGZWinBtn, pBtn.AsPPVoid()))
 			{
-				if (childID <= BuildingStyleIniFile::MaxStyleButtonID)
-				{
-					const auto& styles = state->buildingStyleIniFile.GetStyles();
+				BuildingStyleWinEnumContext* state = static_cast<BuildingStyleWinEnumContext*>(pState);
 
-					const auto item = styles.find(childID);
-
-					if (item != styles.end())
-					{
-						const BuildingStyleIniFile::StyleEntry& entry = item->second;
-
-						if (entry.styleID != BuildingStyleIniFile::InvalidStyleID)
-						{
-							state->availableBuildingStyles.insert(item->first, entry.styleID, entry.styleName);
-						}
-						else
-						{
-							// The check box is a placeholder, visible but disabled.
-							GZWinUtil::SetWindowEnabled(pBtn->AsIGZWin(), false);
-						}
-
-						pBtn->SetCaption(entry.styleName);
-
-						constexpr uint32_t LedgerHeaderFontStyle = 0xE9C86B5A;
-						constexpr uint32_t DefaultFontStyle = 0x68963C4C;
-
-						pBtn->SetFontStyle(entry.boldText ? LedgerHeaderFontStyle : DefaultFontStyle);
-					}
-					else
-					{
-						GZWinUtil::SetWindowVisible(pBtn->AsIGZWin(), false);
-					}
-				}
-				else
-				{
-					cIGZString* caption = pBtn->GetCaption();
-
-					state->availableBuildingStyles.insert(childID, childID, *caption);
-				}
+				state->callback(childID, pBtn, state->callbackState);
 			}
 		}
 
 		return true;
 	}
+
+	struct InitializeBuildingStyleContext
+	{
+		const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& iniFileBuildingStyles;
+		BuildingStyleCollection availableBuildingStyles;
+
+		InitializeBuildingStyleContext(const BuildingStyleIniFile& buildingStyleIniFile)
+			: iniFileBuildingStyles(buildingStyleIniFile.GetStyles()),
+			  availableBuildingStyles()
+		{
+		}
+	};
+
+	void InitializeBuildingStylesCallback(uint32_t childID, cIGZWinBtn* pBtn, void* pState)
+	{
+		InitializeBuildingStyleContext* state = static_cast<InitializeBuildingStyleContext*>(pState);
+
+		if (childID <= BuildingStyleIniFile::MaxStyleButtonID)
+		{
+			const auto& styles = state->iniFileBuildingStyles;
+
+			const auto item = styles.find(childID);
+
+			if (item != styles.end())
+			{
+				const BuildingStyleIniFile::StyleEntry& entry = item->second;
+
+				if (entry.styleID != BuildingStyleIniFile::InvalidStyleID)
+				{
+					state->availableBuildingStyles.insert(item->first, entry.styleID, entry.styleName);
+				}
+				else
+				{
+					// The check box is a placeholder, visible but disabled.
+					GZWinUtil::SetWindowEnabled(pBtn->AsIGZWin(), false);
+				}
+
+				pBtn->SetCaption(entry.styleName);
+
+				constexpr uint32_t LedgerHeaderFontStyle = 0xE9C86B5A;
+				constexpr uint32_t DefaultFontStyle = 0x68963C4C;
+
+				pBtn->SetFontStyle(entry.boldText ? LedgerHeaderFontStyle : DefaultFontStyle);
+			}
+			else
+			{
+				GZWinUtil::SetWindowVisible(pBtn->AsIGZWin(), false);
+			}
+		}
+		else
+		{
+			cIGZString* caption = pBtn->GetCaption();
+
+			state->availableBuildingStyles.insert(childID, childID, *caption);
+		}
+	}
+
+	struct UpdateINIFileCheckBoxContext
+	{
+		const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& iniFileBuildingStyles;
+
+		UpdateINIFileCheckBoxContext(const BuildingStyleIniFile& buildingStyleIniFile)
+			: iniFileBuildingStyles(buildingStyleIniFile.GetStyles())
+		{
+		}
+	};
+
+	void UpdateINIFileCheckBoxNamesCallback(uint32_t childID, cIGZWinBtn* pBtn, void* pState)
+	{
+		if (childID <= BuildingStyleIniFile::MaxStyleButtonID)
+		{
+			const UpdateINIFileCheckBoxContext* state = static_cast<UpdateINIFileCheckBoxContext*>(pState);
+			const auto& styles = state->iniFileBuildingStyles;
+
+			const auto item = styles.find(childID);
+
+			if (item != styles.end())
+			{
+				const BuildingStyleIniFile::StyleEntry& entry = item->second;
+
+				if (entry.styleID == BuildingStyleIniFile::InvalidStyleID)
+				{
+					// The check box is a placeholder, visible but disabled.
+					GZWinUtil::SetWindowEnabled(pBtn->AsIGZWin(), false);
+				}
+
+				pBtn->SetCaption(entry.styleName);
+
+				constexpr uint32_t LedgerHeaderFontStyle = 0xE9C86B5A;
+				constexpr uint32_t DefaultFontStyle = 0x68963C4C;
+
+				pBtn->SetFontStyle(entry.boldText ? LedgerHeaderFontStyle : DefaultFontStyle);
+			}
+			else
+			{
+				GZWinUtil::SetWindowVisible(pBtn->AsIGZWin(), false);
+			}
+		}
+	}
+
+	void EnumerateBuildingStyleCheckBoxes(BuildingStyleWinEnumCallback callback, void* pCallbackState)
+	{
+		if (callback)
+		{
+			cISC4AppPtr pSC4App;
+
+			if (pSC4App)
+			{
+				cIGZWin* mainWindow = pSC4App->GetMainWindow();
+
+				if (mainWindow)
+				{
+					constexpr uint32_t kGZWin_WinSC4App = 0x6104489a;
+
+					cIGZWin* pSC4AppWin = mainWindow->GetChildWindowFromID(kGZWin_WinSC4App);
+
+					if (pSC4AppWin)
+					{
+						// Get the child window that contains the building style radio buttons.
+
+						constexpr uint32_t BuildingStyleListContainer = 0x8bca20c3;
+
+						cIGZWin* pStyleListContainer = pSC4AppWin->GetChildWindowFromIDRecursive(BuildingStyleListContainer);
+
+						if (pStyleListContainer)
+						{
+							BuildingStyleWinEnumContext context(callback, pCallbackState);
+
+							pStyleListContainer->EnumChildren(
+								GZIID_cIGZWinBtn,
+								&BuildingStyleWinEnumProc,
+								&context);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 AvailableBuildingStyles::AvailableBuildingStyles()
-	: initialized(false)
+	: firstCityLoaded(false)
 {
 }
 
 void AvailableBuildingStyles::Initialize()
 {
-	if (!initialized)
+	if (firstCityLoaded)
 	{
-		cISC4AppPtr pSC4App;
+		UpdateINIFileCheckBoxContext context(buildingStyleIniFile);
 
-		if (pSC4App)
-		{
-			cIGZWin* mainWindow = pSC4App->GetMainWindow();
+		EnumerateBuildingStyleCheckBoxes(UpdateINIFileCheckBoxNamesCallback, &context);
+	}
+	else
+	{
+		firstCityLoaded = true;
 
-			if (mainWindow)
-			{
-				cIGZWin* pSC4AppWin = mainWindow->GetChildWindowFromID(kGZWin_WinSC4App);
+		buildingStyleIniFile.Load();
 
-				if (pSC4AppWin)
-				{
-					// Get the child window that contains the building style radio buttons.
+		InitializeBuildingStyleContext context(buildingStyleIniFile);
 
-					constexpr uint32_t BuildingStyleListContainer = 0x8bca20c3;
+		EnumerateBuildingStyleCheckBoxes(InitializeBuildingStylesCallback, &context);
 
-					cIGZWin* pStyleListContainer = pSC4AppWin->GetChildWindowFromIDRecursive(BuildingStyleListContainer);
-
-					if (pStyleListContainer)
-					{
-						// Enumerate the buttons in the child window to get the list of available styles.
-
-						BuildingStyleWinContext context(*pStyleListContainer);
-
-						pStyleListContainer->EnumChildren(
-							GZIID_cIGZWinBtn,
-							&BuildingStyleWinEnumProc,
-							&context);
-
-						// Sort the items in ascending order.
-						std::sort(
-							context.availableBuildingStyles.begin(),
-							context.availableBuildingStyles.end());
-						std::swap(availableBuildingStyles, context.availableBuildingStyles);
-					}
-				}
-			}
-		}
-
-		initialized = true;
+		// Sort the items in ascending order.
+		std::sort(
+			context.availableBuildingStyles.begin(),
+			context.availableBuildingStyles.end());
+		std::swap(availableBuildingStyles, context.availableBuildingStyles);
 	}
 }
 

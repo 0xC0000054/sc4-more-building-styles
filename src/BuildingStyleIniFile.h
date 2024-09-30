@@ -42,12 +42,12 @@ public:
 		}
 	};
 
-	BuildingStyleIniFile(cIGZWin& styleListContainer);
+	BuildingStyleIniFile();
 
 	const std::unordered_map<uint32_t, StyleEntry>& GetStyles() const;
 
+	void Load();
 private:
-	void Load(cIGZWin& styleListContainer);
 
 	std::unordered_map<uint32_t, StyleEntry> entries;
 };

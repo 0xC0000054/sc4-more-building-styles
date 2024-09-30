@@ -13,8 +13,10 @@
 #include "BuildingStyleIniFile.h"
 #include "cIGZWin.h"
 #include "cIGZWinBtn.h"
+#include "cISC4App.h"
 #include "cRZAutoRefCount.h"
 #include "FileSystem.h"
+#include "GZServPtrs.h"
 #include "Logger.h"
 #include "StringResourceKey.h"
 #include "StringResourceManager.h"
@@ -198,29 +200,54 @@ namespace
 		return true;
 	}
 
-	uint32_t GetMaxStyleButtonIndex(cIGZWin& styleListContainer)
+	uint32_t GetMaxStyleButtonIndex()
 	{
-		int64_t maxIndex = -1;
-
-		styleListContainer.EnumChildren(
-			GZIID_cIGZWinBtn,
-			CountStyleButtonsEnumProc,
-			&maxIndex);
-
 		uint32_t result = std::numeric_limits<uint32_t>::max();
 
-		if (maxIndex >= 0 && maxIndex < std::numeric_limits<uint32_t>::max())
+		cISC4AppPtr pSC4App;
+
+		if (pSC4App)
 		{
-			result = static_cast<uint32_t>(maxIndex);
+			cIGZWin* mainWindow = pSC4App->GetMainWindow();
+
+			if (mainWindow)
+			{
+				constexpr uint32_t kGZWin_WinSC4App = 0x6104489a;
+
+				cIGZWin* pSC4AppWin = mainWindow->GetChildWindowFromID(kGZWin_WinSC4App);
+
+				if (pSC4AppWin)
+				{
+					// Get the child window that contains the building style radio buttons.
+
+					constexpr uint32_t BuildingStyleListContainer = 0x8bca20c3;
+
+					cIGZWin* pStyleListContainer = pSC4AppWin->GetChildWindowFromIDRecursive(BuildingStyleListContainer);
+
+					if (pStyleListContainer)
+					{
+						int64_t maxIndex = -1;
+
+						pStyleListContainer->EnumChildren(
+							GZIID_cIGZWinBtn,
+							CountStyleButtonsEnumProc,
+							&maxIndex);
+
+						if (maxIndex >= 0 && maxIndex < std::numeric_limits<uint32_t>::max())
+						{
+							result = static_cast<uint32_t>(maxIndex);
+						}
+					}
+				}
+			}
 		}
 
 		return result;
 	}
 }
 
-BuildingStyleIniFile::BuildingStyleIniFile(cIGZWin& styleListContainer)
+BuildingStyleIniFile::BuildingStyleIniFile()
 {
-	Load(styleListContainer);
 }
 
 const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& BuildingStyleIniFile::GetStyles() const
@@ -228,13 +255,13 @@ const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& BuildingSt
 	return entries;
 }
 
-void BuildingStyleIniFile::Load(cIGZWin& styleListContainer)
+void BuildingStyleIniFile::Load()
 {
 	Logger& logger = Logger::GetInstance();
 
 	try
 	{
-		const uint32_t maxStyleButtonIndex = GetMaxStyleButtonIndex(styleListContainer);
+		const uint32_t maxStyleButtonIndex = GetMaxStyleButtonIndex();
 
 		if (maxStyleButtonIndex != std::numeric_limits<uint32_t>::max())
 		{
