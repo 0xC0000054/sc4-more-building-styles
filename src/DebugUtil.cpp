@@ -106,7 +106,6 @@ void DebugUtil::PrintLineToDebugOutputFormatted(const char* const format, ...)
 
 	va_end(args);
 #endif // _DEBUG
-
 }
 
 void DebugUtil::PrintOccupantNameToDebugOutput(cISC4Occupant* pOccupant)
@@ -124,5 +123,4 @@ void DebugUtil::PrintOccupantNameToDebugOutput(cISC4Occupant* pOccupant)
 		}
 	}
 #endif // _DEBUG
-
 }
