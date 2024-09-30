@@ -20,6 +20,7 @@ struct BuildingStyleCollectionEntry
 	uint32_t styleID;
 	cRZBaseString styleName;
 
+	BuildingStyleCollectionEntry(uint32_t buttonID);
 	BuildingStyleCollectionEntry(uint32_t buttonID, uint32_t styleID, const cRZBaseString& styleName);
 	BuildingStyleCollectionEntry(uint32_t buttonID, uint32_t styleID, const cIGZString& styleName);
 	BuildingStyleCollectionEntry(const BuildingStyleCollectionEntry& other);

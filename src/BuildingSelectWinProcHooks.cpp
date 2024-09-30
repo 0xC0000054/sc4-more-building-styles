@@ -336,46 +336,64 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 	EnableStyleButtons();
 }
 
-void __thiscall cSC4BuildingSelectWinProc::AddActiveStyle(uint32_t style)
+void __thiscall cSC4BuildingSelectWinProc::AddActiveStyle(uint32_t buttonID)
 {
-	cISC4TractDeveloper* const pTractDeveloper = spBuildingSelectWinManager->GetTractDeveloper();
+	const BuildingStyleCollection& allBuildingStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
-	// This is a copy of the existing active style list, not a reference to it.
-	// We will call SetActiveStyles to update SC4's copy after we modify it.
-	eastl::vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
+	const auto item = allBuildingStyles.find(buttonID);
 
-	if (!Contains(activeStyles, style))
+	if (item != allBuildingStyles.end())
 	{
-		activeStyles.push_back(style);
-		pTractDeveloper->SetActiveStyles(activeStyles);
+		const BuildingStyleCollectionEntry& entry = *item;
 
-		spBuildingSelectWinManager->SendActiveBuildingStyleCheckboxChangedMessage(true, style);
+		cISC4TractDeveloper* const pTractDeveloper = spBuildingSelectWinManager->GetTractDeveloper();
+
+		// This is a copy of the existing active style list, not a reference to it.
+		// We will call SetActiveStyles to update SC4's copy after we modify it.
+		eastl::vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
+
+		if (!Contains(activeStyles, entry.styleID))
+		{
+			activeStyles.push_back(entry.styleID);
+			pTractDeveloper->SetActiveStyles(activeStyles);
+
+			spBuildingSelectWinManager->SendActiveBuildingStyleCheckboxChangedMessage(true,	entry);
+		}
 	}
 }
 
-void __thiscall cSC4BuildingSelectWinProc::RemoveActiveStyle(uint32_t style)
+void __thiscall cSC4BuildingSelectWinProc::RemoveActiveStyle(uint32_t buttonID)
 {
-	cISC4TractDeveloper* const pTractDeveloper = spBuildingSelectWinManager->GetTractDeveloper();
+	const BuildingStyleCollection& allBuildingStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
-	// This is a copy of the existing active style list, not a reference to it.
-	// We will call SetActiveStyles to update SC4's copy after we modify it.
-	eastl::vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
-	bool itemRemoved = false;
+	const auto item = allBuildingStyles.find(buttonID);
 
-	for (auto it = activeStyles.begin(); it != activeStyles.end(); it++)
+	if (item != allBuildingStyles.end())
 	{
-		if (*it == style)
+		const BuildingStyleCollectionEntry& entry = *item;
+
+		cISC4TractDeveloper* const pTractDeveloper = spBuildingSelectWinManager->GetTractDeveloper();
+
+		// This is a copy of the existing active style list, not a reference to it.
+		// We will call SetActiveStyles to update SC4's copy after we modify it.
+		eastl::vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
+		bool itemRemoved = false;
+
+		for (auto it = activeStyles.begin(); it != activeStyles.end(); it++)
 		{
-			activeStyles.erase(it);
-			itemRemoved = true;
-			break;
+			if (*it == entry.styleID)
+			{
+				activeStyles.erase(it);
+				itemRemoved = true;
+				break;
+			}
 		}
-	}
 
-	if (itemRemoved)
-	{
-		pTractDeveloper->SetActiveStyles(activeStyles);
-		spBuildingSelectWinManager->SendActiveBuildingStyleCheckboxChangedMessage(false, style);
+		if (itemRemoved)
+		{
+			pTractDeveloper->SetActiveStyles(activeStyles);
+			spBuildingSelectWinManager->SendActiveBuildingStyleCheckboxChangedMessage(false, entry);
+		}
 	}
 }
 

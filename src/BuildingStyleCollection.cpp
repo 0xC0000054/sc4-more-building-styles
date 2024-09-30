@@ -86,6 +86,13 @@ bool BuildingStyleCollection::empty() const
 	return entries.empty();
 }
 
+std::vector<BuildingStyleCollectionEntry>::const_iterator BuildingStyleCollection::find(uint32_t buttonID) const
+{
+	BuildingStyleCollectionEntry tempEntry(buttonID);
+
+	return std::find(entries.begin(), entries.end(), tempEntry);
+}
+
 void BuildingStyleCollection::insert(
 	uint32_t buttonID,
 	uint32_t styleID,

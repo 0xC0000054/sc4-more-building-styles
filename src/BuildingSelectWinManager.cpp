@@ -457,25 +457,18 @@ const IBuildingSelectWinContext& BuildingSelectWinManager::GetContext() const
 	return context;
 }
 
-void BuildingSelectWinManager::SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t buttonID)
+void BuildingSelectWinManager::SendActiveBuildingStyleCheckboxChangedMessage(
+	bool checked,
+	const BuildingStyleCollectionEntry& entry)
 {
 	cRZMessage2Standard message;
 	message.SetType(kMessageBuildingStyleCheckboxChanged);
 	message.SetData1(checked);
+	message.SetData2(entry.styleID);
 
-	cRZBaseString name;
+	// Make a local copy of the style name to prevent callers from being able to modify it.
 
-	const BuildingStyleCollection& allStyles = availableBuildingStyles.GetBuildingStyles();
-
-	for (const auto& item : allStyles)
-	{
-		if (item.buttonID == buttonID)
-		{
-			message.SetData2(item.styleID);
-			name = item.styleName;
-			break;
-		}
-	}
+	cRZBaseString name(entry.styleName);
 
 	message.SetVoid3(static_cast<cIGZString*>(&name));
 

@@ -12,6 +12,13 @@
 
 #include "BuildingStyleCollectionEntry.h"
 
+BuildingStyleCollectionEntry::BuildingStyleCollectionEntry(uint32_t buttonID)
+	: buttonID(buttonID),
+	  styleID(0),
+	  styleName()
+{
+}
+
 BuildingStyleCollectionEntry::BuildingStyleCollectionEntry(
 	uint32_t buttonID,
 	uint32_t styleID,

@@ -55,7 +55,9 @@ private:
 	IBuildingSelectWinContext& GetContext() override;
 	const IBuildingSelectWinContext& GetContext() const override;
 
-	void SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t buttonID) override;
+	void SendActiveBuildingStyleCheckboxChangedMessage(
+		bool checked,
+		const BuildingStyleCollectionEntry& entry) override;
 
 	uint32_t refCount;
 	cIGZMessageServer2* pMS2;

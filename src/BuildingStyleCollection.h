@@ -32,6 +32,7 @@ public:
 	bool contains(uint32_t buttonID) const;
 	bool contains(const BuildingStyleCollectionEntry& entry) const;
 	bool empty() const;
+	std::vector<BuildingStyleCollectionEntry>::const_iterator find(uint32_t buttonID) const;
 
 	void insert(uint32_t buttonID, uint32_t styleID, const cRZBaseString& styleName);
 	void insert(uint32_t buttonID, uint32_t styleID, const cIGZString& styleName);

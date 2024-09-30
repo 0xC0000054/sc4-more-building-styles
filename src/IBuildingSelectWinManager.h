@@ -28,5 +28,7 @@ public:
 	virtual IBuildingSelectWinContext& GetContext() = 0;
 	virtual const IBuildingSelectWinContext& GetContext() const = 0;
 
-	virtual void SendActiveBuildingStyleCheckboxChangedMessage(bool checked, uint32_t buttonID) = 0;
+	virtual void SendActiveBuildingStyleCheckboxChangedMessage(
+		bool checked,
+		const BuildingStyleCollectionEntry& entry) = 0;
 };
