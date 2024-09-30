@@ -37,6 +37,7 @@
     <ClCompile Include="BuildingStyleCollectionEntry.cpp" />
     <ClCompile Include="BuildingStyleInfo.cpp" />
     <ClCompile Include="BuildingStyleIniFile.cpp" />
+    <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="GZFileStreamBufAdapter.cpp" />
     <ClCompile Include="GZWinUtil.cpp" />
@@ -73,6 +74,7 @@
     <ClInclude Include="BuildingStyleInfo.h" />
     <ClInclude Include="BuildingStyleIniFile.h" />
     <ClInclude Include="BuildingStyleMessages.h" />
+    <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="GlobalPointers.h" />
     <ClInclude Include="GZFileStreamBufAdapter.h" />
