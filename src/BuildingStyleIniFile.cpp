@@ -185,7 +185,7 @@ namespace
 		return result;
 	}
 
-	bool CountStyleButtonsEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
+	bool GetMaxStyleButtonIndexEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
 	{
 		if (childID <= BuildingStyleIniFile::MaxStyleButtonID)
 		{
@@ -230,7 +230,7 @@ namespace
 
 						pStyleListContainer->EnumChildren(
 							GZIID_cIGZWinBtn,
-							CountStyleButtonsEnumProc,
+							GetMaxStyleButtonIndexEnumProc,
 							&maxIndex);
 
 						if (maxIndex >= 0 && maxIndex < std::numeric_limits<uint32_t>::max())
