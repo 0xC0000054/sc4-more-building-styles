@@ -299,7 +299,7 @@ void BuildingStyleIniFile::Load()
 						{
 							logger.WriteLineFormatted(
 								LogLevel::Error,
-								"Skipping invalid button id %u. The button ids must be between 0 and %u.",
+								"BuildingStyles.ini: Skipping button id %u. The button ids must be between 0 and %u.",
 								buttonID,
 								maxStyleButtonIndex);
 						}
@@ -308,7 +308,7 @@ void BuildingStyleIniFile::Load()
 					{
 						logger.WriteLineFormatted(
 							LogLevel::Error,
-							"Failed to parse the button id %s.",
+							"BuildingStyles.ini: Failed to parse button id %s.",
 							item.first.c_str());
 					}
 				}
