@@ -43,7 +43,7 @@ static constexpr uint32_t WallToWallBlockRadioButtonID = 0x3115038B;
 // the zoned area to fit the lot it picks for that location.
 static constexpr uint32_t KeepLotZoneSizesButtonID = 0x3621731B;
 
-constexpr frozen::unordered_set<uint32_t, 5> OptionalButtonIDs =
+constexpr frozen::unordered_set<uint32_t, 6> OptionalButtonIDs =
 {
 	AutoHistoricalButtonID,
 	AutoGrowifyButtonID,
