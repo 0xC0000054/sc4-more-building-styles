@@ -733,6 +733,66 @@ static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 	}
 }
 
+static bool __fastcall PreventLotAggregationAndSubdivision(cISC4BuildingOccupant::PurposeType purposeType, void* edxUnused)
+{
+	bool result = false;
+
+	// Lot aggregation and subdivision is only disabled for the residential and commercial building purpose types.
+	//
+	// Lot aggregation and subdivision must always be active for the Processing, Manufacturing and High Tech
+	// purpose types, the industrial medium and high density zones require it for anything to grow.
+	// Agriculture zones only support aggregation, not subdivision. They are excluded because the game always
+	// picks the same items when aggregation is disabled, but it appears to work fine otherwise.
+
+	switch (purposeType)
+	{
+	case cISC4BuildingOccupant::PurposeType::Residence:
+	case cISC4BuildingOccupant::PurposeType::Services:
+	case cISC4BuildingOccupant::PurposeType::Office:
+		result = spBuildingSelectWinManager->GetContext().KeepLotZoneSizes();
+		break;
+	}
+
+	return result;
+}
+
+typedef int32_t(__thiscall* pfn_ListCandidateLots_Aggregation_Subdivision)(cSC4TractDeveloper* pThis);
+
+static pfn_ListCandidateLots_Aggregation_Subdivision ListCandidateLots_Aggregation = nullptr;
+static pfn_ListCandidateLots_Aggregation_Subdivision ListCandidateLots_Subdivision = nullptr;
+
+static uintptr_t Grow_LotAggregationAndSubdivisionHook_Continue;
+
+static void NAKED_FUN Grow_LotAggregationAndSubdivisionHook()
+{
+	__asm
+	{
+		// The original code doesn't do any pushes, so we don't either.
+		mov ecx, dword ptr[esp + 0x24] // building purpose type
+		call PreventLotAggregationAndSubdivision // (fastcall)
+		test al, al
+		jnz afterLotSubdivision
+		mov ecx, esi
+		call ListCandidateLots_Aggregation // (thiscall)
+		cmp eax, dword ptr [esp + 0x14]
+		jle lotSubdivision
+		mov dword ptr[esp + 0x14], eax
+
+		lotSubdivision:
+		cmp dword ptr[esp + 0x24], 5 // Agriculture lots don't support subdivision.
+		jz afterLotSubdivision
+		mov ecx, esi
+		call ListCandidateLots_Subdivision // (thiscall)
+		cmp eax, dword ptr[esp + 0x14]
+		jle afterLotSubdivision
+		mov dword ptr[esp + 0x14], eax
+
+		afterLotSubdivision:
+		mov ecx, Grow_LotAggregationAndSubdivisionHook_Continue
+		jmp ecx
+	}
+}
+
 void TractDeveloperHooks::Install()
 {
 	Logger& logger = Logger::GetInstance();
@@ -743,6 +803,10 @@ void TractDeveloperHooks::Install()
 	uintptr_t IsBuildingCompatible_BuildingStyleSelectionHook_Inject = 0;
 	IsBuildingCompatible_CompatableStyleFound_Continue = 0;
 	IsBuildingCompatible_NoCompatableStyle_Continue = 0;
+	uintptr_t Grow_LotAggregationAndSubdivisionHook_Inject = 0;
+	Grow_LotAggregationAndSubdivisionHook_Continue = 0;
+	ListCandidateLots_Aggregation = nullptr;
+	ListCandidateLots_Subdivision = nullptr;
 
 	const uint16_t gameVersion = SC4VersionDetection::GetInstance().GetGameVersion();
 	bool setCallbacks = false;
@@ -756,6 +820,10 @@ void TractDeveloperHooks::Install()
 		IsBuildingCompatible_BuildingStyleSelectionHook_Inject = 0x704e78;
 		IsBuildingCompatible_CompatableStyleFound_Continue = 0x704ef4;
 		IsBuildingCompatible_NoCompatableStyle_Continue = 0x704ed3;
+		Grow_LotAggregationAndSubdivisionHook_Inject = 0x70d509;
+		Grow_LotAggregationAndSubdivisionHook_Continue = 0x70d532;
+		ListCandidateLots_Aggregation = reinterpret_cast<pfn_ListCandidateLots_Aggregation_Subdivision>(0x7097e0);
+		ListCandidateLots_Subdivision = reinterpret_cast<pfn_ListCandidateLots_Aggregation_Subdivision>(0x708c00);
 		setCallbacks = true;
 		break;
 	}
@@ -770,6 +838,9 @@ void TractDeveloperHooks::Install()
 			Patcher::InstallJump(
 				IsBuildingCompatible_BuildingStyleSelectionHook_Inject,
 				reinterpret_cast<uintptr_t>(&IsBuildingCompatible_BuildingStyleSelectionHook));
+			Patcher::InstallJump(
+				Grow_LotAggregationAndSubdivisionHook_Inject,
+				reinterpret_cast<uintptr_t>(&Grow_LotAggregationAndSubdivisionHook));
 
 			logger.WriteLine(LogLevel::Info, "Installed the building style algorithm patch.");
 		}

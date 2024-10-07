@@ -36,8 +36,11 @@ private:
 	WallToWallOption GetWallToWallOption() const override;
 	void SetWallToWallOption(WallToWallOption value) override;
 
+	bool KeepLotZoneSizes() const override;
+
 	bool automaticallyMarkBuildingsAsHistorical;
 	bool automaticallyGrowifyPloppedBuildings;
 	WallToWallOption wallToWallOption;
+	bool keepLotZoneSizes;
 };
 

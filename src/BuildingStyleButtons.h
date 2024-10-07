@@ -37,6 +37,11 @@ static constexpr uint32_t WallToWallOnlyRadioButtonID = 0x3115038A;
 // A radio button that makes the growable building algorithm never build
 // wall to wall building and lots.
 static constexpr uint32_t WallToWallBlockRadioButtonID = 0x3115038B;
+// A check box that controls whether the game will only use the lot sizes the user
+// zoned when developing residential and commercial lots.
+// When this option is disabled, the game will use its standard behavior of resizing
+// the zoned area to fit the lot it picks for that location.
+static constexpr uint32_t KeepLotZoneSizesButtonID = 0x3621731B;
 
 constexpr frozen::unordered_set<uint32_t, 5> OptionalButtonIDs =
 {
@@ -44,5 +49,6 @@ constexpr frozen::unordered_set<uint32_t, 5> OptionalButtonIDs =
 	AutoGrowifyButtonID,
 	WallToWallMixedRadioButtonID,
 	WallToWallOnlyRadioButtonID,
-	WallToWallBlockRadioButtonID
+	WallToWallBlockRadioButtonID,
+	KeepLotZoneSizesButtonID
 };

@@ -34,4 +34,6 @@ public:
 
 	virtual WallToWallOption GetWallToWallOption() const = 0;
 	virtual void SetWallToWallOption(WallToWallOption value) = 0;
+
+	virtual bool KeepLotZoneSizes() const = 0;
 };

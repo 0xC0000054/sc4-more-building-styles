@@ -166,6 +166,7 @@ static bool ProcessOptionalUIButton(
 	{
 	case AutoHistoricalButtonID:
 	case AutoGrowifyButtonID:
+	case KeepLotZoneSizesButtonID:
 		spBuildingSelectWinManager->GetContext().UpdateOptionalCheckBoxState(pThis->window, buttonID);
 		return true;
 	case WallToWallMixedRadioButtonID:
@@ -331,6 +332,7 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 
 	InitializeOptionalCheckBox(this, AutoHistoricalButtonID, context);
 	InitializeOptionalCheckBox(this, AutoGrowifyButtonID, context);
+	InitializeOptionalCheckBox(this, KeepLotZoneSizesButtonID, context);
 	UpdateWallToWallRadioButtons(this, context.GetWallToWallOption(), /*setContextOption*/false);
 
 	EnableStyleButtons();

@@ -50,6 +50,17 @@ BTE: W2W General:  `0xB5C00DDE`
 SFBT: Hamburg W2W: `0xB5C00F0A`    
 SFBT: Paris W2W:   `0xB5C00F0B`    
 
+### Keep Lot Zone Sizes Check Box
+
+The DLL supports an optional check box that stops the game from changing the user's zoned lot size in residential and
+commercial zones to fit the lot it picks.
+
+When this option is enabled, it forces SC4 to only pick residential and/or commercial lots which have sizes matching
+the zoned area.
+When this option is disabled (the default), SC4 will use its standard behavior of aggregating or subdividing the
+residential and commercial zones to fit its chosen lot.    
+This check box uses the reserved id value `0x3621731B`.
+
 ## Cheat Codes
 
 The plugin provides the following cheat codes:

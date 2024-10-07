@@ -141,7 +141,8 @@ namespace
 BuildingSelectWinContext::BuildingSelectWinContext()
 	: automaticallyMarkBuildingsAsHistorical(false),
 	  automaticallyGrowifyPloppedBuildings(false),
-	  wallToWallOption(WallToWallOption::Mixed)
+	  wallToWallOption(WallToWallOption::Mixed),
+	  keepLotZoneSizes(false)
 {
 }
 
@@ -166,7 +167,14 @@ void BuildingSelectWinContext::LoadFromDBSegment(cIGZPersistDBSegment* pSegment)
 
 				if (pSC4IStream->GetUint32(version))
 				{
-					if (version == 3)
+					if (version == 4)
+					{
+						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
+						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
+						ReadEnum(pSC4IStream, wallToWallOption);
+						ReadBoolean(pSC4IStream, keepLotZoneSizes);
+					}
+					else if (version == 3)
 					{
 						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
 						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
@@ -204,10 +212,11 @@ void BuildingSelectWinContext::SaveToDBSegment(cIGZPersistDBSegment* pSegment) c
 
 			if (pSC4DBSegment->OpenOStream(key, pSC4OStream.AsPPObj(), true))
 			{
-				pSC4OStream->SetUint32(3); // version
+				pSC4OStream->SetUint32(4); // version
 				WriteBoolean(pSC4OStream, automaticallyMarkBuildingsAsHistorical);
 				WriteBoolean(pSC4OStream, automaticallyGrowifyPloppedBuildings);
 				WriteEnum(pSC4OStream, wallToWallOption);
+				WriteBoolean(pSC4OStream, keepLotZoneSizes);
 			}
 		}
 	}
@@ -235,6 +244,9 @@ bool BuildingSelectWinContext::GetOptionalCheckBoxState(uint32_t buttonID) const
 	case AutoGrowifyButtonID:
 		result = automaticallyGrowifyPloppedBuildings;
 		break;
+	case KeepLotZoneSizesButtonID:
+		result = keepLotZoneSizes;
+		break;
 	}
 
 	return result;
@@ -250,6 +262,9 @@ void BuildingSelectWinContext::UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32
 	case AutoGrowifyButtonID:
 		automaticallyGrowifyPloppedBuildings = GZWinUtil::GetButtonToggleState(pWin, AutoGrowifyButtonID);
 		break;
+	case KeepLotZoneSizesButtonID:
+		keepLotZoneSizes = GZWinUtil::GetButtonToggleState(pWin, KeepLotZoneSizesButtonID);
+		break;
 	}
 }
 
@@ -261,4 +276,9 @@ IBuildingSelectWinContext::WallToWallOption BuildingSelectWinContext::GetWallToW
 void BuildingSelectWinContext::SetWallToWallOption(WallToWallOption value)
 {
 	wallToWallOption = value;
+}
+
+bool BuildingSelectWinContext::KeepLotZoneSizes() const
+{
+	return keepLotZoneSizes;
 }
