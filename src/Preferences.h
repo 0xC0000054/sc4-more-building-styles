@@ -23,6 +23,7 @@ public:
 
 	bool LogBuildingStyleSelection() const;
 	bool LogLotStyleSelection() const;
+	bool LogGrowableFunctions() const;
 
 	bool AgriculturePurposeTypeSupportsBuildingStyles() const;
 	bool ProcessingPurposeTypeSupportsBuildingStyles() const;
@@ -35,6 +36,7 @@ private:
 
 	bool logBuildingStyleSelection;
 	bool logLotStyleSelection;
+	bool logGrowableFunctions;
 	bool agriculturePurposeTypeSupportsBuildingStyles;
 	bool processingPurposeTypeSupportsBuildingStyles;
 	bool manufacturingPurposeTypeSupportsBuildingStyles;

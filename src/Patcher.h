@@ -24,4 +24,5 @@ namespace Patcher
 	void InstallJump(uintptr_t address, uintptr_t destination);
 
 	void InstallCallHook(uintptr_t address, void (*pfnFunc)(void));
+	void InstallCallHook(uintptr_t address, uintptr_t pfnFunc);
 }

@@ -105,12 +105,12 @@ Examples:
 
 ## SC4MoreBuildingStyles INI File
 
-This file contains two settings that control whether the growable building style debug logging code will write to the
-plugin's log file.
+This file contains settings that control whether the growable debug logging code will write to the plugin's log file.
 It is recommended that you only enable these options for experimentation. They will slow down your game and quickly produce
 a large log file.
 
-As an example from one of my tests, a 22 second run with both options enabled produced a ~2 MB log file with ~15,500 lines.
+As an example from one of my tests, a 22 second run with the _BuildingStyleSelection_ and _LotStyleSelection_ options enabled 
+produced a ~2 MB log file with ~15,500 lines.
 
 ## For DLL Modders
 

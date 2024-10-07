@@ -255,7 +255,7 @@ public:
 
 		spBuildingSelectWinManager = &buildingSelectWinManager;
 		BuildingSelectWinProcHooks::Install();
-		TractDeveloperHooks::Install();
+		TractDeveloperHooks::Install(preferences);
 
 		if (!buildingSelectWinManager.Initialize())
 		{

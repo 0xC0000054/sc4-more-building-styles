@@ -383,6 +383,15 @@ static void LogWallToWallStyleOptionFailure(
 	}
 }
 
+static void LogGrowableFunctionResult(const char* const functionName, int32_t result)
+{
+	Logger::GetInstance().WriteLineFormatted(
+		LogLevel::Info,
+		"%s returned %d",
+		functionName,
+		result);
+}
+
 static bool DoesLotSupportBuildingStyles(
 	const cSC4TractDeveloper* pThis,
 	const cSC4LotConfiguration* pLotConfiguration,
@@ -756,12 +765,36 @@ static bool __fastcall PreventLotAggregationAndSubdivision(cISC4BuildingOccupant
 	return result;
 }
 
-typedef int32_t(__thiscall* pfn_ListCandidateLots_Aggregation_Subdivision)(cSC4TractDeveloper* pThis);
+typedef int32_t(__thiscall* pfn_ThisParameter_Int32_Return)(cSC4TractDeveloper* pThis);
 
-static pfn_ListCandidateLots_Aggregation_Subdivision ListCandidateLots_Aggregation = nullptr;
-static pfn_ListCandidateLots_Aggregation_Subdivision ListCandidateLots_Subdivision = nullptr;
+static pfn_ThisParameter_Int32_Return ListCandidateLots_Aggregation = nullptr;
+static pfn_ThisParameter_Int32_Return ListCandidateLots_Subdivision = nullptr;
 
 static uintptr_t Grow_LotAggregationAndSubdivisionHook_Continue;
+
+static int32_t __fastcall ListCandidateLots_Aggregation_Proxy(cSC4TractDeveloper* pThis, void* edxUnused)
+{
+	int32_t result = ListCandidateLots_Aggregation(pThis);
+
+	if (spPreferences->LogGrowableFunctions())
+	{
+		LogGrowableFunctionResult("ListCandidateLots_Aggregation", result);
+	}
+
+	return result;
+}
+
+static int32_t __fastcall ListCandidateLots_Subdivision_Proxy(cSC4TractDeveloper* pThis, void* edxUnused)
+{
+	int32_t result = ListCandidateLots_Subdivision(pThis);
+
+	if (spPreferences->LogGrowableFunctions())
+	{
+		LogGrowableFunctionResult("ListCandidateLots_Subdivision", result);
+	}
+
+	return result;
+}
 
 static void NAKED_FUN Grow_LotAggregationAndSubdivisionHook()
 {
@@ -773,7 +806,7 @@ static void NAKED_FUN Grow_LotAggregationAndSubdivisionHook()
 		test al, al
 		jnz afterLotSubdivision
 		mov ecx, esi
-		call ListCandidateLots_Aggregation // (thiscall)
+		call ListCandidateLots_Aggregation_Proxy // (fastcall)
 		cmp eax, dword ptr [esp + 0x14]
 		jle lotSubdivision
 		mov dword ptr[esp + 0x14], eax
@@ -782,7 +815,7 @@ static void NAKED_FUN Grow_LotAggregationAndSubdivisionHook()
 		cmp dword ptr[esp + 0x24], 5 // Agriculture lots don't support subdivision.
 		jz afterLotSubdivision
 		mov ecx, esi
-		call ListCandidateLots_Subdivision // (thiscall)
+		call ListCandidateLots_Subdivision_Proxy // (fastcall)
 		cmp eax, dword ptr[esp + 0x14]
 		jle afterLotSubdivision
 		mov dword ptr[esp + 0x14], eax
@@ -793,7 +826,76 @@ static void NAKED_FUN Grow_LotAggregationAndSubdivisionHook()
 	}
 }
 
-void TractDeveloperHooks::Install()
+pfn_ThisParameter_Int32_Return TakeOverAbandoned = nullptr;
+pfn_ThisParameter_Int32_Return ListPossibleLotConfigurations = nullptr;
+pfn_ThisParameter_Int32_Return ListCandidateLots_Existing = nullptr;
+
+typedef int32_t(__thiscall* pfn_Build_Functions)(cSC4TractDeveloper* pThis, void* candidateLot);
+
+pfn_Build_Functions Build = nullptr;
+pfn_Build_Functions BuildFarm = nullptr;
+
+static int32_t __fastcall TakeOverAbandoned_Trampoline(cSC4TractDeveloper* pThis, void* edxUnused)
+{
+	int32_t result = TakeOverAbandoned(pThis);
+
+	if (spPreferences->LogGrowableFunctions())
+	{
+		LogGrowableFunctionResult("TakeOverAbandoned", result);
+	}
+
+	return result;
+}
+
+static int32_t __fastcall ListPossibleLotConfigurations_Trampoline(cSC4TractDeveloper* pThis, void* edxUnused)
+{
+	int32_t result = ListPossibleLotConfigurations(pThis);
+
+	if (spPreferences->LogGrowableFunctions())
+	{
+		LogGrowableFunctionResult("ListPossibleLotConfigurations", result);
+	}
+
+	return result;
+}
+
+static int32_t __fastcall ListCandidateLots_Existing_Trampoline(cSC4TractDeveloper* pThis, void* edxUnused)
+{
+	int32_t result = ListCandidateLots_Existing(pThis);
+
+	if (spPreferences->LogGrowableFunctions())
+	{
+		LogGrowableFunctionResult("ListCandidateLots_Existing", result);
+	}
+
+	return result;
+}
+
+static int32_t __fastcall Build_Trampoline(cSC4TractDeveloper* pThis, void* edxUnused, void* candidateLot)
+{
+	int32_t result = Build(pThis, candidateLot);
+
+	if (spPreferences->LogGrowableFunctions())
+	{
+		LogGrowableFunctionResult("Build", result);
+	}
+
+	return result;
+}
+
+static int32_t __fastcall BuildFarm_Trampoline(cSC4TractDeveloper* pThis, void* edxUnused, void* candidateLot)
+{
+	int32_t result = BuildFarm(pThis, candidateLot);
+
+	if (spPreferences->LogGrowableFunctions())
+	{
+		LogGrowableFunctionResult("BuildFarm", result);
+	}
+
+	return result;
+}
+
+void TractDeveloperHooks::Install(const Preferences& preferences)
 {
 	Logger& logger = Logger::GetInstance();
 
@@ -807,6 +909,16 @@ void TractDeveloperHooks::Install()
 	Grow_LotAggregationAndSubdivisionHook_Continue = 0;
 	ListCandidateLots_Aggregation = nullptr;
 	ListCandidateLots_Subdivision = nullptr;
+	uintptr_t TakeOverAbandoned_Trampoline_Inject = 0;
+	uintptr_t ListPossibleLotConfigurations_Trampoline_Inject = 0;
+	uintptr_t ListCandidateLots_Existing_Trampoline_Inject = 0;
+	uintptr_t Build_Trampoline_Inject = 0;
+	uintptr_t BuildFarm_Trampoline_Inject = 0;
+	TakeOverAbandoned = nullptr;
+	ListPossibleLotConfigurations = nullptr;
+	ListCandidateLots_Existing = nullptr;
+	Build = nullptr;
+	BuildFarm = nullptr;
 
 	const uint16_t gameVersion = SC4VersionDetection::GetInstance().GetGameVersion();
 	bool setCallbacks = false;
@@ -822,8 +934,18 @@ void TractDeveloperHooks::Install()
 		IsBuildingCompatible_NoCompatableStyle_Continue = 0x704ed3;
 		Grow_LotAggregationAndSubdivisionHook_Inject = 0x70d509;
 		Grow_LotAggregationAndSubdivisionHook_Continue = 0x70d532;
-		ListCandidateLots_Aggregation = reinterpret_cast<pfn_ListCandidateLots_Aggregation_Subdivision>(0x7097e0);
-		ListCandidateLots_Subdivision = reinterpret_cast<pfn_ListCandidateLots_Aggregation_Subdivision>(0x708c00);
+		ListCandidateLots_Aggregation = reinterpret_cast<pfn_ThisParameter_Int32_Return>(0x7097e0);
+		ListCandidateLots_Subdivision = reinterpret_cast<pfn_ThisParameter_Int32_Return>(0x708c00);
+		TakeOverAbandoned_Trampoline_Inject = 0x70d4d2;
+		ListPossibleLotConfigurations_Trampoline_Inject = 0x70d4ea;
+		ListCandidateLots_Existing_Trampoline_Inject = 0x70d4fa;
+		Build_Trampoline_Inject = 0x70d647;
+		BuildFarm_Trampoline_Inject = 0x70d63a;
+		TakeOverAbandoned = reinterpret_cast<pfn_ThisParameter_Int32_Return>(0x70a3d0);
+		ListPossibleLotConfigurations = reinterpret_cast<pfn_ThisParameter_Int32_Return>(0x709650);
+		ListCandidateLots_Existing = reinterpret_cast<pfn_ThisParameter_Int32_Return>(0x708110);
+		Build = reinterpret_cast<pfn_Build_Functions>(0x70b440);
+		BuildFarm = reinterpret_cast<pfn_Build_Functions>(0x70b640);
 		setCallbacks = true;
 		break;
 	}
@@ -841,6 +963,25 @@ void TractDeveloperHooks::Install()
 			Patcher::InstallJump(
 				Grow_LotAggregationAndSubdivisionHook_Inject,
 				reinterpret_cast<uintptr_t>(&Grow_LotAggregationAndSubdivisionHook));
+
+			if (preferences.LogGrowableFunctions())
+			{
+				Patcher::InstallCallHook(
+					TakeOverAbandoned_Trampoline_Inject,
+					reinterpret_cast<uintptr_t>(&TakeOverAbandoned_Trampoline));
+				Patcher::InstallCallHook(
+					ListPossibleLotConfigurations_Trampoline_Inject,
+					reinterpret_cast<uintptr_t>(&ListPossibleLotConfigurations_Trampoline));
+				Patcher::InstallCallHook(
+					ListCandidateLots_Existing_Trampoline_Inject,
+					reinterpret_cast<uintptr_t>(&ListCandidateLots_Existing_Trampoline));
+				Patcher::InstallCallHook(
+					Build_Trampoline_Inject,
+					reinterpret_cast<uintptr_t>(&Build_Trampoline));
+				Patcher::InstallCallHook(
+					BuildFarm_Trampoline_Inject,
+					reinterpret_cast<uintptr_t>(&BuildFarm_Trampoline));
+			}
 
 			logger.WriteLine(LogLevel::Info, "Installed the building style algorithm patch.");
 		}

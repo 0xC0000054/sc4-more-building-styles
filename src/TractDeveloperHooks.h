@@ -12,7 +12,9 @@
 
 #pragma once
 
+class Preferences;
+
 namespace TractDeveloperHooks
 {
-	void Install();
+	void Install(const Preferences& preferences);
 }

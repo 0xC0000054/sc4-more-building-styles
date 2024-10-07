@@ -152,7 +152,8 @@ Preferences::Preferences()
 	  agriculturePurposeTypeSupportsBuildingStyles(false),
 	  processingPurposeTypeSupportsBuildingStyles(false),
 	  manufacturingPurposeTypeSupportsBuildingStyles(false),
-	  highTechPurposeTypeSupportsBuildingStyles(false)
+	  highTechPurposeTypeSupportsBuildingStyles(false),
+	  logGrowableFunctions(false)
 {
 }
 
@@ -170,6 +171,11 @@ bool Preferences::LogBuildingStyleSelection() const
 bool Preferences::LogLotStyleSelection() const
 {
 	return logLotStyleSelection;
+}
+
+bool Preferences::LogGrowableFunctions() const
+{
+	return logGrowableFunctions;
 }
 
 bool Preferences::AgriculturePurposeTypeSupportsBuildingStyles() const
@@ -208,8 +214,9 @@ void Preferences::LoadPreferencesFromDllConfigFile()
 
 			boost::property_tree::ini_parser::read_ini(stream, tree);
 
-			logBuildingStyleSelection = tree.get<bool>("GrowableBuildingStyleDebugLogging.LogBuildingStyleSelection");
-			logLotStyleSelection = tree.get<bool>("GrowableBuildingStyleDebugLogging.LogLotStyleSelection");
+			logBuildingStyleSelection = tree.get<bool>("DebugLogging.BuildingStyleSelection");
+			logLotStyleSelection = tree.get<bool>("DebugLogging.LotStyleSelection");
+			logGrowableFunctions = tree.get<bool>("DebugLogging.GrowableFunctions");
 		}
 		else
 		{
@@ -220,7 +227,7 @@ void Preferences::LoadPreferencesFromDllConfigFile()
 	{
 		logger.WriteLineFormatted(
 			LogLevel::Error,
-			"Failed to read the DLL INI file: %s",
+			"Error reading the DLL INI file: %s",
 			e.what());
 	}
 }

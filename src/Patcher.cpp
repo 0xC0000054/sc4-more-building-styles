@@ -9,7 +9,7 @@
 // See LICENSE.txt for more information.
 //
 ////////////////////////////////////////////////////////////////////////////
-/// 
+
 #include "Patcher.h"
 
 #include <Windows.h>
@@ -27,9 +27,14 @@ void Patcher::InstallJump(uintptr_t address, uintptr_t destination)
 
 void Patcher::InstallCallHook(uintptr_t address, void(*pfnFunc)(void))
 {
+	InstallCallHook(address, reinterpret_cast<uintptr_t>(pfnFunc));
+}
+
+void Patcher::InstallCallHook(uintptr_t address, uintptr_t pfnFunc)
+{
 	DWORD oldProtect;
 	THROW_IF_WIN32_BOOL_FALSE(VirtualProtect(reinterpret_cast<void*>(address), 5, PAGE_EXECUTE_READWRITE, &oldProtect));
 
 	*((uint8_t*)address) = 0xE8;
-	*((uintptr_t*)(address + 1)) = reinterpret_cast<uintptr_t>(pfnFunc) - address - 5;
+	*((uintptr_t*)(address + 1)) = pfnFunc - address - 5;
 }
