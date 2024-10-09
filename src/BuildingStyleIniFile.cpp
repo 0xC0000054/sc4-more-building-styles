@@ -23,6 +23,7 @@
 #include "StringViewUtil.h"
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/ini_parser.hpp"
+#include <unordered_set>
 
 using namespace std::string_view_literals;
 
@@ -185,24 +186,30 @@ namespace
 		return result;
 	}
 
-	bool GetMaxStyleButtonIndexEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
+	struct SupportedUIButtonContext
+	{
+		std::unordered_set<uint32_t> buttonIDs;
+
+		SupportedUIButtonContext() : buttonIDs()
+		{
+		}
+	};
+
+	bool SupportedUIButtonEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
 	{
 		if (childID <= BuildingStyleIniFile::MaxStyleButtonID)
 		{
-			int64_t* maxIndex = static_cast<int64_t*>(pState);
+			SupportedUIButtonContext* state = static_cast<SupportedUIButtonContext*>(pState);
 
-			if (childID > *maxIndex)
-			{
-				*maxIndex = childID;
-			}
+			state->buttonIDs.insert(childID);
 		}
 
 		return true;
 	}
 
-	uint32_t GetMaxStyleButtonIndex()
+	std::unordered_set<uint32_t> GetSupportedUIButtons()
 	{
-		uint32_t result = std::numeric_limits<uint32_t>::max();
+		std::unordered_set<uint32_t> supportedButtonIDs;
 
 		cISC4AppPtr pSC4App;
 
@@ -226,23 +233,20 @@ namespace
 
 					if (pStyleListContainer)
 					{
-						int64_t maxIndex = -1;
+						SupportedUIButtonContext context;
 
 						pStyleListContainer->EnumChildren(
 							GZIID_cIGZWinBtn,
-							GetMaxStyleButtonIndexEnumProc,
-							&maxIndex);
+							SupportedUIButtonEnumProc,
+							&context);
 
-						if (maxIndex >= 0 && maxIndex < std::numeric_limits<uint32_t>::max())
-						{
-							result = static_cast<uint32_t>(maxIndex);
-						}
+						supportedButtonIDs.swap(context.buttonIDs);
 					}
 				}
 			}
 		}
 
-		return result;
+		return supportedButtonIDs;
 	}
 }
 
@@ -261,9 +265,9 @@ void BuildingStyleIniFile::Load()
 
 	try
 	{
-		const uint32_t maxStyleButtonIndex = GetMaxStyleButtonIndex();
+		const std::unordered_set<uint32_t> supportedButtonIDs = GetSupportedUIButtons();
 
-		if (maxStyleButtonIndex != std::numeric_limits<uint32_t>::max())
+		if (!supportedButtonIDs.empty())
 		{
 			std::filesystem::path path = FileSystem::GetBuildingStylesIniFilePath();
 
@@ -285,7 +289,7 @@ void BuildingStyleIniFile::Load()
 
 					if (StringViewUtil::TryParse(item.first, buttonID))
 					{
-						if (buttonID <= maxStyleButtonIndex)
+						if (supportedButtonIDs.contains(buttonID))
 						{
 							StyleEntry entry;
 
@@ -299,9 +303,8 @@ void BuildingStyleIniFile::Load()
 						{
 							logger.WriteLineFormatted(
 								LogLevel::Error,
-								"BuildingStyles.ini: Skipping button id %u. The button ids must be between 0 and %u.",
-								buttonID,
-								maxStyleButtonIndex);
+								"BuildingStyles.ini: Skipping unsupported button id %u.",
+								buttonID);
 						}
 					}
 					else
