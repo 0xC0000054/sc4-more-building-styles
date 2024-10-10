@@ -10,7 +10,6 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
-
 #include "TractDeveloperHooks.h"
 #include "cGZPersistResourceKey.h"
 #include "cIGZPersistResourceManager.h"
@@ -28,19 +27,9 @@
 #include "Patcher.h"
 #include "SC4String.h"
 #include "SC4VersionDetection.h"
+#include "WallToWallOccupantGroups.h"
 
-#include "frozen/unordered_set.h"
 #include "wil/result.h"
-
-static constexpr frozen::unordered_set<uint32_t, 6> WallToWallOccupantGroups =
-{
-	0xD02C802E, // BTE: Ind. W2W
-	0xB5C00A05, // BTE: Comm. W2W
-	0xB5C00B05, // BTE: Res. W2W
-	0xB5C00DDE, // BTE: W2W General
-	0xB5C00F0A, // SFBT: Hamburg W2W
-	0xB5C00F0B, // SFBT: Paris W2W
-};
 
 template<typename T> class SC4VectorIterator
 {
@@ -197,13 +186,13 @@ static_assert(offsetof(cSC4LotConfiguration, buildingOccupantGroups) == 0x80);
 static uintptr_t IsLotConfigurationSuitable_CompatableStyleFound_Continue;
 static uintptr_t IsLotConfigurationSuitable_NoCompatableStyle_Continue;
 
-static bool LotConfigurationHasStyle(const cSC4LotConfiguration* pLotConfiguration, uint32_t style)
+static bool LotConfigurationHasOccupantGroupValue(const cSC4LotConfiguration* pLotConfiguration, uint32_t value)
 {
 	const SC4Vector<uint32_t>& buildingOccupantGroups = pLotConfiguration->buildingOccupantGroups;
 
 	for (const auto& occupantGroup : buildingOccupantGroups)
 	{
-		if (occupantGroup == style)
+		if (occupantGroup == value)
 		{
 			return true;
 		}
@@ -213,15 +202,15 @@ static bool LotConfigurationHasStyle(const cSC4LotConfiguration* pLotConfigurati
 }
 
 template<size_t N>
-static bool LotConfigurationHasStyle(
+static bool LotConfigurationHasOccupantGroupValue(
 	const cSC4LotConfiguration* pLotConfiguration,
-	const frozen::unordered_set<uint32_t, N>& styles)
+	const frozen::unordered_map<uint32_t, const std::string_view, N>& values)
 {
 	const SC4Vector<uint32_t>& buildingOccupantGroups = pLotConfiguration->buildingOccupantGroups;
 
 	for (const auto& occupantGroup : buildingOccupantGroups)
 	{
-		if (styles.find(occupantGroup) != styles.end())
+		if (values.count(occupantGroup) != 0)
 		{
 			return true;
 		}
@@ -244,11 +233,11 @@ template<size_t N>
 static bool HasOccupantGroupValue(
 	const uint32_t* const pOccupantGroupData,
 	uint32_t occupantGroupCount,
-	const frozen::unordered_set<uint32_t, N>& styles)
+	const frozen::unordered_map<uint32_t, const std::string_view, N>& values)
 {
 	for (uint32_t i = 0; i < occupantGroupCount; i++)
 	{
-		if (styles.find(pOccupantGroupData[i]) != styles.end())
+		if (values.count(pOccupantGroupData[i]) != 0)
 		{
 			return true;
 		}
@@ -425,10 +414,10 @@ static bool CheckAdditionalLotStyleOptions(const cSC4LotConfiguration* pLotConfi
 		switch (wallToWallOption)
 		{
 		case IBuildingSelectWinContext::WallToWallOption::Only:
-			result = LotConfigurationHasStyle(pLotConfiguration, WallToWallOccupantGroups);
+			result = LotConfigurationHasOccupantGroupValue(pLotConfiguration, WallToWallOccupantGroups);
 			break;
 		case IBuildingSelectWinContext::WallToWallOption::Block:
-			result = !LotConfigurationHasStyle(pLotConfiguration, WallToWallOccupantGroups);
+			result = !LotConfigurationHasOccupantGroupValue(pLotConfiguration, WallToWallOccupantGroups);
 			break;
 		}
 
@@ -462,7 +451,7 @@ static bool IsLotCompatibleWithActiveStyles(
 
 		for (const auto& style : activeStyles)
 		{
-			if (LotConfigurationHasStyle(pLotConfiguration, style))
+			if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, style))
 			{
 				if (spPreferences->LogLotStyleSelection())
 				{
@@ -485,7 +474,7 @@ static bool IsLotCompatibleWithActiveStyles(
 	else
 	{
 		// Change style every N years.
-		if (LotConfigurationHasStyle(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]))
+		if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]))
 		{
 			if (spPreferences->LogLotStyleSelection())
 			{

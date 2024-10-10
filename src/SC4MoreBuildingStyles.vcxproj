@@ -50,6 +50,7 @@
     <ClCompile Include="Preferences.cpp" />
     <ClCompile Include="StringViewUtil.cpp" />
     <ClCompile Include="TractDeveloperHooks.cpp" />
+    <ClCompile Include="BuildingStyleWallToWall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\vendor\gzcom-dll\include\cIGZCheatCodeManager.h" />
@@ -85,12 +86,15 @@
     <ClInclude Include="AvailableBuildingStyles.h" />
     <ClInclude Include="Patcher.h" />
     <ClInclude Include="public\include\cIBuildingStyleInfo.h" />
+    <ClInclude Include="public\include\cIBuildingStyleWallToWall.h" />
     <ClInclude Include="SC4NotificationDialog.h" />
     <ClInclude Include="SC4VersionDetection.h" />
     <ClInclude Include="Preferences.h" />
     <ClInclude Include="StringViewUtil.h" />
     <ClInclude Include="TractDeveloperHooks.h" />
     <ClInclude Include="version.h" />
+    <ClInclude Include="BuildingStyleWallToWall.h" />
+    <ClInclude Include="WallToWallOccupantGroups.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />

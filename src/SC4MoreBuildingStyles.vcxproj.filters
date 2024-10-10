@@ -144,6 +144,9 @@
     <ClCompile Include="DebugUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BuildingStyleWallToWall.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -261,6 +264,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DebugUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\include\cIBuildingStyleWallToWall.h">
+      <Filter>Header Files\Public Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingStyleWallToWall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WallToWallOccupantGroups.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

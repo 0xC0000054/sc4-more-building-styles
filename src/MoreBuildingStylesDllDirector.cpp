@@ -16,6 +16,7 @@
 #include "BuildingSelectWinManager.h"
 #include "BuildingStyleInfo.h"
 #include "BuildingStyleMessages.h"
+#include "BuildingStyleWallToWall.h"
 #include "AvailableBuildingStyles.h"
 #include "FileSystem.h"
 #include "Logger.h"
@@ -90,6 +91,10 @@ public:
 		{
 			result = buildingStyleInfo.QueryInterface(riid, ppvObj);
 		}
+		else if (rclsid == GZCLSID_cIBuildingStyleWallToWall)
+		{
+			result = buildingStyleWallToWall.QueryInterface(riid, ppvObj);
+		}
 
 		return result;
 	}
@@ -97,6 +102,7 @@ public:
 	void EnumClassObjects(ClassObjectEnumerationCallback pCallback, void* pContext)
 	{
 		pCallback(GZCLSID_cIBuildingStyleInfo, 0, pContext);
+		pCallback(GZCLSID_cIBuildingStyleWallToWall, 0, pContext);
 	}
 
 	void ActiveBuildingStyleCheckboxChanged(cIGZMessage2Standard* pStandardMsg)
@@ -311,6 +317,7 @@ private:
 	cISC4City* pCity;
 	BuildingSelectWinManager buildingSelectWinManager;
 	BuildingStyleInfo buildingStyleInfo;
+	BuildingStyleWallToWall buildingStyleWallToWall;
 	Preferences preferences;
 };
 

@@ -153,6 +153,13 @@ that list.
 
 See [cIBuildingStyleInfo.h](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/src/public/include/cIBuildingStyleInfo.h) for details.
 
+### cIBuildingStyleWallToWall GZCOM Class
+
+This class allows other DLLS to get a list of the supported wall-to-wall (W2W) occupant groups, and query if a building has one of those
+occupant groups.
+
+See [cIBuildingStyleWallToWall.h](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/src/public/include/cIBuildingStyleWallToWall.h) for details.
+
 ## Download
 
 The plugin can be downloaded from the Releases tab: https://github.com/0xC0000054/sc4-more-building-styles/releases
