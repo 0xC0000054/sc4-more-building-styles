@@ -52,3 +52,11 @@ constexpr frozen::unordered_set<uint32_t, 6> OptionalButtonIDs =
 	WallToWallBlockRadioButtonID,
 	KeepLotZoneSizesButtonID
 };
+// This is the highest button id that will be recognized for BuildingStyles.ini.
+// It currently supports button ids in the range of 0-127, for a maximum of 128
+// custom style check boxes.
+static constexpr uint32_t BuildingStyleIniMaxButtonID = 0x7F;
+// This block of ids is used for the extra buttons that are placed in
+// the style portion of the Building Style Control.
+static constexpr uint32_t StyleControlReservedButtonRangeStart = 0x100;
+static constexpr uint32_t StyleControlReservedButtonRangeEnd = 0x10F;

@@ -24,9 +24,6 @@ public:
 	// We use it as a marker value for unused style
 	// check boxes that are not hidden in the menu.
 	static constexpr uint32_t InvalidStyleID = 0;
-	// We currently support a maximum of 128 custom style
-	// check boxes, with a button id range of 0-127.
-	static constexpr uint32_t MaxStyleButtonID = 127;
 
 	struct StyleEntry
 	{

@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "BuildingStyleIniFile.h"
+#include "BuildingStyleButtons.h"
 #include "cIGZWin.h"
 #include "cIGZWinBtn.h"
 #include "cISC4App.h"
@@ -197,7 +198,7 @@ namespace
 
 	bool SupportedUIButtonEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
 	{
-		if (childID <= BuildingStyleIniFile::MaxStyleButtonID)
+		if (childID <= BuildingStyleIniMaxButtonID)
 		{
 			SupportedUIButtonContext* state = static_cast<SupportedUIButtonContext*>(pState);
 

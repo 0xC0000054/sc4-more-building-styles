@@ -58,6 +58,11 @@ namespace
 		return true;
 	}
 
+	void ConfigureStyleControlReservedButtons(uint32_t buttonID, cIGZWinBtn* pBtn)
+	{
+		GZWinUtil::SetWindowVisible(pBtn->AsIGZWin(), false);
+	}
+
 	struct InitializeBuildingStyleContext
 	{
 		const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& iniFileBuildingStyles;
@@ -74,7 +79,7 @@ namespace
 	{
 		InitializeBuildingStyleContext* state = static_cast<InitializeBuildingStyleContext*>(pState);
 
-		if (childID <= BuildingStyleIniFile::MaxStyleButtonID)
+		if (childID <= BuildingStyleIniMaxButtonID)
 		{
 			const auto& styles = state->iniFileBuildingStyles;
 
@@ -106,6 +111,10 @@ namespace
 				GZWinUtil::SetWindowVisible(pBtn->AsIGZWin(), false);
 			}
 		}
+		else if (childID >= StyleControlReservedButtonRangeStart && childID <= StyleControlReservedButtonRangeEnd)
+		{
+			ConfigureStyleControlReservedButtons(childID, pBtn);
+		}
 		else
 		{
 			cIGZString* caption = pBtn->GetCaption();
@@ -126,7 +135,7 @@ namespace
 
 	void UpdateINIFileCheckBoxNamesCallback(uint32_t childID, cIGZWinBtn* pBtn, void* pState)
 	{
-		if (childID <= BuildingStyleIniFile::MaxStyleButtonID)
+		if (childID <= BuildingStyleIniMaxButtonID)
 		{
 			const UpdateINIFileCheckBoxContext* state = static_cast<UpdateINIFileCheckBoxContext*>(pState);
 			const auto& styles = state->iniFileBuildingStyles;
@@ -154,6 +163,10 @@ namespace
 			{
 				GZWinUtil::SetWindowVisible(pBtn->AsIGZWin(), false);
 			}
+		}
+		else if (childID >= StyleControlReservedButtonRangeStart && childID <= StyleControlReservedButtonRangeEnd)
+		{
+			ConfigureStyleControlReservedButtons(childID, pBtn);
 		}
 	}
 
