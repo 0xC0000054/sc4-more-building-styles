@@ -884,6 +884,26 @@ static int32_t __fastcall BuildFarm_Trampoline(cSC4TractDeveloper* pThis, void* 
 	return result;
 }
 
+bool TractDeveloperHooks::GetKickOutLowerWealthValue(const cISC4TractDeveloper* pTractDeveloper)
+{
+	bool result = true;
+
+	if (pTractDeveloper)
+	{
+		result = reinterpret_cast<const cSC4TractDeveloper*>(pTractDeveloper)->kickOutLowerWealth != 0;
+	}
+
+	return result;
+}
+
+void TractDeveloperHooks::SetKickOutLowerWealthValue(cISC4TractDeveloper* pTractDeveloper, bool value)
+{
+	if (pTractDeveloper)
+	{
+		reinterpret_cast<cSC4TractDeveloper*>(pTractDeveloper)->kickOutLowerWealth = value;
+	}
+}
+
 void TractDeveloperHooks::Install(const Preferences& preferences)
 {
 	Logger& logger = Logger::GetInstance();

@@ -158,6 +158,13 @@ static void UpdateWallToWallRadioButtons(
 	}
 }
 
+static void UpdateOptionalCheckBox(const cSC4BuildingSelectWinProc* pThis, uint32_t buttonID)
+{
+	bool checked = GZWinUtil::GetButtonToggleState(pThis->window, buttonID);
+
+	spBuildingSelectWinManager->GetContext().SetOptionalCheckBoxState(buttonID, checked);
+}
+
 static bool ProcessOptionalUIButton(
 	const cSC4BuildingSelectWinProc* pThis,
 	uint32_t buttonID)
@@ -167,7 +174,8 @@ static bool ProcessOptionalUIButton(
 	case AutoHistoricalButtonID:
 	case AutoGrowifyButtonID:
 	case KeepLotZoneSizesButtonID:
-		spBuildingSelectWinManager->GetContext().UpdateOptionalCheckBoxState(pThis->window, buttonID);
+	case KickOutLowerWealthButtonID:
+		UpdateOptionalCheckBox(pThis, buttonID);
 		return true;
 	case WallToWallMixedRadioButtonID:
 		UpdateWallToWallRadioButtons(pThis, IBuildingSelectWinContext::WallToWallOption::Mixed);
@@ -333,6 +341,7 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 	InitializeOptionalCheckBox(this, AutoHistoricalButtonID, context);
 	InitializeOptionalCheckBox(this, AutoGrowifyButtonID, context);
 	InitializeOptionalCheckBox(this, KeepLotZoneSizesButtonID, context);
+	InitializeOptionalCheckBox(this, KickOutLowerWealthButtonID, context);
 	UpdateWallToWallRadioButtons(this, context.GetWallToWallOption(), /*setContextOption*/false);
 
 	EnableStyleButtons();

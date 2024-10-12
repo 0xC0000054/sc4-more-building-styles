@@ -60,7 +60,19 @@ namespace
 
 	void ConfigureStyleControlReservedButtons(uint32_t buttonID, cIGZWinBtn* pBtn)
 	{
-		GZWinUtil::SetWindowVisible(pBtn->AsIGZWin(), false);
+		bool hideCheckBox = true;
+
+		switch (buttonID)
+		{
+		case KickOutLowerWealthButtonID:
+			hideCheckBox = false;
+			break;
+		}
+
+		if (hideCheckBox)
+		{
+			GZWinUtil::SetWindowVisible(pBtn->AsIGZWin(), false);
+		}
 	}
 
 	struct InitializeBuildingStyleContext

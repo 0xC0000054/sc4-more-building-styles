@@ -60,3 +60,5 @@ static constexpr uint32_t BuildingStyleIniMaxButtonID = 0x7F;
 // the style portion of the Building Style Control.
 static constexpr uint32_t StyleControlReservedButtonRangeStart = 0x100;
 static constexpr uint32_t StyleControlReservedButtonRangeEnd = 0x10F;
+// A check box that controls whether the tract developer will kick out lower wealth occupants.
+static constexpr uint32_t KickOutLowerWealthButtonID = 0x100;

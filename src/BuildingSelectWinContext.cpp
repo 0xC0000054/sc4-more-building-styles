@@ -17,8 +17,10 @@
 #include "cISC4DBSegment.h"
 #include "cISC4DBSegmentIStream.h"
 #include "cISC4DBSegmentOStream.h"
+#include "cISC4TractDeveloper.h"
 #include "cRZAutoRefCount.h"
 #include "GZWinUtil.h"
+#include "TractDeveloperHooks.h"
 
 static constexpr uint32_t BuildingSelectWinContextTypeID = 0xB9757739;
 static constexpr uint32_t BuildingSelectWinContextGroupID = 0x1FD8DC83;
@@ -139,10 +141,12 @@ namespace
 }
 
 BuildingSelectWinContext::BuildingSelectWinContext()
-	: automaticallyMarkBuildingsAsHistorical(false),
+	: pTractDeveloper(nullptr),
+	  automaticallyMarkBuildingsAsHistorical(false),
 	  automaticallyGrowifyPloppedBuildings(false),
 	  wallToWallOption(WallToWallOption::Mixed),
-	  keepLotZoneSizes(false)
+	  keepLotZoneSizes(false),
+	  kickOutLowerWealthOption(KickOutLowerWealthOption::Unknown)
 {
 }
 
@@ -167,7 +171,15 @@ void BuildingSelectWinContext::LoadFromDBSegment(cIGZPersistDBSegment* pSegment)
 
 				if (pSC4IStream->GetUint32(version))
 				{
-					if (version == 4)
+					if (version == 5)
+					{
+						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
+						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
+						ReadEnum(pSC4IStream, wallToWallOption);
+						ReadBoolean(pSC4IStream, keepLotZoneSizes);
+						ReadEnum(pSC4IStream, kickOutLowerWealthOption);
+					}
+					else if (version == 4)
 					{
 						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
 						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
@@ -212,11 +224,12 @@ void BuildingSelectWinContext::SaveToDBSegment(cIGZPersistDBSegment* pSegment) c
 
 			if (pSC4DBSegment->OpenOStream(key, pSC4OStream.AsPPObj(), true))
 			{
-				pSC4OStream->SetUint32(4); // version
+				pSC4OStream->SetUint32(5); // version
 				WriteBoolean(pSC4OStream, automaticallyMarkBuildingsAsHistorical);
 				WriteBoolean(pSC4OStream, automaticallyGrowifyPloppedBuildings);
 				WriteEnum(pSC4OStream, wallToWallOption);
 				WriteBoolean(pSC4OStream, keepLotZoneSizes);
+				WriteEnum(pSC4OStream, kickOutLowerWealthOption);
 			}
 		}
 	}
@@ -230,6 +243,32 @@ bool BuildingSelectWinContext::AutomaticallyMarkBuildingsAsHistorical() const
 bool BuildingSelectWinContext::AutomaticallyGrowifyPloppedBuildings() const
 {
 	return automaticallyGrowifyPloppedBuildings;
+}
+
+void BuildingSelectWinContext::PostCityInitComplete()
+{
+	if (kickOutLowerWealthOption == KickOutLowerWealthOption::Unknown)
+	{
+		if (TractDeveloperHooks::GetKickOutLowerWealthValue(pTractDeveloper))
+		{
+			kickOutLowerWealthOption = KickOutLowerWealthOption::True;
+		}
+		else
+		{
+			kickOutLowerWealthOption = KickOutLowerWealthOption::False;
+		}
+	}
+	else
+	{
+		TractDeveloperHooks::SetKickOutLowerWealthValue(
+			pTractDeveloper,
+			kickOutLowerWealthOption == KickOutLowerWealthOption::True);
+	}
+}
+
+void BuildingSelectWinContext::SetTractDeveloper(cISC4TractDeveloper* tractDeveloper)
+{
+	pTractDeveloper = tractDeveloper;
 }
 
 bool BuildingSelectWinContext::GetOptionalCheckBoxState(uint32_t buttonID) const
@@ -247,23 +286,30 @@ bool BuildingSelectWinContext::GetOptionalCheckBoxState(uint32_t buttonID) const
 	case KeepLotZoneSizesButtonID:
 		result = keepLotZoneSizes;
 		break;
+	case KickOutLowerWealthButtonID:
+		result = kickOutLowerWealthOption == KickOutLowerWealthOption::True;
+		break;
 	}
 
 	return result;
 }
 
-void BuildingSelectWinContext::UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32_t buttonID)
+void BuildingSelectWinContext::SetOptionalCheckBoxState(uint32_t buttonID, bool checked)
 {
 	switch (buttonID)
 	{
 	case AutoHistoricalButtonID:
-		automaticallyMarkBuildingsAsHistorical = GZWinUtil::GetButtonToggleState(pWin, AutoHistoricalButtonID);
+		automaticallyMarkBuildingsAsHistorical = checked;
 		break;
 	case AutoGrowifyButtonID:
-		automaticallyGrowifyPloppedBuildings = GZWinUtil::GetButtonToggleState(pWin, AutoGrowifyButtonID);
+		automaticallyGrowifyPloppedBuildings = checked;
 		break;
 	case KeepLotZoneSizesButtonID:
-		keepLotZoneSizes = GZWinUtil::GetButtonToggleState(pWin, KeepLotZoneSizesButtonID);
+		keepLotZoneSizes = checked;
+		break;
+	case KickOutLowerWealthButtonID:
+		kickOutLowerWealthOption = checked ? KickOutLowerWealthOption::True : KickOutLowerWealthOption::False;
+		TractDeveloperHooks::SetKickOutLowerWealthValue(pTractDeveloper, checked);
 		break;
 	}
 }

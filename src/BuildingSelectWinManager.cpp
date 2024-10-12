@@ -34,14 +34,16 @@
 
 static constexpr uint32_t kSC4MessagePostCityInit = 0x26D31EC1;
 static constexpr uint32_t kSC4MessagePreCityShutdown = 0x26D31EC2;
+static constexpr uint32_t kSC4MessagePostCityInitComplete = 0xEA8AE29A;
 static constexpr uint32_t kSC4MessageLoad = 0x26C63341;
 static constexpr uint32_t kSC4MessageSave = 0x26C63344;
 static constexpr uint32_t kMessageStateChanged = 0xE8BDA2E7;
 
-static constexpr std::array<uint32_t, 5> RequiredNotifications =
+static constexpr std::array<uint32_t, 6> RequiredNotifications =
 {
 	kSC4MessagePostCityInit,
 	kSC4MessagePreCityShutdown,
+	kSC4MessagePostCityInitComplete,
 	kSC4MessageLoad,
 	kSC4MessageSave,
 	kMessageStateChanged,
@@ -281,6 +283,9 @@ bool BuildingSelectWinManager::DoMessage(cIGZMessage2* pMsg)
 	case kSC4MessagePreCityShutdown:
 		PreCityShutdown();
 		break;
+	case kSC4MessagePostCityInitComplete:
+		context.PostCityInitComplete();
+		break;
 	case kSC4MessageLoad:
 		Load(pStandardMsg);
 		break;
@@ -300,6 +305,7 @@ void BuildingSelectWinManager::PreCityShutdown()
 	pLotManager = nullptr;
 	pTractDeveloper = nullptr;
 	pZoneManager = nullptr;
+	context.SetTractDeveloper(nullptr);
 }
 
 void BuildingSelectWinManager::PostCityInit(cIGZMessage2Standard* pStandardMsg)
@@ -316,6 +322,7 @@ void BuildingSelectWinManager::PostCityInit(cIGZMessage2Standard* pStandardMsg)
 		pLotManager = pCity->GetLotManager();
 		pTractDeveloper = pCity->GetTractDeveloper();
 		pZoneManager = pCity->GetZoneManager();
+		context.SetTractDeveloper(pTractDeveloper);
 	}
 }
 

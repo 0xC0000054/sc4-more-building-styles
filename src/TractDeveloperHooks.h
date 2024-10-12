@@ -12,9 +12,13 @@
 
 #pragma once
 
+class cISC4TractDeveloper;
 class Preferences;
 
 namespace TractDeveloperHooks
 {
+	bool GetKickOutLowerWealthValue(const cISC4TractDeveloper* pTractDeveloper);
+	void SetKickOutLowerWealthValue(cISC4TractDeveloper* pTractDeveloper, bool value);
+
 	void Install(const Preferences& preferences);
 }

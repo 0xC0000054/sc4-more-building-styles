@@ -13,8 +13,6 @@
 #pragma once
 #include <cstdint>
 
-class cIGZWin;
-
 class IBuildingSelectWinContext
 {
 public:
@@ -30,7 +28,7 @@ public:
 	};
 
 	virtual bool GetOptionalCheckBoxState(uint32_t buttonID) const = 0;
-	virtual void UpdateOptionalCheckBoxState(cIGZWin* pWin, uint32_t buttonID) = 0;
+	virtual void SetOptionalCheckBoxState(uint32_t buttonID, bool checked) = 0;
 
 	virtual WallToWallOption GetWallToWallOption() const = 0;
 	virtual void SetWallToWallOption(WallToWallOption value) = 0;
