@@ -21,6 +21,7 @@
 #include "cRZBaseString.h"
 #include "GlobalPointers.h"
 #include "IBuildingSelectWinManager.h"
+#include "PropertyIDs.h"
 
 namespace
 {
@@ -61,6 +62,54 @@ namespace
 		}
 
 		return result;
+	}
+
+	const std::string_view StyleNameListSeperator(", ");
+
+	size_t GetStyleNamesFromVariant(
+		const cIGZVariant& variant,
+		const BuildingStyleCollection& availableBuildingStyles,
+		cIGZString& destination)
+	{
+		size_t styleNameCount = 0;
+
+		const uint32_t* pData = variant.RefUint32();
+		const uint32_t repCount = variant.GetCount();
+
+		if (repCount > 0)
+		{
+			const uint32_t* pDataEnd = pData + repCount;
+
+			for (const auto& item : availableBuildingStyles)
+			{
+				if (std::find(pData, pDataEnd, item.styleID) != pDataEnd)
+				{
+					if (styleNameCount > 1)
+					{
+						destination.Append(StyleNameListSeperator.data(), StyleNameListSeperator.size());
+					}
+
+					destination.Append(item.styleName);
+					styleNameCount++;
+				}
+			}
+		}
+		else
+		{
+			const uint32_t targetStyleID = reinterpret_cast<uint32_t>(pData);
+
+			for (const auto& item : availableBuildingStyles)
+			{
+				if (item.styleID == targetStyleID)
+				{
+					destination.Append(item.styleName);
+					styleNameCount = 1;
+					break;
+				}
+			}
+		}
+
+		return styleNameCount;
 	}
 }
 
@@ -169,32 +218,39 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 
 		if (availableBuildingStyles.size() > 0)
 		{
-			const std::string_view separator(", ");
-
 			const cISCPropertyHolder* pPropertyHolder = pOccupant->AsPropertyHolder();
+			size_t styleNameCount = 0;
 
 			if (pPropertyHolder)
 			{
-				constexpr uint32_t kOccupantGroupsProperty = 0xAA1DD396;
+				const cISCProperty* pProperty = pPropertyHolder->GetProperty(kBuildingStylesProperty);
 
-				const cISCProperty* pOccupantGroupsProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
-
-				if (pOccupantGroupsProperty)
+				if (pProperty)
 				{
-					const cIGZVariant* pVariant = pOccupantGroupsProperty->GetPropertyValue();
+					const cIGZVariant* pVariant = pProperty->GetPropertyValue();
 
 					if (pVariant)
 					{
-						const uint32_t* pDataStart = pVariant->RefUint32();
-						const uint32_t* pDataEnd = pDataStart + pVariant->GetCount();
+						styleNameCount = GetStyleNamesFromVariant(
+							*pVariant,
+							availableBuildingStyles,
+							destination);
+					}
+				}
+				else
+				{
+					pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
 
-						for (const auto& item : availableBuildingStyles)
+					if (pProperty)
+					{
+						const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+						if (pVariant)
 						{
-							if (std::find(pDataStart, pDataEnd, item.styleID) != pDataEnd)
-							{
-								destination.Append(item.styleName);
-								destination.Append(separator.data(), separator.size());
-							}
+							styleNameCount = GetStyleNamesFromVariant(
+								*pVariant,
+								availableBuildingStyles,
+								destination);
 						}
 					}
 				}
@@ -203,8 +259,11 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 			// Check that at least one style name has been written to the destination.
 			if (destination.Strlen() > 0)
 			{
-				// Remove the trailing separator from the last style in the list.
-				destination.Resize(destination.Strlen() - separator.size());
+				if (styleNameCount > 1)
+				{
+					// Remove the trailing separator from the last style in the list.
+					destination.Resize(destination.Strlen() - StyleNameListSeperator.size());
+				}
 				result = true;
 			}
 		}

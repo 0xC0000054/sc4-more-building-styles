@@ -20,6 +20,7 @@
 #include "AvailableBuildingStyles.h"
 #include "FileSystem.h"
 #include "Logger.h"
+#include "LotConfigurationManagerHooks.h"
 #include "Preferences.h"
 #include "TractDeveloperHooks.h"
 #include "cIGZCOM.h"
@@ -261,6 +262,7 @@ public:
 
 		spBuildingSelectWinManager = &buildingSelectWinManager;
 		BuildingSelectWinProcHooks::Install();
+		LotConfigurationManagerHooks::Install();
 		TractDeveloperHooks::Install(preferences);
 
 		if (!buildingSelectWinManager.Initialize())

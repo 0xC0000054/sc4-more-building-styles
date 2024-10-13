@@ -25,106 +25,13 @@
 #include "GZServPtrs.h"
 #include "Logger.h"
 #include "Patcher.h"
+#include "PropertyIDs.h"
 #include "SC4String.h"
+#include "SC4Vector.h"
 #include "SC4VersionDetection.h"
 #include "WallToWallOccupantGroups.h"
 
 #include "wil/result.h"
-
-template<typename T> class SC4VectorIterator
-{
-public:
-	using iterator_category = std::forward_iterator_tag;
-	using difference_type = std::ptrdiff_t;
-	using value_type = T;
-	using pointer = value_type*;
-	using reference = value_type&;
-
-	SC4VectorIterator(pointer pValue) : mpValue(pValue)
-	{
-	}
-
-	~SC4VectorIterator()
-	{
-	}
-
-	reference operator*() const
-	{
-		return *mpValue;
-	}
-
-	pointer operator->()
-	{
-		return mpValue;
-	}
-
-	// Prefix increment
-	SC4VectorIterator& operator++()
-	{
-		mpValue = mpValue + 1;
-		return *this;
-	}
-
-	// Postfix increment
-	SC4VectorIterator operator++(int)
-	{
-		SC4VectorIterator tmp = *this;
-		++(*this);
-		return tmp;
-	}
-
-	static friend bool operator== (const SC4VectorIterator& a, const SC4VectorIterator& b)
-	{
-		return a.mpValue == b.mpValue;
-	};
-	static friend bool operator!= (const SC4VectorIterator& a, const SC4VectorIterator& b)
-	{
-		return a.mpValue != b.mpValue;
-	};
-private:
-	pointer mpValue;
-};
-
-template<typename T> class SC4Vector
-{
-public:
-	typedef SC4VectorIterator<const T> const_iterator;
-
-	const_iterator begin() const
-	{
-		return const_iterator(mpBegin);
-	}
-
-	const_iterator end() const
-	{
-		return const_iterator(mpEnd);
-	}
-
-	const_iterator cbegin() const
-	{
-		return const_iterator(mpBegin);
-	}
-
-	const_iterator cend() const
-	{
-		return const_iterator(mpEnd);
-	}
-
-	bool empty() const
-	{
-		return mpBegin == mpEnd;
-	}
-
-	T operator[](size_t index) const
-	{
-		return mpBegin[index];
-	}
-
-private:
-	T* mpBegin;
-	T* mpEnd;
-	void* pAllocator;
-};
 
 struct cSC4TractDeveloper
 {
@@ -219,31 +126,60 @@ static bool LotConfigurationHasOccupantGroupValue(
 	return false;
 }
 
-static bool HasOccupantGroupValue(
-	const uint32_t* const pOccupantGroupData,
-	uint32_t occupantGroupCount,
+static bool Contains(
+	const uint32_t* const pPropertyData,
+	uint32_t repCount,
 	uint32_t value)
 {
-	const uint32_t* pDataEnd = pOccupantGroupData + occupantGroupCount;
+	if (repCount > 0)
+	{
+		const uint32_t* pDataEnd = pPropertyData + repCount;
 
-	return std::find(pOccupantGroupData, pDataEnd, value) != pDataEnd;
+		return std::find(pPropertyData, pDataEnd, value) != pDataEnd;
+	}
+	else
+	{
+		// If the rep count is zero, the pointer's address is the value.
+		return reinterpret_cast<uint32_t>(pPropertyData) == value;
+	}
 }
 
 template<size_t N>
-static bool HasOccupantGroupValue(
-	const uint32_t* const pOccupantGroupData,
-	uint32_t occupantGroupCount,
+static bool Contains(
+	const uint32_t* const pPropertyData,
+	uint32_t repCount,
 	const frozen::unordered_map<uint32_t, const std::string_view, N>& values)
 {
-	for (uint32_t i = 0; i < occupantGroupCount; i++)
+	if (repCount > 0)
 	{
-		if (values.count(pOccupantGroupData[i]) != 0)
+		for (uint32_t i = 0; i < repCount; i++)
 		{
-			return true;
+			if (values.count(pPropertyData[i]) != 0)
+			{
+				return true;
+			}
 		}
-	}
 
-	return false;
+		return false;
+	}
+	else
+	{
+		// If the rep count is zero, the pointer's address is the value.
+		return values.count(reinterpret_cast<uint32_t>(pPropertyData)) != 0;
+	}
+}
+
+static bool IsMaxisBuildingStyle(uint32_t style)
+{
+	// We check the high value first as an optimization, custom building styles
+	// should be 0x2004 or higher.
+	return style <= 0x2003 && style >= 0x2000;
+}
+
+// The Maxis styles and the 'BuildingStyles property present' marker are ignored.
+static bool IsLotBuildingStylePropertyIgnoredValue(uint32_t style)
+{
+	return IsMaxisBuildingStyle(style) || style == kBuildingStylesProperty;
 }
 
 static bool PurposeTypeSupportsBuildingStyles(cISC4BuildingOccupant::PurposeType purpose)
@@ -443,6 +379,8 @@ static bool IsLotCompatibleWithActiveStyles(
 		return false;
 	}
 
+	const bool hasBuildingStylesProperty = LotConfigurationHasOccupantGroupValue(pLotConfiguration, kBuildingStylesProperty);
+
 	if (pThis->notUsingAllStylesAtOnce == 0)
 	{
 		// Use all styles at once.
@@ -451,6 +389,11 @@ static bool IsLotCompatibleWithActiveStyles(
 
 		for (const auto& style : activeStyles)
 		{
+			if (hasBuildingStylesProperty && IsLotBuildingStylePropertyIgnoredValue(style))
+			{
+				continue;
+			}
+
 			if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, style))
 			{
 				if (spPreferences->LogLotStyleSelection())
@@ -463,27 +406,26 @@ static bool IsLotCompatibleWithActiveStyles(
 				return true;
 			}
 		}
-
-		if (spPreferences->LogLotStyleSelection())
-		{
-			LogNoSupportedStyles(
-				pLotConfiguration->id,
-				pLotConfiguration->name.AsIGZString()->ToChar());
-		}
 	}
 	else
 	{
 		// Change style every N years.
-		if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, pThis->activeStyles[pThis->currentStyleIndex]))
+
+		const uint32_t activeStyle = pThis->activeStyles[pThis->currentStyleIndex];
+
+		if (!hasBuildingStylesProperty || !IsLotBuildingStylePropertyIgnoredValue(activeStyle))
 		{
-			if (spPreferences->LogLotStyleSelection())
+			if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, activeStyle))
 			{
-				LogStyleSupported(
-					pLotConfiguration->id,
-					pLotConfiguration->name.AsIGZString()->ToChar(),
-					pThis->activeStyles[pThis->currentStyleIndex]);
+				if (spPreferences->LogLotStyleSelection())
+				{
+					LogStyleSupported(
+						pLotConfiguration->id,
+						pLotConfiguration->name.AsIGZString()->ToChar(),
+						pThis->activeStyles[pThis->currentStyleIndex]);
+				}
+				return true;
 			}
-			return true;
 		}
 	}
 
@@ -569,10 +511,10 @@ static bool CheckAdditionalBuildingStyleOptions(
 		switch (wallToWallOption)
 		{
 		case IBuildingSelectWinContext::WallToWallOption::Only:
-			result = HasOccupantGroupValue(pOccupantGroupData, occupantGroupCount, WallToWallOccupantGroups);
+			result = Contains(pOccupantGroupData, occupantGroupCount, WallToWallOccupantGroups);
 			break;
 		case IBuildingSelectWinContext::WallToWallOption::Block:
-			result = !HasOccupantGroupValue(pOccupantGroupData, occupantGroupCount, WallToWallOccupantGroups);
+			result = !Contains(pOccupantGroupData, occupantGroupCount, WallToWallOccupantGroups);
 			break;
 		}
 
@@ -582,6 +524,131 @@ static bool CheckAdditionalBuildingStyleOptions(
 				buildingType,
 				pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
 				wallToWallOption);
+		}
+	}
+
+	return result;
+}
+
+static bool CheckAdditionalBuildingStyleOptions(
+	const cSC4TractDeveloper* pThis,
+	uint32_t buildingType,
+	const cISCPropertyHolder* pPropertyHolder,
+	uint32_t propertyID)
+{
+	bool result = true;
+
+	const IBuildingSelectWinContext& context = spBuildingSelectWinManager->GetContext();
+	const IBuildingSelectWinContext::WallToWallOption wallToWallOption = context.GetWallToWallOption();
+
+	if (wallToWallOption != IBuildingSelectWinContext::WallToWallOption::Mixed)
+	{
+		const cISCProperty* pProperty = pPropertyHolder->GetProperty(propertyID);
+
+		if (pProperty)
+		{
+			const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+			if (pVariant)
+			{
+				const uint32_t* const pData = pVariant->RefUint32();
+				const uint32_t count = pVariant->GetCount();
+
+				switch (wallToWallOption)
+				{
+				case IBuildingSelectWinContext::WallToWallOption::Only:
+					result = Contains(pData, count, WallToWallOccupantGroups);
+					break;
+				case IBuildingSelectWinContext::WallToWallOption::Block:
+					result = !Contains(pData, count, WallToWallOccupantGroups);
+					break;
+				}
+
+				if (!result && spPreferences->LogLotStyleSelection())
+				{
+					LogWallToWallStyleOptionFailure(
+						buildingType,
+						pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+						wallToWallOption);
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+template <bool isBuildingStyleProperty>
+static bool BuildingHasStyleValue(
+	const cSC4TractDeveloper* pThis,
+	uint32_t buildingType,
+	const uint32_t* pData,
+	size_t count)
+{
+	bool result = false;
+
+	if (pThis->notUsingAllStylesAtOnce == 0)
+	{
+		// Use all styles at once.
+
+		const SC4Vector<uint32_t>& activeStyles = pThis->activeStyles;
+
+		for (const auto& style : activeStyles)
+		{
+			if (isBuildingStyleProperty && IsMaxisBuildingStyle(style))
+			{
+				// The Maxis styles are ignored when the BuildingStyles property is present.
+				continue;
+			}
+
+			if (Contains(pData, count, style))
+			{
+				if (spPreferences->LogBuildingStyleSelection())
+				{
+					LogStyleSupported(
+						buildingType,
+						pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+						style);
+				}
+				result = true;
+				break;
+			}
+		}
+
+		if (!result && spPreferences->LogBuildingStyleSelection())
+		{
+			LogNoSupportedStyles(
+				buildingType,
+				pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
+		}
+	}
+	else
+	{
+		// Change style every N years.
+
+		uint32_t activeStyle = pThis->activeStyles[pThis->currentStyleIndex];
+
+		// The Maxis styles are ignored when the BuildingStyles property is present.
+		if (!isBuildingStyleProperty || !IsMaxisBuildingStyle(activeStyle))
+		{
+			result = Contains(pData, count, activeStyle);
+		}
+
+		if (spPreferences->LogBuildingStyleSelection())
+		{
+			if (result)
+			{
+				LogStyleSupported(
+					buildingType,
+					pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+					activeStyle);
+			}
+			else
+			{
+				LogNoSupportedStyles(
+					buildingType,
+					pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
+			}
 		}
 	}
 
@@ -606,9 +673,7 @@ static bool BuildingHasStyleOccupantGroup(
 
 			if (pRM->GetResource(key, GZIID_cISCPropertyHolder, pPropertyHolder.AsPPVoid(), 0, nullptr))
 			{
-				constexpr uint32_t kOccupantGroupsProperty = 0xAA1DD396;
-
-				const cISCProperty* pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
+				const cISCProperty* pProperty = pPropertyHolder->GetProperty(kBuildingStylesProperty);
 
 				if (pProperty)
 				{
@@ -616,64 +681,37 @@ static bool BuildingHasStyleOccupantGroup(
 
 					if (pVariant)
 					{
-						const uint32_t* const pOccupantGroupData = pVariant->RefUint32();
+						const uint32_t* pData = pVariant->RefUint32();
 						const uint32_t count = pVariant->GetCount();
 
 						// CheckAdditionalBuildingStyleOptions will write a log message if it fails.
-						if (CheckAdditionalBuildingStyleOptions(pThis, buildingType, pOccupantGroupData, count))
+						if (CheckAdditionalBuildingStyleOptions(
+								pThis,
+								buildingType,
+								pPropertyHolder,
+								kOccupantGroupsProperty))
 						{
-							if (pThis->notUsingAllStylesAtOnce == 0)
+							result = BuildingHasStyleValue<true>(pThis, buildingType, pData, count);
+						}
+					}
+				}
+				else
+				{
+					pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
+
+					if (pProperty)
+					{
+						const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+						if (pVariant)
+						{
+							const uint32_t* pData = pVariant->RefUint32();
+							const uint32_t count = pVariant->GetCount();
+
+							// CheckAdditionalBuildingStyleOptions will write a log message if it fails.
+							if (CheckAdditionalBuildingStyleOptions(pThis, buildingType, pData, count))
 							{
-								// Use all styles at once.
-
-								const SC4Vector<uint32_t>& activeStyles = pThis->activeStyles;
-
-								for (const auto& style : activeStyles)
-								{
-									if (HasOccupantGroupValue(pOccupantGroupData, count, style))
-									{
-										if (spPreferences->LogBuildingStyleSelection())
-										{
-											LogStyleSupported(
-												buildingType,
-												pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-												style);
-										}
-										result = true;
-										break;
-									}
-								}
-
-								if (!result && spPreferences->LogBuildingStyleSelection())
-								{
-									LogNoSupportedStyles(
-										buildingType,
-										pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
-								}
-							}
-							else
-							{
-								// Change style every N years.
-
-								uint32_t activeStyle = pThis->activeStyles[pThis->currentStyleIndex];
-
-								result = HasOccupantGroupValue(pOccupantGroupData, count, activeStyle);
-								if (spPreferences->LogBuildingStyleSelection())
-								{
-									if (result)
-									{
-										LogStyleSupported(
-											buildingType,
-											pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-											activeStyle);
-									}
-									else
-									{
-										LogNoSupportedStyles(
-											buildingType,
-											pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
-									}
-								}
+								result = BuildingHasStyleValue<false>(pThis, buildingType, pData, count);
 							}
 						}
 					}
