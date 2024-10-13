@@ -160,7 +160,7 @@ struct cSC4TractDeveloper
 	SC4Vector<uint32_t> activeStyles;							// 0x118
 	uint32_t currentStyleIndex;									// 0x124
 	uint32_t yearsPassed;										// 0x128
-	uint32_t notUsingAllStylesAtOnce;							// 0x12c
+	uint8_t notUsingAllStylesAtOnce;							// 0x12c
 };
 
 static_assert(offsetof(cSC4TractDeveloper, initialized) == 0xc);
