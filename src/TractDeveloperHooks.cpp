@@ -59,7 +59,8 @@ struct cSC4TractDeveloper
 	float newLotCosts[2];										// 0x58
 	float occupancyVariation;									// 0x60
 	float minVacancyRange[2];									// 0x64
-	int kickOutLowerWealth;										// 0x6c
+	uint8_t kickOutLowerWealth;									// 0x6c
+	uint8_t kickOutLowerWealthPadding[3];
 	SC4Vector<uint32_t> availableStyles;						// 0x70
 	int yearsBetweenStyles;										// 0x7c
 	// end tunable values
