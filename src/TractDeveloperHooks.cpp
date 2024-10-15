@@ -609,12 +609,9 @@ static bool BuildingHasStyleValue(
 				if (BuildingUtil::IsIndustrialBuilding(purposeType))
 				{
 					// Industrial buildings without the Building Styles property are
-					// only compatible with the 4 Maxis styles.
-					if (BuildingUtil::IsMaxisBuildingStyle(style))
-					{
-						LogBuildingStyleSupported(pThis, buildingType, style);
-						return true;
-					}
+					// only compatible with all styles.
+					LogBuildingStyleSupported(pThis, buildingType, style);
+					return true;
 				}
 				else
 				{
@@ -646,12 +643,9 @@ static bool BuildingHasStyleValue(
 			if (BuildingUtil::IsIndustrialBuilding(purposeType))
 			{
 				// Industrial buildings without the Building Styles property are
-				// only compatible with the 4 Maxis styles.
-				if (BuildingUtil::IsMaxisBuildingStyle(activeStyle))
-				{
-					LogBuildingStyleSupported(pThis, buildingType, activeStyle);
-					return true;
-				}
+				// only compatible with all styles.
+				LogBuildingStyleSupported(pThis, buildingType, style);
+				return true;
 			}
 			else
 			{
