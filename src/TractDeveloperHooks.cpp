@@ -70,7 +70,7 @@ struct cSC4TractDeveloper
 	SC4Vector<uint32_t> activeStyles;							// 0x118
 	uint32_t currentStyleIndex;									// 0x124
 	uint32_t yearsPassed;										// 0x128
-	uint8_t notUsingAllStylesAtOnce;							// 0x12c
+	uint8_t changeStylesEveryNYears;							// 0x12c
 };
 
 static_assert(offsetof(cSC4TractDeveloper, initialized) == 0xc);
@@ -79,7 +79,7 @@ static_assert(offsetof(cSC4TractDeveloper, kickOutLowerWealth) == 0x6c);
 static_assert(offsetof(cSC4TractDeveloper, yearsBetweenStyles) == 0x7c);
 static_assert(offsetof(cSC4TractDeveloper, activeStyles) == 0x118);
 static_assert(offsetof(cSC4TractDeveloper, currentStyleIndex) == 0x124);
-static_assert(offsetof(cSC4TractDeveloper, notUsingAllStylesAtOnce) == 0x12c);
+static_assert(offsetof(cSC4TractDeveloper, changeStylesEveryNYears) == 0x12c);
 
 struct cSC4LotConfiguration
 {
@@ -371,7 +371,7 @@ static bool CheckLotCompatibilityWithActiveStyles(
 	const cSC4LotConfiguration* pLotConfiguration,
 	cISC4BuildingOccupant::PurposeType purpose)
 {
-	if (pThis->notUsingAllStylesAtOnce == 0)
+	if (pThis->changeStylesEveryNYears == 0)
 	{
 		// Use all styles at once.
 
@@ -588,7 +588,7 @@ static bool BuildingHasStyleValue(
 	const PropertyData& propertyData,
 	cISC4BuildingOccupant::PurposeType purposeType)
 {
-	if (pThis->notUsingAllStylesAtOnce == 0)
+	if (pThis->changeStylesEveryNYears == 0)
 	{
 		// Use all styles at once.
 
