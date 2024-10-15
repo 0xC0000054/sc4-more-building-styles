@@ -644,7 +644,7 @@ static bool BuildingHasStyleValue(
 			{
 				// Industrial buildings without the Building Styles property are
 				// compatible with all styles.
-				LogBuildingStyleSupported(pThis, buildingType, style);
+				LogBuildingStyleSupported(pThis, buildingType, activeStyle);
 				return true;
 			}
 			else
