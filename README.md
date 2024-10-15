@@ -20,12 +20,12 @@ The building style IDs are assigned in the [SimCity 4 Building Styles Index](htt
 16 Maxis/community styles or request your own public and/or private building style ID range in that thread.   
 Finally you will need to update existing buildings to use the new building style IDs.
 
-### Building Styles Exemplar Property (0xAA1DD400)
+## Building Styles Exemplar Property (0xAA1DD400)
 
 This property allows the custom building styles to be specified separately from the Maxis styles
 in the Occupant Groups property (0xAA1DD396).
 
-#### Residential and Commercial Buildings
+### Residential and Commercial Buildings
 
 The _Building Styles_ property is optional for custom building style support in residential and commercial buildings. 
 
@@ -34,26 +34,26 @@ the styles in the Occupant Groups property (0xAA1DD396).
 When the property is not present, the building will use the custom and Maxis styles specified in the
 Occupant Groups property (0xAA1DD396).
 
-#### Industrial Buildings
+### Industrial Buildings
 
 The _Building Styles_ property is mandatory for custom building style support in industrial buildings. 
 
 When the property is present, the building will use custom styles specified in the property.    
 When the property is not present, the building will be treated as compatible with all styles.
 
-### Auto-Historical Check Box
+## Auto-Historical Check Box
 
 The DLL supports an optional check box that will automatically mark new growable lots that use building styles as historical.
 Industrial buildings are only marked as historical if industrial building styles are enabled for that building type.
 This check box uses the reserved id value `0x9476D8DA`.
 
-### Auto-Growify Check Box
+## Auto-Growify Check Box
 
 The DLL supports an optional check box that will automatically convert plopped growables to use a growable zone type.
 The growified lots will be marked as historical based on the value of the Auto-Historical check box described above.
 This check box uses the reserved id value `0xB510A368`.
 
-### Wall-to-Wall (W2W) Radio Buttons
+## Wall-to-Wall (W2W) Radio Buttons
 
 The DLL supports optional radio buttons that control how the game handles W2W buildings.
 The 3 radio buttons are as follows:
@@ -62,16 +62,16 @@ Mixed, both W2W and non-W2W buildings will be built. This is SC4's default behav
 W2W Only, only W2W buildings will be built. This radio button uses the reserved id value `0x3115038A`.    
 Block W2W, no W2W buildings will be built. This radio button uses the reserved id value `0x3115038B`.
 
-#### Identifying W2W buildings 
+### Identifying W2W buildings 
 
 W2W buildings are identified using either of the following methods.
 
-##### Building Is Wall-to-Wall Exemplar Property (0xAA1DD401)
+#### Building Is Wall-to-Wall Exemplar Property (0xAA1DD401)
 
 This is a Boolean property, a value of true indicates that the building is W2W.
 If the value is false or the property is not present, the building will not be considered W2W.
 
-##### Wall-to-Wall Occupant Groups
+#### Wall-to-Wall Occupant Groups
 
 If the building has any of the following values in its Occupant Groups property (0xAA1DD396),
 it indicates that the building is W2W.
@@ -86,7 +86,7 @@ BTE: W2W General:  `0xB5C00DDE`
 SFBT: Hamburg W2W: `0xB5C00F0A`    
 SFBT: Paris W2W:   `0xB5C00F0B`    
 
-### Keep Lot Zone Sizes Check Box
+## Keep Lot Zone Sizes Check Box
 
 The DLL supports an optional check box that stops the game from changing the user's zoned lot size in residential and
 commercial zones to fit the lot it picks.
@@ -97,7 +97,7 @@ When this option is disabled (the default), SC4 will use its standard behavior o
 residential and commercial zones to fit its chosen lot.    
 This check box uses the reserved id value `0x3621731B`.
 
-### Kick Out Lower Wealth Check Box
+## Kick Out Lower Wealth Check Box
 
 The DLL supports an optional check box that allows the user to change whether the game will kick out lower
 wealth occupants when redeveloping.
