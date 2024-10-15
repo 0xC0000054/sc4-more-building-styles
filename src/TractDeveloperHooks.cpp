@@ -609,7 +609,7 @@ static bool BuildingHasStyleValue(
 				if (BuildingUtil::IsIndustrialBuilding(purposeType))
 				{
 					// Industrial buildings without the Building Styles property are
-					// only compatible with all styles.
+					// compatible with all styles.
 					LogBuildingStyleSupported(pThis, buildingType, style);
 					return true;
 				}
@@ -643,7 +643,7 @@ static bool BuildingHasStyleValue(
 			if (BuildingUtil::IsIndustrialBuilding(purposeType))
 			{
 				// Industrial buildings without the Building Styles property are
-				// only compatible with all styles.
+				// compatible with all styles.
 				LogBuildingStyleSupported(pThis, buildingType, style);
 				return true;
 			}
