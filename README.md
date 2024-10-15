@@ -20,10 +20,27 @@ The building style IDs are assigned in the [SimCity 4 Building Styles Index](htt
 16 Maxis/community styles or request your own public and/or private building style ID range in that thread.   
 Finally you will need to update existing buildings to use the new building style IDs.
 
-### BuildingStyles Exemplar Property (0xAA1DD400)
+### Building Styles Exemplar Property (0xAA1DD400)
 
-This property makes a building to use only the specified custom styles, the 4 Maxis styles are ignored.
-If the property is not present, the building will use the styles specified in the Occupant Groups property (0xAA1DD396).
+This property allows the custom building styles to be specified separately from the Maxis styles
+in the Occupant Groups property (0xAA1DD396).
+
+#### Residential and Commercial Buildings
+
+The _Building Styles_ property is optional for custom building style support in residential and commercial buildings. 
+
+When the property is present, the building will use custom styles specified in the property and ignore
+the 4 Maxis styles.    
+When the property is not present, the building will use the custom and Maxis styles specified in the
+Occupant Groups property (0xAA1DD396).
+
+#### Industrial Buildings
+
+The _Building Styles_ property is mandatory for custom building style support in industrial buildings. 
+
+When the property is present, the building will use custom styles specified in the property and ignore
+the 4 Maxis styles.    
+When the property is not present, the building will be treated as compatible with the 4 Maxis styles.
 
 ### Auto-Historical Check Box
 
@@ -67,7 +84,7 @@ When this option is disabled (the default), SC4 will use its standard behavior o
 residential and commercial zones to fit its chosen lot.    
 This check box uses the reserved id value `0x3621731B`.
 
-## Kick Out Lower Wealth Check Box
+### Kick Out Lower Wealth Check Box
 
 The DLL supports an optional check box that allows the user to change whether the game will kick out lower
 wealth occupants when redeveloping.
@@ -82,12 +99,6 @@ The plugin provides the following cheat codes:
 display a message saying that mode is active.
 
 `DebugActiveStyles` writes the currently enabled style IDs to the plugin's log file.
-
-## Industrial Building Styles
-
-Building style support for the 4 industrial building types are controlled by 4 INI file entries that should be placed
-in the style mod DAT files.
-See the [industrial-building-styles](industrial-building-styles) folder for a template file and the format details.
 
 ## BuildingStyles INI File
 

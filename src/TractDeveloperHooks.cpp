@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "TractDeveloperHooks.h"
+#include "BuildingUtil.h"
 #include "cGZPersistResourceKey.h"
 #include "cIGZPersistResourceManager.h"
 #include "cIGZString.h"
@@ -30,6 +31,7 @@
 #include "SC4Vector.h"
 #include "SC4VersionDetection.h"
 #include "WallToWallOccupantGroups.h"
+#include <span>
 
 #include "wil/result.h"
 
@@ -127,35 +129,59 @@ static bool LotConfigurationHasOccupantGroupValue(
 	return false;
 }
 
-static bool Contains(
-	const uint32_t* const pPropertyData,
-	uint32_t repCount,
-	uint32_t value)
+struct PropertyData
 {
-	if (repCount > 0)
-	{
-		const uint32_t* pDataEnd = pPropertyData + repCount;
+	uint32_t value;
+	std::span<uint32_t> values;
 
-		return std::find(pPropertyData, pDataEnd, value) != pDataEnd;
+	PropertyData(const cIGZVariant& variant)
+		: value(0),
+		  values()
+	{
+		uint32_t* pData = variant.RefUint32();
+		uint32_t repCount = variant.GetCount();
+
+		if (repCount == 0)
+		{
+			// If the rep count is zero, the pointer's address is the value.
+			value = reinterpret_cast<uint32_t>(pData);
+		}
+		else
+		{
+			values = std::span<uint32_t>(pData, repCount);
+		}
+	}
+};
+
+static bool Contains(const PropertyData& propertyData, uint32_t value)
+{
+	if (propertyData.values.empty())
+	{
+		return propertyData.value == value;
 	}
 	else
 	{
-		// If the rep count is zero, the pointer's address is the value.
-		return reinterpret_cast<uint32_t>(pPropertyData) == value;
+		return std::find(
+			propertyData.values.begin(),
+			propertyData.values.end(),
+			value) != propertyData.values.end();
 	}
 }
 
 template<size_t N>
 static bool Contains(
-	const uint32_t* const pPropertyData,
-	uint32_t repCount,
+	const PropertyData& propertyData,
 	const frozen::unordered_map<uint32_t, const std::string_view, N>& values)
 {
-	if (repCount > 0)
+	if (propertyData.values.empty())
 	{
-		for (uint32_t i = 0; i < repCount; i++)
+		return values.count(propertyData.value) != 0;
+	}
+	else
+	{
+		for (const auto& item : propertyData.values)
 		{
-			if (values.count(pPropertyData[i]) != 0)
+			if (values.count(item) != 0)
 			{
 				return true;
 			}
@@ -163,48 +189,12 @@ static bool Contains(
 
 		return false;
 	}
-	else
-	{
-		// If the rep count is zero, the pointer's address is the value.
-		return values.count(reinterpret_cast<uint32_t>(pPropertyData)) != 0;
-	}
 }
 
-static bool IsMaxisBuildingStyle(uint32_t style)
-{
-	// We check the high value first as an optimization, custom building styles
-	// should be 0x2004 or higher.
-	return style <= 0x2003 && style >= 0x2000;
-}
-
-// The Maxis styles and the 'BuildingStyles property present' marker are ignored.
+// The Maxis styles and the 'Building Styles property present' marker are ignored.
 static bool IsLotBuildingStylePropertyIgnoredValue(uint32_t style)
 {
-	return IsMaxisBuildingStyle(style) || style == kBuildingStylesProperty;
-}
-
-static bool PurposeTypeSupportsBuildingStyles(cISC4BuildingOccupant::PurposeType purpose)
-{
-	switch (purpose)
-	{
-	case cISC4BuildingOccupant::PurposeType::Residence:
-	case cISC4BuildingOccupant::PurposeType::Services:
-	case cISC4BuildingOccupant::PurposeType::Office:
-		return true;
-	case cISC4BuildingOccupant::PurposeType::Agriculture:
-		return spPreferences->AgriculturePurposeTypeSupportsBuildingStyles();
-	case cISC4BuildingOccupant::PurposeType::Processing:
-		return spPreferences->ProcessingPurposeTypeSupportsBuildingStyles();
-	case cISC4BuildingOccupant::PurposeType::Manufacturing:
-		return spPreferences->ManufacturingPurposeTypeSupportsBuildingStyles();
-	case cISC4BuildingOccupant::PurposeType::HighTech:
-		return spPreferences->HighTechPurposeTypeSupportsBuildingStyles();
-	case cISC4BuildingOccupant::PurposeType::None:
-	case cISC4BuildingOccupant::PurposeType::Tourism:
-	case cISC4BuildingOccupant::PurposeType::Other:
-	default:
-		return false;
-	}
+	return BuildingUtil::IsMaxisBuildingStyle(style) || style == kBuildingStylesProperty;
 }
 
 static void LogPurposeTypeDoesNotSupportStyles(
@@ -324,7 +314,7 @@ static bool DoesLotSupportBuildingStyles(
 	cISC4BuildingOccupant::PurposeType purpose)
 {
 	if (pThis->activeStyles.empty()
-		|| !PurposeTypeSupportsBuildingStyles(purpose))
+		|| !BuildingUtil::PurposeTypeSupportsBuildingStyles(purpose))
 	{
 		if (spPreferences->LogLotStyleSelection())
 		{
@@ -370,18 +360,23 @@ static bool CheckAdditionalLotStyleOptions(const cSC4LotConfiguration* pLotConfi
 	return result;
 }
 
-static bool IsLotCompatibleWithActiveStyles(
-	const cSC4TractDeveloper* pThis,
-	const cSC4LotConfiguration* pLotConfiguration)
+static void LogLotStyleSupported(const cSC4LotConfiguration* pLotConfiguration, uint32_t style)
 {
-	if (!CheckAdditionalLotStyleOptions(pLotConfiguration))
+	if (spPreferences->LogLotStyleSelection())
 	{
-		// CheckAdditionalLotStyleOptions already wrote a failure log message.
-		return false;
+		LogStyleSupported(
+			pLotConfiguration->id,
+			pLotConfiguration->name.AsIGZString()->ToChar(),
+			style);
 	}
+}
 
-	const bool hasBuildingStylesProperty = LotConfigurationHasOccupantGroupValue(pLotConfiguration, kBuildingStylesProperty);
-
+template<bool isBuildingStyleProperty>
+static bool CheckLotCompatibilityWithActiveStyles(
+	const cSC4TractDeveloper* pThis,
+	const cSC4LotConfiguration* pLotConfiguration,
+	cISC4BuildingOccupant::PurposeType purpose)
+{
 	if (pThis->notUsingAllStylesAtOnce == 0)
 	{
 		// Use all styles at once.
@@ -390,21 +385,34 @@ static bool IsLotCompatibleWithActiveStyles(
 
 		for (const auto& style : activeStyles)
 		{
-			if (hasBuildingStylesProperty && IsLotBuildingStylePropertyIgnoredValue(style))
+			if constexpr (isBuildingStyleProperty)
 			{
-				continue;
-			}
-
-			if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, style))
-			{
-				if (spPreferences->LogLotStyleSelection())
+				if (!IsLotBuildingStylePropertyIgnoredValue(style))
 				{
-					LogStyleSupported(
-						pLotConfiguration->id,
-						pLotConfiguration->name.AsIGZString()->ToChar(),
-						style);
+					if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, style))
+					{
+						LogLotStyleSupported(pLotConfiguration, style);
+						return true;
+					}
 				}
-				return true;
+			}
+			else
+			{
+				if (BuildingUtil::IsIndustrialBuilding(purpose))
+				{
+					// Industrial buildings without a BuildingStyles property
+					// are compatible with all building styles.
+					LogLotStyleSupported(pLotConfiguration, style);
+					return true;
+				}
+				else
+				{
+					if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, style))
+					{
+						LogLotStyleSupported(pLotConfiguration, style);
+						return true;
+					}
+				}
 			}
 		}
 	}
@@ -414,18 +422,33 @@ static bool IsLotCompatibleWithActiveStyles(
 
 		const uint32_t activeStyle = pThis->activeStyles[pThis->currentStyleIndex];
 
-		if (!hasBuildingStylesProperty || !IsLotBuildingStylePropertyIgnoredValue(activeStyle))
+		if constexpr (isBuildingStyleProperty)
 		{
-			if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, activeStyle))
+			if (!IsLotBuildingStylePropertyIgnoredValue(activeStyle))
 			{
-				if (spPreferences->LogLotStyleSelection())
+				if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, activeStyle))
 				{
-					LogStyleSupported(
-						pLotConfiguration->id,
-						pLotConfiguration->name.AsIGZString()->ToChar(),
-						pThis->activeStyles[pThis->currentStyleIndex]);
+					LogLotStyleSupported(pLotConfiguration, activeStyle);
+					return true;
 				}
+			}
+		}
+		else
+		{
+			if (BuildingUtil::IsIndustrialBuilding(purpose))
+			{
+				// Industrial buildings without a BuildingStyles property
+				// are compatible with all building styles.
+				LogLotStyleSupported(pLotConfiguration, activeStyle);
 				return true;
+			}
+			else
+			{
+				if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, activeStyle))
+				{
+					LogLotStyleSupported(pLotConfiguration, activeStyle);
+					return true;
+				}
 			}
 		}
 	}
@@ -437,6 +460,31 @@ static bool IsLotCompatibleWithActiveStyles(
 			pLotConfiguration->name.AsIGZString()->ToChar());
 	}
 	return false;
+}
+
+static bool IsLotCompatibleWithActiveStyles(
+	const cSC4TractDeveloper* pThis,
+	const cSC4LotConfiguration* pLotConfiguration,
+	cISC4BuildingOccupant::PurposeType purpose)
+{
+	if (!CheckAdditionalLotStyleOptions(pLotConfiguration))
+	{
+		// CheckAdditionalLotStyleOptions already wrote a failure log message.
+		return false;
+	}
+
+	const bool hasBuildingStylesProperty = LotConfigurationHasOccupantGroupValue(pLotConfiguration, kBuildingStylesProperty);
+
+	if (hasBuildingStylesProperty)
+	{
+		// CheckLotCompatibilityWithActiveStyles will write the success/failure log messages.
+		return CheckLotCompatibilityWithActiveStyles<true>(pThis, pLotConfiguration, purpose);
+	}
+	else
+	{
+		// CheckLotCompatibilityWithActiveStyles will write the success/failure log messages.
+		return CheckLotCompatibilityWithActiveStyles<false>(pThis, pLotConfiguration, purpose);
+	}
 }
 
 static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
@@ -453,10 +501,11 @@ static void NAKED_FUN IsLotConfigurationSuitable_BuildingStyleSelectionHook()
 		add esp, 12
 		test al, al
 		jz compatableStyleFound // If building styles are not supported report that the style is compatible
+		push ebp // lot purpose type
 		push edi // cISC4LotConfiguration*
 		push esi // cSC4TractDeveloper this pointer
 		call IsLotCompatibleWithActiveStyles // (cdecl)
-		add esp, 8
+		add esp, 12
 		test al, al
 		jz noCompatableStyleFound
 		compatableStyleFound:
@@ -480,7 +529,7 @@ static bool DoesBuildingSupportStyles(
 	cISC4BuildingOccupant::PurposeType purpose)
 {
 	if (pThis->activeStyles.empty()
-		|| !PurposeTypeSupportsBuildingStyles(purpose))
+		|| !BuildingUtil::PurposeTypeSupportsBuildingStyles(purpose))
 	{
 		if (spPreferences->LogBuildingStyleSelection())
 		{
@@ -499,8 +548,7 @@ static bool DoesBuildingSupportStyles(
 static bool CheckAdditionalBuildingStyleOptions(
 	const cSC4TractDeveloper* pThis,
 	uint32_t buildingType,
-	const uint32_t* const pOccupantGroupData,
-	uint32_t occupantGroupCount)
+	const PropertyData& propertyData)
 {
 	bool result = true;
 
@@ -512,10 +560,10 @@ static bool CheckAdditionalBuildingStyleOptions(
 		switch (wallToWallOption)
 		{
 		case IBuildingSelectWinContext::WallToWallOption::Only:
-			result = Contains(pOccupantGroupData, occupantGroupCount, WallToWallOccupantGroups);
+			result = Contains(propertyData, WallToWallOccupantGroups);
 			break;
 		case IBuildingSelectWinContext::WallToWallOption::Block:
-			result = !Contains(pOccupantGroupData, occupantGroupCount, WallToWallOccupantGroups);
+			result = !Contains(propertyData, WallToWallOccupantGroups);
 			break;
 		}
 
@@ -552,16 +600,15 @@ static bool CheckAdditionalBuildingStyleOptions(
 
 			if (pVariant)
 			{
-				const uint32_t* const pData = pVariant->RefUint32();
-				const uint32_t count = pVariant->GetCount();
+				const PropertyData propertyData(*pVariant);
 
 				switch (wallToWallOption)
 				{
 				case IBuildingSelectWinContext::WallToWallOption::Only:
-					result = Contains(pData, count, WallToWallOccupantGroups);
+					result = Contains(propertyData, WallToWallOccupantGroups);
 					break;
 				case IBuildingSelectWinContext::WallToWallOption::Block:
-					result = !Contains(pData, count, WallToWallOccupantGroups);
+					result = !Contains(propertyData, WallToWallOccupantGroups);
 					break;
 				}
 
@@ -579,15 +626,27 @@ static bool CheckAdditionalBuildingStyleOptions(
 	return result;
 }
 
-template <bool isBuildingStyleProperty>
+static void LogBuildingStyleSupported(
+	const cSC4TractDeveloper* pThis,
+	uint32_t buildingType,
+	uint32_t style)
+{
+	if (spPreferences->LogBuildingStyleSelection())
+	{
+		LogStyleSupported(
+			buildingType,
+			pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
+			style);
+	}
+}
+
+template <bool isBuildingStylesProperty>
 static bool BuildingHasStyleValue(
 	const cSC4TractDeveloper* pThis,
 	uint32_t buildingType,
-	const uint32_t* pData,
-	size_t count)
+	const PropertyData& propertyData,
+	cISC4BuildingOccupant::PurposeType purposeType)
 {
-	bool result = false;
-
 	if (pThis->notUsingAllStylesAtOnce == 0)
 	{
 		// Use all styles at once.
@@ -596,31 +655,36 @@ static bool BuildingHasStyleValue(
 
 		for (const auto& style : activeStyles)
 		{
-			if (isBuildingStyleProperty && IsMaxisBuildingStyle(style))
+			if constexpr (isBuildingStylesProperty)
 			{
-				// The Maxis styles are ignored when the BuildingStyles property is present.
-				continue;
-			}
-
-			if (Contains(pData, count, style))
-			{
-				if (spPreferences->LogBuildingStyleSelection())
+				// The Maxis styles are ignored when the Building Styles property is present.
+				if (!BuildingUtil::IsMaxisBuildingStyle(style) && Contains(propertyData, style))
 				{
-					LogStyleSupported(
-						buildingType,
-						pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-						style);
+					LogBuildingStyleSupported(pThis, buildingType, style);
+					return true;
 				}
-				result = true;
-				break;
 			}
-		}
-
-		if (!result && spPreferences->LogBuildingStyleSelection())
-		{
-			LogNoSupportedStyles(
-				buildingType,
-				pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
+			else
+			{
+				if (BuildingUtil::IsIndustrialBuilding(purposeType))
+				{
+					// Industrial buildings without the Building Styles property are
+					// only compatible with the 4 Maxis styles.
+					if (BuildingUtil::IsMaxisBuildingStyle(style))
+					{
+						LogBuildingStyleSupported(pThis, buildingType, style);
+						return true;
+					}
+				}
+				else
+				{
+					if (Contains(propertyData, style))
+					{
+						LogBuildingStyleSupported(pThis, buildingType, style);
+						return true;
+					}
+				}
+			}
 		}
 	}
 	else
@@ -629,36 +693,51 @@ static bool BuildingHasStyleValue(
 
 		uint32_t activeStyle = pThis->activeStyles[pThis->currentStyleIndex];
 
-		// The Maxis styles are ignored when the BuildingStyles property is present.
-		if (!isBuildingStyleProperty || !IsMaxisBuildingStyle(activeStyle))
+		if constexpr (isBuildingStylesProperty)
 		{
-			result = Contains(pData, count, activeStyle);
-		}
-
-		if (spPreferences->LogBuildingStyleSelection())
-		{
-			if (result)
+			// The Maxis styles are ignored when the Building Styles property is present.
+			if (!BuildingUtil::IsMaxisBuildingStyle(activeStyle) && Contains(propertyData, activeStyle))
 			{
-				LogStyleSupported(
-					buildingType,
-					pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-					activeStyle);
+				LogBuildingStyleSupported(pThis, buildingType, activeStyle);
+				return true;
+			}
+		}
+		else
+		{
+			if (BuildingUtil::IsIndustrialBuilding(purposeType))
+			{
+				// Industrial buildings without the Building Styles property are
+				// only compatible with the 4 Maxis styles.
+				if (BuildingUtil::IsMaxisBuildingStyle(activeStyle))
+				{
+					LogBuildingStyleSupported(pThis, buildingType, activeStyle);
+					return true;
+				}
 			}
 			else
 			{
-				LogNoSupportedStyles(
-					buildingType,
-					pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
+				if (Contains(propertyData, activeStyle))
+				{
+					LogBuildingStyleSupported(pThis, buildingType, activeStyle);
+					return true;
+				}
 			}
 		}
 	}
 
-	return result;
+	if (spPreferences->LogBuildingStyleSelection())
+	{
+		LogNoSupportedStyles(
+			buildingType,
+			pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar());
+	}
+	return false;
 }
 
 static bool BuildingHasStyleOccupantGroup(
 	const cSC4TractDeveloper* pThis,
-	uint32_t buildingType)
+	uint32_t buildingType,
+	cISC4BuildingOccupant::PurposeType purpose)
 {
 	bool result = false;
 
@@ -682,9 +761,6 @@ static bool BuildingHasStyleOccupantGroup(
 
 					if (pVariant)
 					{
-						const uint32_t* pData = pVariant->RefUint32();
-						const uint32_t count = pVariant->GetCount();
-
 						// CheckAdditionalBuildingStyleOptions will write a log message if it fails.
 						if (CheckAdditionalBuildingStyleOptions(
 								pThis,
@@ -692,7 +768,13 @@ static bool BuildingHasStyleOccupantGroup(
 								pPropertyHolder,
 								kOccupantGroupsProperty))
 						{
-							result = BuildingHasStyleValue<true>(pThis, buildingType, pData, count);
+							const PropertyData propertyData(*pVariant);
+
+							result = BuildingHasStyleValue<true>(
+								pThis,
+								buildingType,
+								propertyData,
+								purpose);
 						}
 					}
 				}
@@ -706,13 +788,16 @@ static bool BuildingHasStyleOccupantGroup(
 
 						if (pVariant)
 						{
-							const uint32_t* pData = pVariant->RefUint32();
-							const uint32_t count = pVariant->GetCount();
+							const PropertyData propertyData(*pVariant);
 
 							// CheckAdditionalBuildingStyleOptions will write a log message if it fails.
-							if (CheckAdditionalBuildingStyleOptions(pThis, buildingType, pData, count))
+							if (CheckAdditionalBuildingStyleOptions(pThis, buildingType, propertyData))
 							{
-								result = BuildingHasStyleValue<false>(pThis, buildingType, pData, count);
+								result = BuildingHasStyleValue<false>(
+									pThis,
+									buildingType,
+									propertyData,
+									purpose);
 							}
 						}
 					}
@@ -747,10 +832,12 @@ static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 		add esp, 12
 		test al, al
 		jz compatableStyleFound // If building styles are not supported report that the style is compatible
+		mov eax, dword ptr[edi]
+		push eax // purpose
 		push ebp // building type
 		push esi // this pointer
 		call BuildingHasStyleOccupantGroup
-		add esp, 8
+		add esp, 12
 		test al, al
 		jz noCompatableStyleFound
 		compatableStyleFound:

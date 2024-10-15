@@ -37,9 +37,9 @@
     <ClCompile Include="BuildingStyleCollectionEntry.cpp" />
     <ClCompile Include="BuildingStyleInfo.cpp" />
     <ClCompile Include="BuildingStyleIniFile.cpp" />
+    <ClCompile Include="BuildingUtil.cpp" />
     <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="FileSystem.cpp" />
-    <ClCompile Include="GZFileStreamBufAdapter.cpp" />
     <ClCompile Include="GZWinUtil.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="LotConfigurationManagerHooks.cpp" />
@@ -76,11 +76,11 @@
     <ClInclude Include="BuildingStyleInfo.h" />
     <ClInclude Include="BuildingStyleIniFile.h" />
     <ClInclude Include="BuildingStyleMessages.h" />
+    <ClInclude Include="BuildingUtil.h" />
     <ClInclude Include="PropertyIDs.h" />
     <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="GlobalPointers.h" />
-    <ClInclude Include="GZFileStreamBufAdapter.h" />
     <ClInclude Include="GZWinUtil.h" />
     <ClInclude Include="IBuildingSelectWinContext.h" />
     <ClInclude Include="IBuildingSelectWinManager.h" />

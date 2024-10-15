@@ -122,52 +122,6 @@ namespace
 
 		return zoneType;
 	}
-
-	bool IndustrialBuildingSupportsBuildingStyles(const cISC4BuildingOccupant* pBuildingOccupant)
-	{
-		if (pBuildingOccupant)
-		{
-			const cISC4BuildingOccupant::BuildingProfile& profile = pBuildingOccupant->GetBuildingProfile();
-
-			switch (profile.purpose)
-			{
-			case cISC4BuildingOccupant::PurposeType::Agriculture:
-				return spPreferences->AgriculturePurposeTypeSupportsBuildingStyles();
-			case cISC4BuildingOccupant::PurposeType::Processing:
-				return spPreferences->ProcessingPurposeTypeSupportsBuildingStyles();
-			case cISC4BuildingOccupant::PurposeType::Manufacturing:
-				return spPreferences->ManufacturingPurposeTypeSupportsBuildingStyles();
-			case cISC4BuildingOccupant::PurposeType::HighTech:
-				return spPreferences->HighTechPurposeTypeSupportsBuildingStyles();
-			}
-		}
-
-		return false;
-	}
-
-	bool BuildingStylesAreSupported(cISC4ZoneManager::ZoneType zoneType, cISC4Lot* pLotCopy)
-	{
-		bool result = false;
-
-		switch (zoneType)
-		{
-		case cISC4ZoneManager::ZoneType::ResidentialLowDensity:
-		case cISC4ZoneManager::ZoneType::ResidentialMediumDensity:
-		case cISC4ZoneManager::ZoneType::ResidentialHighDensity:
-		case cISC4ZoneManager::ZoneType::CommercialLowDensity:
-		case cISC4ZoneManager::ZoneType::CommercialMediumDensity:
-		case cISC4ZoneManager::ZoneType::CommercialHighDensity:
-			result = true;
-			break;
-		case cISC4ZoneManager::ZoneType::Agriculture:
-		case cISC4ZoneManager::ZoneType::IndustrialMediumDensity:
-		case cISC4ZoneManager::ZoneType::IndustrialHighDensity:
-			result = IndustrialBuildingSupportsBuildingStyles(pLotCopy->GetBuilding());
-			break;
-		}
-
-		return result;
-	}
 }
 
 BuildingSelectWinManager::BuildingSelectWinManager()
@@ -385,8 +339,7 @@ void BuildingSelectWinManager::LotActivated(cISC4Lot* pLotCopy)
 	else if (zoneType >= cISC4ZoneManager::ZoneType::ResidentialLowDensity
 		  && zoneType <= cISC4ZoneManager::ZoneType::IndustrialHighDensity)
 	{
-		if (context.AutomaticallyMarkBuildingsAsHistorical()
-			&& BuildingStylesAreSupported(zoneType, pLotCopy))
+		if (context.AutomaticallyMarkBuildingsAsHistorical())
 		{
 			// The lot that is sent in the lot state changed message is a
 			// temporary copy, so modifying it will have no effect.

@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "BuildingStyleInfo.h"
+#include "BuildingUtil.h"
 #include "cIGZString.h"
 #include "cIGZVariant.h"
 #include "cISC4BuildingOccupant.h"
@@ -25,45 +26,6 @@
 
 namespace
 {
-	bool OccupantSupportsBuildingStyles(cISC4Occupant* pOccupant)
-	{
-		bool result = false;
-
-		if (pOccupant)
-		{
-			cRZAutoRefCount<cISC4BuildingOccupant> pBuildingOccupant;
-
-			if (pOccupant->QueryInterface(GZIID_cISC4BuildingOccupant, pBuildingOccupant.AsPPVoid()))
-			{
-				const cISC4BuildingOccupant::BuildingProfile& profile = pBuildingOccupant->GetBuildingProfile();
-
-				// Only Residential Commercial Services and Commercial Office buildings support building styles.
-				switch (profile.purpose)
-				{
-				case cISC4BuildingOccupant::PurposeType::Residence:
-				case cISC4BuildingOccupant::PurposeType::Services:
-				case cISC4BuildingOccupant::PurposeType::Office:
-					result = true;
-					break;
-				case cISC4BuildingOccupant::PurposeType::Agriculture:
-					result = spPreferences->AgriculturePurposeTypeSupportsBuildingStyles();
-					break;
-				case cISC4BuildingOccupant::PurposeType::Processing:
-					result = spPreferences->ProcessingPurposeTypeSupportsBuildingStyles();
-					break;
-				case cISC4BuildingOccupant::PurposeType::Manufacturing:
-					result = spPreferences->ManufacturingPurposeTypeSupportsBuildingStyles();
-					break;
-				case cISC4BuildingOccupant::PurposeType::HighTech:
-					result = spPreferences->HighTechPurposeTypeSupportsBuildingStyles();
-					break;
-				}
-			}
-		}
-
-		return result;
-	}
-
 	const std::string_view StyleNameListSeperator(", ");
 
 	size_t GetStyleNamesFromVariant(
@@ -212,7 +174,9 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 
 	destination.Erase(0, destination.Strlen());
 
-	if (OccupantSupportsBuildingStyles(pOccupant))
+	const cISC4BuildingOccupant::PurposeType purpose = BuildingUtil::GetPurposeType(pOccupant);
+
+	if (BuildingUtil::PurposeTypeSupportsBuildingStyles(purpose))
 	{
 		const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
 
@@ -239,18 +203,37 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 				}
 				else
 				{
-					pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
-
-					if (pProperty)
+					if (BuildingUtil::IsIndustrialBuilding(purpose))
 					{
-						const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+						// Industrial buildings without a BuildingStyles property
+						// are compatible with all building styles.
 
-						if (pVariant)
+						for (const auto& item : availableBuildingStyles)
 						{
-							styleNameCount = GetStyleNamesFromVariant(
-								*pVariant,
-								availableBuildingStyles,
-								destination);
+							if (styleNameCount > 1)
+							{
+								destination.Append(StyleNameListSeperator.data(), StyleNameListSeperator.size());
+							}
+
+							destination.Append(item.styleName);
+							styleNameCount++;
+						}
+					}
+					else
+					{
+						pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
+
+						if (pProperty)
+						{
+							const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+							if (pVariant)
+							{
+								styleNameCount = GetStyleNamesFromVariant(
+									*pVariant,
+									availableBuildingStyles,
+									destination);
+							}
 						}
 					}
 				}

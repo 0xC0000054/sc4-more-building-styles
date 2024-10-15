@@ -11,25 +11,18 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "cISC4BuildingOccupant.h"
+#include <array>
 
-class cIGZCOM;
+class cISC4Occupant;
 
-class Preferences final
+namespace BuildingUtil
 {
-public:
-	Preferences();
+	bool IsMaxisBuildingStyle(uint32_t style);
 
-	void Load(cIGZCOM* const pCOM);
+	cISC4BuildingOccupant::PurposeType GetPurposeType(cISC4Occupant* pOccupant);
 
-	bool LogBuildingStyleSelection() const;
-	bool LogLotStyleSelection() const;
-	bool LogGrowableFunctions() const;
+	bool PurposeTypeSupportsBuildingStyles(cISC4BuildingOccupant::PurposeType purposeType);
 
-private:
-	void LoadPreferencesFromDllConfigFile();
-
-	bool logBuildingStyleSelection;
-	bool logLotStyleSelection;
-	bool logGrowableFunctions;
-};
-
+	bool IsIndustrialBuilding(cISC4BuildingOccupant::PurposeType purposeType);
+}
