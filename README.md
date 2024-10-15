@@ -38,8 +38,7 @@ Occupant Groups property (0xAA1DD396).
 
 The _Building Styles_ property is mandatory for custom building style support in industrial buildings. 
 
-When the property is present, the building will use custom styles specified in the property and ignore
-the 4 Maxis styles.    
+When the property is present, the building will use custom styles specified in the property.    
 When the property is not present, the building will be treated as compatible with all styles.
 
 ### Auto-Historical Check Box
