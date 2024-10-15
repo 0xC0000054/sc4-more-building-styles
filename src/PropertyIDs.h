@@ -20,6 +20,9 @@
 // For industrial lots, items without this property will be considered
 // compatible with the 4 Maxis styles.
 static constexpr uint32_t kBuildingStylesProperty = 0xAA1DD400;
+// A Boolean property that indicates if the building is
+// Wall to Wall (W2W) compatible.
+static constexpr uint32_t kBuildingIsWallToWallProperty = 0xAA1DD401;
 
 // The Maxis occupant groups property.
 constexpr uint32_t kOccupantGroupsProperty = 0xAA1DD396;

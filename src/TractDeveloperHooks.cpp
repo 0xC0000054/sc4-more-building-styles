@@ -536,7 +536,7 @@ static bool DoesBuildingSupportStyles(
 static bool CheckAdditionalBuildingStyleOptions(
 	const cSC4TractDeveloper* pThis,
 	uint32_t buildingType,
-	const PropertyData& propertyData)
+	const cISCPropertyHolder* pPropertyHolder)
 {
 	bool result = true;
 
@@ -548,10 +548,10 @@ static bool CheckAdditionalBuildingStyleOptions(
 		switch (wallToWallOption)
 		{
 		case IBuildingSelectWinContext::WallToWallOption::Only:
-			result = Contains(propertyData, WallToWallOccupantGroups);
+			result = BuildingUtil::IsWallToWall(pPropertyHolder);
 			break;
 		case IBuildingSelectWinContext::WallToWallOption::Block:
-			result = !Contains(propertyData, WallToWallOccupantGroups);
+			result = !BuildingUtil::IsWallToWall(pPropertyHolder);
 			break;
 		}
 
@@ -561,53 +561,6 @@ static bool CheckAdditionalBuildingStyleOptions(
 				buildingType,
 				pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
 				wallToWallOption);
-		}
-	}
-
-	return result;
-}
-
-static bool CheckAdditionalBuildingStyleOptions(
-	const cSC4TractDeveloper* pThis,
-	uint32_t buildingType,
-	const cISCPropertyHolder* pPropertyHolder,
-	uint32_t propertyID)
-{
-	bool result = true;
-
-	const IBuildingSelectWinContext& context = spBuildingSelectWinManager->GetContext();
-	const IBuildingSelectWinContext::WallToWallOption wallToWallOption = context.GetWallToWallOption();
-
-	if (wallToWallOption != IBuildingSelectWinContext::WallToWallOption::Mixed)
-	{
-		const cISCProperty* pProperty = pPropertyHolder->GetProperty(propertyID);
-
-		if (pProperty)
-		{
-			const cIGZVariant* pVariant = pProperty->GetPropertyValue();
-
-			if (pVariant)
-			{
-				const PropertyData propertyData(*pVariant);
-
-				switch (wallToWallOption)
-				{
-				case IBuildingSelectWinContext::WallToWallOption::Only:
-					result = Contains(propertyData, WallToWallOccupantGroups);
-					break;
-				case IBuildingSelectWinContext::WallToWallOption::Block:
-					result = !Contains(propertyData, WallToWallOccupantGroups);
-					break;
-				}
-
-				if (!result && spPreferences->LogLotStyleSelection())
-				{
-					LogWallToWallStyleOptionFailure(
-						buildingType,
-						pThis->pBuildingDevelopmentSim->GetExemplarName(buildingType)->ToChar(),
-						wallToWallOption);
-				}
-			}
 		}
 	}
 
@@ -739,20 +692,16 @@ static bool BuildingHasStyleOccupantGroup(
 
 			if (pRM->GetResource(key, GZIID_cISCPropertyHolder, pPropertyHolder.AsPPVoid(), 0, nullptr))
 			{
-				const cISCProperty* pProperty = pPropertyHolder->GetProperty(kBuildingStylesProperty);
-
-				if (pProperty)
+				// CheckAdditionalBuildingStyleOptions will write a log message if it fails.
+				if (CheckAdditionalBuildingStyleOptions(pThis, buildingType, pPropertyHolder))
 				{
-					const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+					const cISCProperty* pProperty = pPropertyHolder->GetProperty(kBuildingStylesProperty);
 
-					if (pVariant)
+					if (pProperty)
 					{
-						// CheckAdditionalBuildingStyleOptions will write a log message if it fails.
-						if (CheckAdditionalBuildingStyleOptions(
-								pThis,
-								buildingType,
-								pPropertyHolder,
-								kOccupantGroupsProperty))
+						const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+						if (pVariant)
 						{
 							const PropertyData propertyData(*pVariant);
 
@@ -763,22 +712,18 @@ static bool BuildingHasStyleOccupantGroup(
 								purpose);
 						}
 					}
-				}
-				else
-				{
-					pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
-
-					if (pProperty)
+					else
 					{
-						const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+						pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
 
-						if (pVariant)
+						if (pProperty)
 						{
-							const PropertyData propertyData(*pVariant);
+							const cIGZVariant* pVariant = pProperty->GetPropertyValue();
 
-							// CheckAdditionalBuildingStyleOptions will write a log message if it fails.
-							if (CheckAdditionalBuildingStyleOptions(pThis, buildingType, propertyData))
+							if (pVariant)
 							{
+								const PropertyData propertyData(*pVariant);
+
 								result = BuildingHasStyleValue<false>(
 									pThis,
 									buildingType,

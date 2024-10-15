@@ -62,8 +62,22 @@ Mixed, both W2W and non-W2W buildings will be built. This is SC4's default behav
 W2W Only, only W2W buildings will be built. This radio button uses the reserved id value `0x3115038A`.    
 Block W2W, no W2W buildings will be built. This radio button uses the reserved id value `0x3115038B`.
 
-W2W buildings are identified by the presence of a W2W occupant group in the
-building exemplar. The following W2W occupant group values are supported:
+#### Identifying W2W buildings 
+
+W2W buildings are identified using either of the following methods.
+
+##### Building Is Wall-to-Wall Exemplar Property (0xAA1DD401)
+
+This is a Boolean property, a value of true indicates that the building is W2W.
+If the value is false or the property is not present, the building will not be considered W2W.
+
+##### Wall-to-Wall Occupant Groups
+
+If the building has any of the following values in its Occupant Groups property (0xAA1DD396),
+it indicates that the building is W2W.
+If the property is not present, the building will not be considered W2W.
+
+The following W2W occupant group values are supported:
 
 BTE: Ind. W2W:     `0xD02C802E`    
 BTE: Comm. W2W:    `0xB5C00A05`    

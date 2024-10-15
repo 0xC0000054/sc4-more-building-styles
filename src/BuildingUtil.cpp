@@ -11,10 +11,14 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "BuildingUtil.h"
+#include "cIGZVariant.h"
 #include "cISC4BuildingOccupant.h"
 #include "cISC4Occupant.h"
+#include "cISCProperty.h"
 #include "cISCPropertyHolder.h"
 #include "cRZAutoRefCount.h"
+#include "PropertyIDs.h"
+#include "WallToWallOccupantGroups.h"
 
 bool BuildingUtil::IsMaxisBuildingStyle(uint32_t style)
 {
@@ -66,4 +70,67 @@ bool BuildingUtil::IsIndustrialBuilding(cISC4BuildingOccupant::PurposeType purpo
 {
 	return purposeType >= cISC4BuildingOccupant::PurposeType::Agriculture
 		&& purposeType <= cISC4BuildingOccupant::PurposeType::HighTech;
+}
+
+bool BuildingUtil::IsWallToWall(const cISCPropertyHolder* pPropertyHolder)
+{
+	bool buildingIsWallToWall = false;
+
+	if (pPropertyHolder)
+	{
+		const cISCProperty* pProperty = pPropertyHolder->GetProperty(kBuildingIsWallToWallProperty);
+
+		if (pProperty)
+		{
+			const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+			if (pVariant)
+			{
+
+				const uint16_t type = pVariant->GetType();
+
+				if (type == cIGZVariant::Bool)
+				{
+					buildingIsWallToWall = pVariant->GetValBool();
+				}
+				else if (type == cIGZVariant::BoolArray)
+				{
+					const uint32_t count = pVariant->GetCount();
+
+					if (count == 1)
+					{
+						buildingIsWallToWall = *pVariant->RefBool();
+					}
+				}
+			}
+		}
+		else
+		{
+			const cISCProperty* pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
+
+			if (pProperty)
+			{
+				const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+				if (pVariant)
+				{
+					const uint32_t* pData = pVariant->RefUint32();
+					const uint32_t count = pVariant->GetCount();
+
+					for (uint32_t i = 0; i < count; i++)
+					{
+						const uint32_t occupantGroup = pData[i];
+
+						if (WallToWallOccupantGroups.count(occupantGroup) != 0)
+						{
+							buildingIsWallToWall = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return buildingIsWallToWall;
 }

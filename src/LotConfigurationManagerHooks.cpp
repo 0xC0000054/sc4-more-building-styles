@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "LotConfigurationManagerHooks.h"
+#include "BuildingUtil.h"
 #include "cGZPersistResourceKey.h"
 #include "cIGZPersistResourceManager.h"
 #include "cIGZVariant.h"
@@ -29,33 +30,18 @@
 #include <array>
 
 
-static void CopyWallToWallOccupantGroupValues(
+static void SetWallToWallData(
 	const cISCPropertyHolder* pPropertyHolder,
 	SC4Vector<uint32_t>& vector)
 {
-	const cISCProperty* pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
-
-	if (pProperty)
+	if (BuildingUtil::IsWallToWall(pPropertyHolder))
 	{
-		const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+		// The exact W2W style doesn't matter, only the fact
+		// that it is present in the occupant groups.
 
-		if (pVariant)
-		{
-			const uint32_t* pData = pVariant->RefUint32();
-			const uint32_t count = pVariant->GetCount();
+		constexpr uint32_t W2WGeneral = 0xB5C00DDE;
 
-			for (uint32_t i = 0; i < count; i++)
-			{
-				const uint32_t occupantGroup = pData[i];
-
-				if (WallToWallOccupantGroups.count(occupantGroup) != 0)
-				{
-					vector.push_back(occupantGroup);
-					// Only one value is needed to identify the building as wall-to-wall.
-					break;
-				}
-			}
-		}
+		vector.push_back(W2WGeneral);
 	}
 }
 
@@ -121,9 +107,9 @@ static void __cdecl GetBuildingStyles(cGZPersistResourceKey const& key, SC4Vecto
 				// Add the BuildingStyles property id to indicate that the property is present.
 				vector.push_back(kBuildingStylesProperty);
 
-				// Copy over the wall-to-wall (W2W) occupant group value, if present.
+				// Copy over the wall-to-wall (W2W) data, if present.
 				// No other occupant group values are required for the lot style checks.
-				CopyWallToWallOccupantGroupValues(pPropertyHolder, vector);
+				SetWallToWallData(pPropertyHolder, vector);
 			}
 			else
 			{

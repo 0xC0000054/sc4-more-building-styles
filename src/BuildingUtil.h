@@ -15,6 +15,7 @@
 #include <array>
 
 class cISC4Occupant;
+class cISCPropertyHolder;
 
 namespace BuildingUtil
 {
@@ -25,4 +26,6 @@ namespace BuildingUtil
 	bool PurposeTypeSupportsBuildingStyles(cISC4BuildingOccupant::PurposeType purposeType);
 
 	bool IsIndustrialBuilding(cISC4BuildingOccupant::PurposeType purposeType);
+
+	bool IsWallToWall(const cISCPropertyHolder* pPropertyHolder);
 }
