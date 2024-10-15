@@ -151,45 +151,19 @@ struct PropertyData
 			values = std::span<uint32_t>(pData, repCount);
 		}
 	}
-};
 
-static bool Contains(const PropertyData& propertyData, uint32_t value)
-{
-	if (propertyData.values.empty())
+	bool Contains(uint32_t value) const
 	{
-		return propertyData.value == value;
-	}
-	else
-	{
-		return std::find(
-			propertyData.values.begin(),
-			propertyData.values.end(),
-			value) != propertyData.values.end();
-	}
-}
-
-template<size_t N>
-static bool Contains(
-	const PropertyData& propertyData,
-	const frozen::unordered_map<uint32_t, const std::string_view, N>& values)
-{
-	if (propertyData.values.empty())
-	{
-		return values.count(propertyData.value) != 0;
-	}
-	else
-	{
-		for (const auto& item : propertyData.values)
+		if (values.empty())
 		{
-			if (values.count(item) != 0)
-			{
-				return true;
-			}
+			return value == value;
 		}
-
-		return false;
+		else
+		{
+			return std::find(values.begin(), values.end(), value) != values.end();
+		}
 	}
-}
+};
 
 static void LogPurposeTypeDoesNotSupportStyles(
 	uint32_t id,
@@ -598,7 +572,7 @@ static bool BuildingHasStyleValue(
 		{
 			if constexpr (isBuildingStylesProperty)
 			{
-				if (Contains(propertyData, style))
+				if (propertyData.Contains(style))
 				{
 					LogBuildingStyleSupported(pThis, buildingType, style);
 					return true;
@@ -615,7 +589,7 @@ static bool BuildingHasStyleValue(
 				}
 				else
 				{
-					if (Contains(propertyData, style))
+					if (propertyData.Contains(style))
 					{
 						LogBuildingStyleSupported(pThis, buildingType, style);
 						return true;
@@ -632,7 +606,7 @@ static bool BuildingHasStyleValue(
 
 		if constexpr (isBuildingStylesProperty)
 		{
-			if (Contains(propertyData, activeStyle))
+			if (propertyData.Contains(activeStyle))
 			{
 				LogBuildingStyleSupported(pThis, buildingType, activeStyle);
 				return true;
@@ -649,7 +623,7 @@ static bool BuildingHasStyleValue(
 			}
 			else
 			{
-				if (Contains(propertyData, activeStyle))
+				if (propertyData.Contains(activeStyle))
 				{
 					LogBuildingStyleSupported(pThis, buildingType, activeStyle);
 					return true;
