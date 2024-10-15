@@ -191,12 +191,6 @@ static bool Contains(
 	}
 }
 
-// The Maxis styles and the 'Building Styles property present' marker are ignored.
-static bool IsLotBuildingStylePropertyIgnoredValue(uint32_t style)
-{
-	return BuildingUtil::IsMaxisBuildingStyle(style) || style == kBuildingStylesProperty;
-}
-
 static void LogPurposeTypeDoesNotSupportStyles(
 	uint32_t id,
 	const char* const name,
@@ -387,13 +381,10 @@ static bool CheckLotCompatibilityWithActiveStyles(
 		{
 			if constexpr (isBuildingStyleProperty)
 			{
-				if (!IsLotBuildingStylePropertyIgnoredValue(style))
+				if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, style))
 				{
-					if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, style))
-					{
-						LogLotStyleSupported(pLotConfiguration, style);
-						return true;
-					}
+					LogLotStyleSupported(pLotConfiguration, style);
+					return true;
 				}
 			}
 			else
@@ -424,13 +415,10 @@ static bool CheckLotCompatibilityWithActiveStyles(
 
 		if constexpr (isBuildingStyleProperty)
 		{
-			if (!IsLotBuildingStylePropertyIgnoredValue(activeStyle))
+			if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, activeStyle))
 			{
-				if (LotConfigurationHasOccupantGroupValue(pLotConfiguration, activeStyle))
-				{
-					LogLotStyleSupported(pLotConfiguration, activeStyle);
-					return true;
-				}
+				LogLotStyleSupported(pLotConfiguration, activeStyle);
+				return true;
 			}
 		}
 		else
@@ -657,8 +645,7 @@ static bool BuildingHasStyleValue(
 		{
 			if constexpr (isBuildingStylesProperty)
 			{
-				// The Maxis styles are ignored when the Building Styles property is present.
-				if (!BuildingUtil::IsMaxisBuildingStyle(style) && Contains(propertyData, style))
+				if (Contains(propertyData, style))
 				{
 					LogBuildingStyleSupported(pThis, buildingType, style);
 					return true;
@@ -695,8 +682,7 @@ static bool BuildingHasStyleValue(
 
 		if constexpr (isBuildingStylesProperty)
 		{
-			// The Maxis styles are ignored when the Building Styles property is present.
-			if (!BuildingUtil::IsMaxisBuildingStyle(activeStyle) && Contains(propertyData, activeStyle))
+			if (Contains(propertyData, activeStyle))
 			{
 				LogBuildingStyleSupported(pThis, buildingType, activeStyle);
 				return true;

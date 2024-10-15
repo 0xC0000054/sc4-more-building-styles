@@ -23,9 +23,41 @@
 #include "PropertyIDs.h"
 #include "SC4Vector.h"
 #include "SC4VersionDetection.h"
+#include "WallToWallOccupantGroups.h"
 #include "wil/result.h"
 
 #include <array>
+
+
+static void CopyWallToWallOccupantGroupValues(
+	const cISCPropertyHolder* pPropertyHolder,
+	SC4Vector<uint32_t>& vector)
+{
+	const cISCProperty* pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
+
+	if (pProperty)
+	{
+		const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+		if (pVariant)
+		{
+			const uint32_t* pData = pVariant->RefUint32();
+			const uint32_t count = pVariant->GetCount();
+
+			for (uint32_t i = 0; i < count; i++)
+			{
+				const uint32_t occupantGroup = pData[i];
+
+				if (WallToWallOccupantGroups.count(occupantGroup) != 0)
+				{
+					vector.push_back(occupantGroup);
+					// Only one value is needed to identify the building as wall-to-wall.
+					break;
+				}
+			}
+		}
+	}
+}
 
 static bool InsertPropertyValues(
 	const cISCPropertyHolder* pPropertyHolder,
@@ -89,8 +121,9 @@ static void __cdecl GetBuildingStyles(cGZPersistResourceKey const& key, SC4Vecto
 				// Add the BuildingStyles property id to indicate that the property is present.
 				vector.push_back(kBuildingStylesProperty);
 
-				// Add the other occupant groups for the W2W style values, etc.
-				InsertPropertyValues(pPropertyHolder, kOccupantGroupsProperty, vector);
+				// Copy over the wall-to-wall (W2W) occupant group value, if present.
+				// No other occupant group values are required for the lot style checks.
+				CopyWallToWallOccupantGroupValues(pPropertyHolder, vector);
 			}
 			else
 			{

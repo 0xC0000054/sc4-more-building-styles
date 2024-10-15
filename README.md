@@ -30,7 +30,7 @@ in the Occupant Groups property (0xAA1DD396).
 The _Building Styles_ property is optional for custom building style support in residential and commercial buildings. 
 
 When the property is present, the building will use custom styles specified in the property and ignore
-the 4 Maxis styles.    
+the styles in the Occupant Groups property (0xAA1DD396).    
 When the property is not present, the building will use the custom and Maxis styles specified in the
 Occupant Groups property (0xAA1DD396).
 
@@ -40,7 +40,7 @@ The _Building Styles_ property is mandatory for custom building style support in
 
 When the property is present, the building will use custom styles specified in the property and ignore
 the 4 Maxis styles.    
-When the property is not present, the building will be treated as compatible with the 4 Maxis styles.
+When the property is not present, the building will be treated as compatible with all styles.
 
 ### Auto-Historical Check Box
 
