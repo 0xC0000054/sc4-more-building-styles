@@ -76,8 +76,6 @@ If the value is false or the property is not present, the building will not be c
 If the building has any of the following values in its Occupant Groups property (0xAA1DD396),
 it indicates that the building is W2W.
 
-The following W2W occupant group values are supported:
-
 BTE: Ind. W2W:     `0xD02C802E`    
 BTE: Comm. W2W:    `0xB5C00A05`    
 BTE: Res. W2W:     `0xB5C00B05`    
