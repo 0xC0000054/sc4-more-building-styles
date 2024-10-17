@@ -15,17 +15,7 @@
 #include "Logger.h"
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/ini_parser.hpp"
-#include "cGZPersistResourceKey.h"
 #include "cIGZCOM.h"
-#include "cIGZPersistDBRecord.h"
-#include "cIGZPersistDBSerialRecord.h"
-#include "cIGZPersistResourceManager.h"
-#include "cIGZDBSerialRecordAsIGZFile.h"
-#include "cIGZFile.h"
-#include "cRZAutoRefCount.h"
-#include "GZServPtrs.h"
-#include "StringViewUtil.h"
-#include <memory>
 
 Preferences::Preferences()
 	: logBuildingStyleSelection(false),
