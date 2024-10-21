@@ -23,6 +23,8 @@
 #include "GlobalPointers.h"
 #include "IBuildingSelectWinManager.h"
 #include "PropertyIDs.h"
+#include "StringResourceKey.h"
+#include "StringResourceManager.h"
 
 namespace
 {
@@ -207,16 +209,19 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 					{
 						// Industrial buildings without a BuildingStyles property
 						// are compatible with all building styles.
+						// This is represented by the localized text 'Build all styles at once'.
 
-						for (const auto& item : availableBuildingStyles)
+						cRZAutoRefCount<cIGZString> temp;
+
+						const StringResourceKey key(0x6A231EAA, 0x2BBBD89B);
+
+						// Load the string with the specified group and instance id.
+						// The strings in SimCityLocale.dat don't use the per-language group id
+						// offset system that is used by DBPF plug-ins, so we use GetString
+						// instead of GetLocalizedString.
+						if (StringResourceManager::GetString(key, temp.AsPPObj()))
 						{
-							if (styleNameCount > 1)
-							{
-								destination.Append(StyleNameListSeperator.data(), StyleNameListSeperator.size());
-							}
-
-							destination.Append(item.styleName);
-							styleNameCount++;
+							destination.Copy(*temp);
 						}
 					}
 					else
