@@ -41,11 +41,16 @@ namespace
 		if (repCount > 0)
 		{
 			bool firstStyle = true;
-			const uint32_t* pDataEnd = pData + repCount;
 
-			for (const auto& item : availableBuildingStyles)
+			// The styles are printed in the order that they are listed in the exemplar property.
+			// Previous versions of the DLL did this as a side effect of the implementation, and
+			// we have to preserve the behavior because users came to depend on it.
+
+			for (size_t i = 0; i < repCount; i++)
 			{
-				if (std::find(pData, pDataEnd, item.styleID) != pDataEnd)
+				auto item = availableBuildingStyles.find_style(pData[i]);
+
+				if (item != availableBuildingStyles.end())
 				{
 					if (firstStyle)
 					{
@@ -56,7 +61,7 @@ namespace
 						destination.Append(StyleNameListSeperator.data(), StyleNameListSeperator.size());
 					}
 
-					destination.Append(item.styleName);
+					destination.Append(item->styleName);
 				}
 			}
 		}
@@ -64,13 +69,11 @@ namespace
 		{
 			const uint32_t targetStyleID = reinterpret_cast<uint32_t>(pData);
 
-			for (const auto& item : availableBuildingStyles)
+			auto item = availableBuildingStyles.find_style(targetStyleID);
+
+			if (item != availableBuildingStyles.end())
 			{
-				if (item.styleID == targetStyleID)
-				{
-					destination.Append(item.styleName);
-					break;
-				}
+				destination.Append(item->styleName);
 			}
 		}
 	}
@@ -157,16 +160,17 @@ bool BuildingStyleInfo::GetBuildingStyleName(uint32_t style, cIGZString& name) c
 {
 	const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
 
-	for (const auto& item : availableBuildingStyles)
+	bool result = false;
+
+	auto item = availableBuildingStyles.find_style(style);
+
+	if (item != availableBuildingStyles.end())
 	{
-		if (item.styleID == style)
-		{
-			name = item.styleName;
-			return true;
-		}
+		name = item->styleName;
+		result = true;
 	}
 
-	return false;
+	return result;
 }
 
 bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZString& destination) const
@@ -254,13 +258,5 @@ bool BuildingStyleInfo::IsBuildingStyleAvailable(uint32_t style) const
 {
 	const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
 
-	for (const auto& item : availableBuildingStyles)
-	{
-		if (item.styleID == style)
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return availableBuildingStyles.find_style(style) != availableBuildingStyles.end();
 }

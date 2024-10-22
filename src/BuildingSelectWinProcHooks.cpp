@@ -351,7 +351,7 @@ void __thiscall cSC4BuildingSelectWinProc::AddActiveStyle(uint32_t buttonID)
 {
 	const BuildingStyleCollection& allBuildingStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
-	const auto item = allBuildingStyles.find(buttonID);
+	const auto item = allBuildingStyles.find_button(buttonID);
 
 	if (item != allBuildingStyles.end())
 	{
@@ -377,7 +377,7 @@ void __thiscall cSC4BuildingSelectWinProc::RemoveActiveStyle(uint32_t buttonID)
 {
 	const BuildingStyleCollection& allBuildingStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
-	const auto item = allBuildingStyles.find(buttonID);
+	const auto item = allBuildingStyles.find_button(buttonID);
 
 	if (item != allBuildingStyles.end())
 	{
