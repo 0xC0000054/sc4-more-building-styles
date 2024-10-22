@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "BuildingStyleWallToWall.h"
+#include "BuildingUtil.h"
 #include "cIGZString.h"
 #include "cIGZVariant.h"
 #include "cISC4Occupant.h"
@@ -119,36 +120,14 @@ bool BuildingStyleWallToWall::GetWallToWallOccupantGroupName(uint32_t occupantGr
 
 bool BuildingStyleWallToWall::HasWallToWallOccupantGroup(cISC4Occupant* pBuildingOccupant) const
 {
+	bool result = false;
+
 	if (pBuildingOccupant)
 	{
-		const cISCPropertyHolder* pPropertyHolder = pBuildingOccupant->AsPropertyHolder();
-
-		if (pPropertyHolder)
-		{
-			const cISCProperty* pOccupantGroupsProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
-
-			if (pOccupantGroupsProperty)
-			{
-				const cIGZVariant* pVariant = pOccupantGroupsProperty->GetPropertyValue();
-
-				if (pVariant)
-				{
-					const uint32_t* pOccupantGroups = pVariant->RefUint32();
-					const size_t count = pVariant->GetCount();
-
-					for (size_t i = 0; i < count; i++)
-					{
-						if (WallToWallOccupantGroups.count(pOccupantGroups[i]) != 0)
-						{
-							return true;
-						}
-					}
-				}
-			}
-		}
+		result = BuildingUtil::IsWallToWall(pBuildingOccupant->AsPropertyHolder());
 	}
 
-	return false;
+	return result;
 }
 
 bool BuildingStyleWallToWall::GetWallToWallOccupantGroupNames(cISC4Occupant* pBuildingOccupant, cIGZString& destination) const
