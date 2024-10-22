@@ -30,31 +30,33 @@ namespace
 {
 	const std::string_view StyleNameListSeperator(", ");
 
-	size_t GetStyleNamesFromVariant(
+	void GetStyleNamesFromVariant(
 		const cIGZVariant& variant,
 		const BuildingStyleCollection& availableBuildingStyles,
 		cIGZString& destination)
 	{
-		size_t styleNameCount = 0;
-
 		const uint32_t* pData = variant.RefUint32();
 		const uint32_t repCount = variant.GetCount();
 
 		if (repCount > 0)
 		{
+			bool firstStyle = true;
 			const uint32_t* pDataEnd = pData + repCount;
 
 			for (const auto& item : availableBuildingStyles)
 			{
 				if (std::find(pData, pDataEnd, item.styleID) != pDataEnd)
 				{
-					if (styleNameCount > 1)
+					if (firstStyle)
+					{
+						firstStyle = false;
+					}
+					else
 					{
 						destination.Append(StyleNameListSeperator.data(), StyleNameListSeperator.size());
 					}
 
 					destination.Append(item.styleName);
-					styleNameCount++;
 				}
 			}
 		}
@@ -67,13 +69,10 @@ namespace
 				if (item.styleID == targetStyleID)
 				{
 					destination.Append(item.styleName);
-					styleNameCount = 1;
 					break;
 				}
 			}
 		}
-
-		return styleNameCount;
 	}
 }
 
@@ -185,7 +184,6 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 		if (availableBuildingStyles.size() > 0)
 		{
 			const cISCPropertyHolder* pPropertyHolder = pOccupant->AsPropertyHolder();
-			size_t styleNameCount = 0;
 
 			if (pPropertyHolder)
 			{
@@ -197,7 +195,7 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 
 					if (pVariant)
 					{
-						styleNameCount = GetStyleNamesFromVariant(
+						GetStyleNamesFromVariant(
 							*pVariant,
 							availableBuildingStyles,
 							destination);
@@ -234,7 +232,7 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 
 							if (pVariant)
 							{
-								styleNameCount = GetStyleNamesFromVariant(
+								GetStyleNamesFromVariant(
 									*pVariant,
 									availableBuildingStyles,
 									destination);
@@ -245,15 +243,7 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 			}
 
 			// Check that at least one style name has been written to the destination.
-			if (destination.Strlen() > 0)
-			{
-				if (styleNameCount > 1)
-				{
-					// Remove the trailing separator from the last style in the list.
-					destination.Resize(destination.Strlen() - StyleNameListSeperator.size());
-				}
-				result = true;
-			}
+			result = destination.Strlen() > 0;
 		}
 	}
 
