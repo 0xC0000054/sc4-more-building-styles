@@ -86,7 +86,6 @@ bool BuildingUtil::IsWallToWall(const cISCPropertyHolder* pPropertyHolder)
 
 			if (pVariant)
 			{
-
 				const uint16_t type = pVariant->GetType();
 
 				if (type == cIGZVariant::Bool)
@@ -133,4 +132,16 @@ bool BuildingUtil::IsWallToWall(const cISCPropertyHolder* pPropertyHolder)
 	}
 
 	return buildingIsWallToWall;
+}
+
+bool BuildingUtil::IsWallToWall(cISC4Occupant* pOccupant)
+{
+	bool result = false;
+
+	if (pOccupant)
+	{
+		result = IsWallToWall(pOccupant->AsPropertyHolder());
+	}
+
+	return result;
 }

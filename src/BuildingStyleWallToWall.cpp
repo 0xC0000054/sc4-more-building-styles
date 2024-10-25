@@ -120,14 +120,7 @@ bool BuildingStyleWallToWall::GetWallToWallOccupantGroupName(uint32_t occupantGr
 
 bool BuildingStyleWallToWall::HasWallToWallOccupantGroup(cISC4Occupant* pBuildingOccupant) const
 {
-	bool result = false;
-
-	if (pBuildingOccupant)
-	{
-		result = BuildingUtil::IsWallToWall(pBuildingOccupant->AsPropertyHolder());
-	}
-
-	return result;
+	return BuildingUtil::IsWallToWall(pBuildingOccupant);
 }
 
 bool BuildingStyleWallToWall::GetWallToWallOccupantGroupNames(cISC4Occupant* pBuildingOccupant, cIGZString& destination) const

@@ -28,4 +28,5 @@ namespace BuildingUtil
 	bool IsIndustrialBuilding(cISC4BuildingOccupant::PurposeType purposeType);
 
 	bool IsWallToWall(const cISCPropertyHolder* pPropertyHolder);
+	bool IsWallToWall(cISC4Occupant* pOccupant);
 }

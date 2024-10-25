@@ -287,6 +287,9 @@
     <ClInclude Include="BuildingUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="public\include\cIBuildingStyleInfo2.h">
+      <Filter>Header Files\Public Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />

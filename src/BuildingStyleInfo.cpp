@@ -28,12 +28,11 @@
 
 namespace
 {
-	const std::string_view StyleNameListSeperator(", ");
-
 	void GetStyleNamesFromVariant(
 		const cIGZVariant& variant,
 		const BuildingStyleCollection& availableBuildingStyles,
-		cIGZString& destination)
+		cIGZString& destination,
+		const cIGZString& separator)
 	{
 		const uint32_t* pData = variant.RefUint32();
 		const uint32_t repCount = variant.GetCount();
@@ -58,7 +57,7 @@ namespace
 					}
 					else
 					{
-						destination.Append(StyleNameListSeperator.data(), StyleNameListSeperator.size());
+						destination.Append(separator);
 					}
 
 					destination.Append(item->styleName);
@@ -90,6 +89,13 @@ bool BuildingStyleInfo::QueryInterface(uint32_t riid, void** ppvObj)
 	if (riid == GZIID_cIBuildingStyleInfo)
 	{
 		*ppvObj = static_cast<cIBuildingStyleInfo*>(this);
+		AddRef();
+
+		return true;
+	}
+	else if (riid == GZIID_cIBuildingStyleInfo2)
+	{
+		*ppvObj = static_cast<cIBuildingStyleInfo2*>(this);
 		AddRef();
 
 		return true;
@@ -173,13 +179,28 @@ bool BuildingStyleInfo::GetBuildingStyleName(uint32_t style, cIGZString& name) c
 	return result;
 }
 
-bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZString& destination) const
+bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pBuildingOccupant, cIGZString& destination) const
+{
+	return GetBuildingStyleNamesEx(pBuildingOccupant, destination, cRZBaseString(", "));
+}
+
+bool BuildingStyleInfo::IsBuildingStyleAvailable(uint32_t style) const
+{
+	const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
+
+	return availableBuildingStyles.find_style(style) != availableBuildingStyles.end();
+}
+
+bool BuildingStyleInfo::GetBuildingStyleNamesEx(
+	cISC4Occupant* pBuildingOccupant,
+	cIGZString& destination,
+	cIGZString const& separator) const
 {
 	bool result = false;
 
 	destination.Erase(0, destination.Strlen());
 
-	const cISC4BuildingOccupant::PurposeType purpose = BuildingUtil::GetPurposeType(pOccupant);
+	const cISC4BuildingOccupant::PurposeType purpose = BuildingUtil::GetPurposeType(pBuildingOccupant);
 
 	if (BuildingUtil::PurposeTypeSupportsBuildingStyles(purpose))
 	{
@@ -187,7 +208,7 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 
 		if (availableBuildingStyles.size() > 0)
 		{
-			const cISCPropertyHolder* pPropertyHolder = pOccupant->AsPropertyHolder();
+			const cISCPropertyHolder* pPropertyHolder = pBuildingOccupant->AsPropertyHolder();
 
 			if (pPropertyHolder)
 			{
@@ -202,7 +223,8 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 						GetStyleNamesFromVariant(
 							*pVariant,
 							availableBuildingStyles,
-							destination);
+							destination,
+							separator);
 					}
 				}
 				else
@@ -239,7 +261,8 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 								GetStyleNamesFromVariant(
 									*pVariant,
 									availableBuildingStyles,
-									destination);
+									destination,
+									separator);
 							}
 						}
 					}
@@ -254,9 +277,7 @@ bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pOccupant, cIGZStri
 	return result;
 }
 
-bool BuildingStyleInfo::IsBuildingStyleAvailable(uint32_t style) const
+bool BuildingStyleInfo::IsWallToWall(cISC4Occupant* pBuildingOccupant) const
 {
-	const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
-
-	return availableBuildingStyles.find_style(style) != availableBuildingStyles.end();
+	return BuildingUtil::IsWallToWall(pBuildingOccupant);
 }

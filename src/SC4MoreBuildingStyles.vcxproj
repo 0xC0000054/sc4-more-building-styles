@@ -89,6 +89,7 @@
     <ClInclude Include="LotConfigurationManagerHooks.h" />
     <ClInclude Include="Patcher.h" />
     <ClInclude Include="public\include\cIBuildingStyleInfo.h" />
+    <ClInclude Include="public\include\cIBuildingStyleInfo2.h" />
     <ClInclude Include="public\include\cIBuildingStyleWallToWall.h" />
     <ClInclude Include="SC4NotificationDialog.h" />
     <ClInclude Include="SC4Vector.h" />

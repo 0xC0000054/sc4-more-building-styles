@@ -180,11 +180,10 @@ if (pSC4App)
 
 This class allows other DLLS to query the style ids and names for the building styles that are present in the
 game's `Building Style Control` window.    
-It also provides a function to get a building occupant's supported styles as a string containing a comma-separated
-list of style names, only styles that are present in the game's `Building Style Control` window will be included in
-that list.
+It also provides a function to get a building occupant's supported styles as a string containing a list of style names,
+only styles that are present in the game's `Building Style Control` window will be included in that list.
 
-See [cIBuildingStyleInfo.h](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/src/public/include/cIBuildingStyleInfo.h) for details.
+See [cIBuildingStyleInfo2.h](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/src/public/include/cIBuildingStyleInfo2.h) for details.
 
 ### cIBuildingStyleWallToWall GZCOM Class
 
