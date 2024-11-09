@@ -138,6 +138,15 @@ namespace
 			static_assert(false, "Unsupported enum underlying type.");
 		}
 	}
+
+	LotZoningOptions ConvertKeepLotSizeToLotZoningOption(cISC4DBSegmentIStream* stream)
+	{
+		bool keepLotZoneSize = false;
+
+		ReadBoolean(stream, keepLotZoneSize);
+
+		return keepLotZoneSize ? LotZoningOptionDisableAggregationAndSubdivision : LotZoningOptionNone;
+	}
 }
 
 BuildingSelectWinContext::BuildingSelectWinContext()
@@ -145,7 +154,7 @@ BuildingSelectWinContext::BuildingSelectWinContext()
 	  automaticallyMarkBuildingsAsHistorical(false),
 	  automaticallyGrowifyPloppedBuildings(false),
 	  wallToWallOption(WallToWallOption::Mixed),
-	  keepLotZoneSizes(false),
+	  lotZoningOption(LotZoningOptionNone),
 	  kickOutLowerWealthOption(KickOutLowerWealthOption::Unknown)
 {
 }
@@ -171,12 +180,20 @@ void BuildingSelectWinContext::LoadFromDBSegment(cIGZPersistDBSegment* pSegment)
 
 				if (pSC4IStream->GetUint32(version))
 				{
-					if (version == 5)
+					if (version == 6)
 					{
 						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
 						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
 						ReadEnum(pSC4IStream, wallToWallOption);
-						ReadBoolean(pSC4IStream, keepLotZoneSizes);
+						ReadEnum(pSC4IStream, lotZoningOption);
+						ReadEnum(pSC4IStream, kickOutLowerWealthOption);
+					}
+					else if (version == 5)
+					{
+						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
+						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
+						ReadEnum(pSC4IStream, wallToWallOption);
+						lotZoningOption = ConvertKeepLotSizeToLotZoningOption(pSC4IStream);
 						ReadEnum(pSC4IStream, kickOutLowerWealthOption);
 					}
 					else if (version == 4)
@@ -184,7 +201,7 @@ void BuildingSelectWinContext::LoadFromDBSegment(cIGZPersistDBSegment* pSegment)
 						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
 						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
 						ReadEnum(pSC4IStream, wallToWallOption);
-						ReadBoolean(pSC4IStream, keepLotZoneSizes);
+						lotZoningOption = ConvertKeepLotSizeToLotZoningOption(pSC4IStream);
 					}
 					else if (version == 3)
 					{
@@ -224,11 +241,11 @@ void BuildingSelectWinContext::SaveToDBSegment(cIGZPersistDBSegment* pSegment) c
 
 			if (pSC4DBSegment->OpenOStream(key, pSC4OStream.AsPPObj(), true))
 			{
-				pSC4OStream->SetUint32(5); // version
+				pSC4OStream->SetUint32(6); // version
 				WriteBoolean(pSC4OStream, automaticallyMarkBuildingsAsHistorical);
 				WriteBoolean(pSC4OStream, automaticallyGrowifyPloppedBuildings);
 				WriteEnum(pSC4OStream, wallToWallOption);
-				WriteBoolean(pSC4OStream, keepLotZoneSizes);
+				WriteEnum(pSC4OStream, lotZoningOption);
 				WriteEnum(pSC4OStream, kickOutLowerWealthOption);
 			}
 		}
@@ -284,13 +301,19 @@ bool BuildingSelectWinContext::GetOptionalCheckBoxState(uint32_t buttonID) const
 		result = automaticallyGrowifyPloppedBuildings;
 		break;
 	case KeepLotZoneSizesButtonID:
-		result = keepLotZoneSizes;
+		result = lotZoningOption == LotZoningOptionDisableAggregationAndSubdivision;
 		break;
 	case KickOutLowerWealthButtonID:
 		result = kickOutLowerWealthOption == KickOutLowerWealthOption::True;
 		break;
 	case NoKickOutLowerWealthButtonID:
 		result = kickOutLowerWealthOption == KickOutLowerWealthOption::False;
+		break;
+	case DisableLotAggregationButtonID:
+		result = (lotZoningOption & LotZoningOptionDisableAggregation) == LotZoningOptionDisableAggregation;
+		break;
+	case DisableLotSubdivisionButtonID:
+		result = (lotZoningOption & LotZoningOptionDisableSubdivision) == LotZoningOptionDisableSubdivision;
 		break;
 	}
 
@@ -308,7 +331,7 @@ void BuildingSelectWinContext::SetOptionalCheckBoxState(uint32_t buttonID, bool 
 		automaticallyGrowifyPloppedBuildings = checked;
 		break;
 	case KeepLotZoneSizesButtonID:
-		keepLotZoneSizes = checked;
+		lotZoningOption = checked ? LotZoningOptionDisableAggregationAndSubdivision : LotZoningOptionNone;
 		break;
 	case KickOutLowerWealthButtonID:
 		kickOutLowerWealthOption = checked ? KickOutLowerWealthOption::True : KickOutLowerWealthOption::False;
@@ -317,6 +340,12 @@ void BuildingSelectWinContext::SetOptionalCheckBoxState(uint32_t buttonID, bool 
 	case NoKickOutLowerWealthButtonID:
 		kickOutLowerWealthOption = checked ? KickOutLowerWealthOption::False : KickOutLowerWealthOption::True;
 		TractDeveloperHooks::SetKickOutLowerWealthValue(pTractDeveloper, !checked);
+		break;
+	case DisableLotAggregationButtonID:
+		SetLotZoningOption(LotZoningOptionDisableAggregation, checked);
+		break;
+	case DisableLotSubdivisionButtonID:
+		SetLotZoningOption(LotZoningOptionDisableSubdivision, checked);
 		break;
 	}
 }
@@ -331,7 +360,19 @@ void BuildingSelectWinContext::SetWallToWallOption(WallToWallOption value)
 	wallToWallOption = value;
 }
 
-bool BuildingSelectWinContext::KeepLotZoneSizes() const
+LotZoningOptions BuildingSelectWinContext::GetLotZoningOptions() const
 {
-	return keepLotZoneSizes;
+	return lotZoningOption;
+}
+
+void BuildingSelectWinContext::SetLotZoningOption(LotZoningOptions option, bool value)
+{
+	if (value)
+	{
+		lotZoningOption = static_cast<LotZoningOptions>(lotZoningOption | option);
+	}
+	else
+	{
+		lotZoningOption = static_cast<LotZoningOptions>(lotZoningOption & ~option);
+	}
 }

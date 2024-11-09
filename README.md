@@ -87,12 +87,36 @@ SFBT: Paris W2W:   `0xB5C00F0B`
 
 The DLL supports an optional check box that stops the game from changing the user's zoned lot size in residential and
 commercial zones to fit the lot it picks.
+This check box combines the functionality of the _Disable Lot Aggregation_ and _Disable Lot Subdivision_ check boxes
+into a single control.
 
 When this option is enabled, it forces SC4 to only pick residential and/or commercial lots which have sizes matching
 the zoned area.
 When this option is disabled (the default), SC4 will use its standard behavior of aggregating or subdividing the
 residential and commercial zones to fit its chosen lot.    
 This check box uses the reserved id value `0x3621731B`.
+
+## Disable Lot Aggregation Check Box
+
+The DLL supports an optional check box that stops the game from aggregating multiple smaller lots into one larger lot
+in residential and commercial zones to fit the lot it picks.
+
+When this option is enabled, it forces SC4 to only pick residential and/or commercial lots which are the same size
+or smaller than the zoned area.
+When this option is disabled (the default), SC4 will use its standard behavior of aggregating the residential and
+commercial zones to fit its chosen lot.    
+This check box uses the reserved id value `0x102`.
+
+## Disable Lot Subdivision Check Box
+
+The DLL supports an optional check box that stops the game from subdividing one larger lot into multiple smaller lots
+in residential and commercial zones to fit the lot it picks.
+
+When this option is enabled, it forces SC4 to only pick residential and/or commercial lots which are the same size
+or larger than the zoned area.
+When this option is disabled (the default), SC4 will use its standard behavior of subdividing the residential and
+commercial zones to fit its chosen lot.    
+This check box uses the reserved id value `0x103`.
 
 ## Kick Out Lower Wealth Check Boxes
 

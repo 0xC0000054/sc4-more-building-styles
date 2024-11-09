@@ -66,6 +66,8 @@ namespace
 		{
 		case KickOutLowerWealthButtonID:
 		case NoKickOutLowerWealthButtonID:
+		case DisableLotAggregationButtonID:
+		case DisableLotSubdivisionButtonID:
 			hideCheckBox = false;
 			break;
 		}

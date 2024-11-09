@@ -13,6 +13,18 @@
 #pragma once
 #include <cstdint>
 
+enum LotZoningOptions : uint8_t
+{
+	LotZoningOptionNone = 0,
+	// Prevent SC4 from aggregating multiple smaller
+	// lots into a bigger lot when redeveloping.
+	LotZoningOptionDisableAggregation = 1 << 0,
+	// Prevent SC4 from subdividing a bigger lot
+	// into multiple smaller lots when redeveloping.
+	LotZoningOptionDisableSubdivision = 1 << 1,
+	LotZoningOptionDisableAggregationAndSubdivision = LotZoningOptionDisableAggregation | LotZoningOptionDisableSubdivision
+};
+
 class IBuildingSelectWinContext
 {
 public:
@@ -33,5 +45,5 @@ public:
 	virtual WallToWallOption GetWallToWallOption() const = 0;
 	virtual void SetWallToWallOption(WallToWallOption value) = 0;
 
-	virtual bool KeepLotZoneSizes() const = 0;
+	virtual LotZoningOptions GetLotZoningOptions() const = 0;
 };

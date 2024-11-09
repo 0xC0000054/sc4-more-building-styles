@@ -165,6 +165,37 @@ static void UpdateOptionalCheckBox(const cSC4BuildingSelectWinProc* pThis, uint3
 	spBuildingSelectWinManager->GetContext().SetOptionalCheckBoxState(buttonID, checked);
 }
 
+static void UpdateLotZoningCheckBoxes(const cSC4BuildingSelectWinProc* pThis, uint32_t buttonID)
+{
+	cIGZWin* const pWin = pThis->window;
+
+	bool checked = GZWinUtil::GetButtonToggleState(pWin, buttonID);
+
+	spBuildingSelectWinManager->GetContext().SetOptionalCheckBoxState(buttonID, checked);
+
+	if (buttonID == KeepLotZoneSizesButtonID)
+	{
+		GZWinUtil::SetButtonToggleState(pWin, DisableLotAggregationButtonID, checked);
+		GZWinUtil::SetButtonToggleState(pWin, DisableLotSubdivisionButtonID, checked);
+	}
+	else
+	{
+		bool otherCheckBoxChecked = false;
+
+		switch (buttonID)
+		{
+		case DisableLotAggregationButtonID:
+			otherCheckBoxChecked = GZWinUtil::GetButtonToggleState(pWin, DisableLotSubdivisionButtonID);
+			break;
+		case DisableLotSubdivisionButtonID:
+			otherCheckBoxChecked = GZWinUtil::GetButtonToggleState(pWin, DisableLotAggregationButtonID);
+			break;
+		}
+
+		GZWinUtil::SetButtonToggleState(pWin, KeepLotZoneSizesButtonID, checked && otherCheckBoxChecked);
+	}
+}
+
 static bool ProcessOptionalUIButton(
 	const cSC4BuildingSelectWinProc* pThis,
 	uint32_t buttonID)
@@ -173,10 +204,14 @@ static bool ProcessOptionalUIButton(
 	{
 	case AutoHistoricalButtonID:
 	case AutoGrowifyButtonID:
-	case KeepLotZoneSizesButtonID:
 	case KickOutLowerWealthButtonID:
 	case NoKickOutLowerWealthButtonID:
 		UpdateOptionalCheckBox(pThis, buttonID);
+		return true;
+	case KeepLotZoneSizesButtonID:
+	case DisableLotAggregationButtonID:
+	case DisableLotSubdivisionButtonID:
+		UpdateLotZoningCheckBoxes(pThis, buttonID);
 		return true;
 	case WallToWallMixedRadioButtonID:
 		UpdateWallToWallRadioButtons(pThis, IBuildingSelectWinContext::WallToWallOption::Mixed);
@@ -344,6 +379,8 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 	InitializeOptionalCheckBox(this, KeepLotZoneSizesButtonID, context);
 	InitializeOptionalCheckBox(this, KickOutLowerWealthButtonID, context);
 	InitializeOptionalCheckBox(this, NoKickOutLowerWealthButtonID, context);
+	InitializeOptionalCheckBox(this, DisableLotAggregationButtonID, context);
+	InitializeOptionalCheckBox(this, DisableLotSubdivisionButtonID, context);
 	UpdateWallToWallRadioButtons(this, context.GetWallToWallOption(), /*setContextOption*/false);
 
 	EnableStyleButtons();

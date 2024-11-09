@@ -40,7 +40,7 @@ private:
 	WallToWallOption GetWallToWallOption() const override;
 	void SetWallToWallOption(WallToWallOption value) override;
 
-	bool KeepLotZoneSizes() const override;
+	LotZoningOptions GetLotZoningOptions() const override;
 
 	// Private data
 
@@ -56,11 +56,13 @@ private:
 		True
 	};
 
+	void SetLotZoningOption(LotZoningOptions option, bool value);
+
 	cISC4TractDeveloper* pTractDeveloper;
 	bool automaticallyMarkBuildingsAsHistorical;
 	bool automaticallyGrowifyPloppedBuildings;
 	WallToWallOption wallToWallOption;
-	bool keepLotZoneSizes;
+	LotZoningOptions lotZoningOption;
 	KickOutLowerWealthOption kickOutLowerWealthOption;
 };
 

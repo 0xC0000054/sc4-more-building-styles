@@ -66,3 +66,13 @@ static constexpr uint32_t KickOutLowerWealthButtonID = 0x100;
 // A check box that controls whether the tract developer will kick out lower wealth occupants.
 // Unchecked will kick out lower wealth occupants.
 static constexpr uint32_t NoKickOutLowerWealthButtonID = 0x101;
+// A check box that allows the user to disable the game's standard behavior of possibly
+// combining multiple smaller lots into one large lot when redeveloping.
+// The Keep Lot Zone Sizes check box toggles both this option and the Disable Lot Subdivision
+// option.
+static constexpr uint32_t DisableLotAggregationButtonID = 0x102;
+// A check box that allows the user to disable the game's standard behavior of possibly
+// subdividing one large lot into multiple smaller lots when redeveloping.
+// The Keep Lot Zone Sizes check box toggles both this option and the Disable Lot Aggregation
+// option.
+static constexpr uint32_t DisableLotSubdivisionButtonID = 0x103;

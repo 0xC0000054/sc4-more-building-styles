@@ -756,9 +756,9 @@ static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 	}
 }
 
-static bool __fastcall PreventLotAggregationAndSubdivision(cISC4BuildingOccupant::PurposeType purposeType, void* edxUnused)
+static LotZoningOptions __fastcall GetLotZoningOptions(cISC4BuildingOccupant::PurposeType purposeType, void* edxUnused)
 {
-	bool result = false;
+	LotZoningOptions result = LotZoningOptionNone;
 
 	// Lot aggregation and subdivision is only disabled for the residential and commercial building purpose types.
 	//
@@ -772,7 +772,27 @@ static bool __fastcall PreventLotAggregationAndSubdivision(cISC4BuildingOccupant
 	case cISC4BuildingOccupant::PurposeType::Residence:
 	case cISC4BuildingOccupant::PurposeType::Services:
 	case cISC4BuildingOccupant::PurposeType::Office:
-		result = spBuildingSelectWinManager->GetContext().KeepLotZoneSizes();
+		result = spBuildingSelectWinManager->GetContext().GetLotZoningOptions();
+		break;
+	}
+
+	return result;
+}
+
+static bool __fastcall DisableLotSubdivisionForPurposeType(cISC4BuildingOccupant::PurposeType purposeType, void* edxUnused)
+{
+	bool result = false;
+
+	switch (purposeType)
+	{
+	case cISC4BuildingOccupant::PurposeType::Residence:
+	case cISC4BuildingOccupant::PurposeType::Services:
+	case cISC4BuildingOccupant::PurposeType::Office:
+		result = (spBuildingSelectWinManager->GetContext().GetLotZoningOptions() & LotZoningOptionDisableSubdivision) != 0;
+		break;
+	case cISC4BuildingOccupant::PurposeType::Agriculture:
+		// Agriculture lots don't support subdivision.
+		result = true;
 		break;
 	}
 
@@ -816,9 +836,11 @@ static void NAKED_FUN Grow_LotAggregationAndSubdivisionHook()
 	{
 		// The original code doesn't do any pushes, so we don't either.
 		mov ecx, dword ptr[esp + 0x24] // building purpose type
-		call PreventLotAggregationAndSubdivision // (fastcall)
-		test al, al
-		jnz afterLotSubdivision
+		call GetLotZoningOptions // (fastcall)
+		cmp eax, LotZoningOptionDisableAggregationAndSubdivision
+		jz afterLotSubdivision
+		cmp eax, LotZoningOptionDisableAggregation
+		jz lotSubdivision
 		mov ecx, esi
 		call ListCandidateLots_Aggregation_Proxy // (fastcall)
 		cmp eax, dword ptr [esp + 0x14]
@@ -826,8 +848,10 @@ static void NAKED_FUN Grow_LotAggregationAndSubdivisionHook()
 		mov dword ptr[esp + 0x14], eax
 
 		lotSubdivision:
-		cmp dword ptr[esp + 0x24], 5 // Agriculture lots don't support subdivision.
-		jz afterLotSubdivision
+		mov ecx, dword ptr[esp + 0x24] // building purpose type
+		call DisableLotSubdivisionForPurposeType // (fastcall)
+		test al, al
+		jnz afterLotSubdivision
 		mov ecx, esi
 		call ListCandidateLots_Subdivision_Proxy // (fastcall)
 		cmp eax, dword ptr[esp + 0x14]
