@@ -175,6 +175,7 @@ static bool ProcessOptionalUIButton(
 	case AutoGrowifyButtonID:
 	case KeepLotZoneSizesButtonID:
 	case KickOutLowerWealthButtonID:
+	case NoKickOutLowerWealthButtonID:
 		UpdateOptionalCheckBox(pThis, buttonID);
 		return true;
 	case WallToWallMixedRadioButtonID:
@@ -342,6 +343,7 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 	InitializeOptionalCheckBox(this, AutoGrowifyButtonID, context);
 	InitializeOptionalCheckBox(this, KeepLotZoneSizesButtonID, context);
 	InitializeOptionalCheckBox(this, KickOutLowerWealthButtonID, context);
+	InitializeOptionalCheckBox(this, NoKickOutLowerWealthButtonID, context);
 	UpdateWallToWallRadioButtons(this, context.GetWallToWallOption(), /*setContextOption*/false);
 
 	EnableStyleButtons();

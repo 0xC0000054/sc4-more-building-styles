@@ -289,6 +289,9 @@ bool BuildingSelectWinContext::GetOptionalCheckBoxState(uint32_t buttonID) const
 	case KickOutLowerWealthButtonID:
 		result = kickOutLowerWealthOption == KickOutLowerWealthOption::True;
 		break;
+	case NoKickOutLowerWealthButtonID:
+		result = kickOutLowerWealthOption == KickOutLowerWealthOption::False;
+		break;
 	}
 
 	return result;
@@ -310,6 +313,10 @@ void BuildingSelectWinContext::SetOptionalCheckBoxState(uint32_t buttonID, bool 
 	case KickOutLowerWealthButtonID:
 		kickOutLowerWealthOption = checked ? KickOutLowerWealthOption::True : KickOutLowerWealthOption::False;
 		TractDeveloperHooks::SetKickOutLowerWealthValue(pTractDeveloper, checked);
+		break;
+	case NoKickOutLowerWealthButtonID:
+		kickOutLowerWealthOption = checked ? KickOutLowerWealthOption::False : KickOutLowerWealthOption::True;
+		TractDeveloperHooks::SetKickOutLowerWealthValue(pTractDeveloper, !checked);
 		break;
 	}
 }

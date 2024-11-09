@@ -65,6 +65,7 @@ namespace
 		switch (buttonID)
 		{
 		case KickOutLowerWealthButtonID:
+		case NoKickOutLowerWealthButtonID:
 			hideCheckBox = false;
 			break;
 		}

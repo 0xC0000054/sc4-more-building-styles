@@ -94,11 +94,22 @@ When this option is disabled (the default), SC4 will use its standard behavior o
 residential and commercial zones to fit its chosen lot.    
 This check box uses the reserved id value `0x3621731B`.
 
-## Kick Out Lower Wealth Check Box
+## Kick Out Lower Wealth Check Boxes
 
-The DLL supports an optional check box that allows the user to change whether the game will kick out lower
+The DLL supports optional check boxes that allow the user to change whether the game will kick out lower
 wealth occupants when redeveloping.
-This check box uses the reserved id value `0x100`.
+These check boxes come in two versions that have the opposite behavior when checked, the UI developer can
+pick which one to use.
+
+### Kick Out Lower Wealth Check Box
+
+This check box will allow the game to kick out lower wealth occupants when checked, and prevent that behavior when
+unchecked. This check box uses the reserved id value `0x100`.
+
+### No Kick Out Lower Wealth Check Box
+
+This check box will prevent the game from kicking out lower wealth occupants when checked, and allow that behavior when
+unchecked. This check box uses the reserved id value `0x101`.
 
 ## Cheat Codes
 
