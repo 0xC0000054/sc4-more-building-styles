@@ -17,6 +17,21 @@ class cISC4TractDeveloper;
 class cISC4BuildingDevelopmentSimulator : public cIGZUnknown
 {
 	public:
+		class ConstructionProfile
+		{
+		public:
+			uint32_t type;
+			uint32_t unknown1;
+			cISC4BuildingOccupant::WealthType wealth;
+			cISC4BuildingOccupant::PurposeType purpose;
+			uint8_t landValueRangeMin;
+			uint8_t landValueRangeMax;
+			uint32_t buildingType;
+			uint32_t unknown2;
+			uint32_t lotX;
+			uint32_t lotZ;
+		};
+
 		enum class DeveloperType : uint32_t
 		{
 			None = 0,

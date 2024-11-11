@@ -20,7 +20,8 @@
 Preferences::Preferences()
 	: logBuildingStyleSelection(false),
 	  logLotStyleSelection(false),
-	  logGrowableFunctions(false)
+	  logGrowableFunctions(false),
+	  logCandidateLots(false)
 {
 }
 
@@ -44,6 +45,11 @@ bool Preferences::LogGrowableFunctions() const
 	return logGrowableFunctions;
 }
 
+bool Preferences::LogCandidateLots() const
+{
+	return logCandidateLots;
+}
+
 void Preferences::LoadPreferencesFromDllConfigFile()
 {
 	Logger& logger = Logger::GetInstance();
@@ -63,6 +69,7 @@ void Preferences::LoadPreferencesFromDllConfigFile()
 			logBuildingStyleSelection = tree.get<bool>("DebugLogging.BuildingStyleSelection");
 			logLotStyleSelection = tree.get<bool>("DebugLogging.LotStyleSelection");
 			logGrowableFunctions = tree.get<bool>("DebugLogging.GrowableFunctions");
+			logCandidateLots = tree.get<bool>("DebugLogging.CandidateLots");
 		}
 		else
 		{

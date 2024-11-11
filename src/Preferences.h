@@ -24,6 +24,7 @@ public:
 	bool LogBuildingStyleSelection() const;
 	bool LogLotStyleSelection() const;
 	bool LogGrowableFunctions() const;
+	bool LogCandidateLots() const;
 
 private:
 	void LoadPreferencesFromDllConfigFile();
@@ -31,5 +32,6 @@ private:
 	bool logBuildingStyleSelection;
 	bool logLotStyleSelection;
 	bool logGrowableFunctions;
+	bool logCandidateLots;
 };
 

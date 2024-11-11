@@ -20,6 +20,8 @@
 #include "cISCPropertyHolder.h"
 #include "cISC4BuildingDevelopmentSimulator.h"
 #include "cISC4BuildingOccupant.h"
+#include "cISC4GrowthDeveloper.h"
+#include "cISC4Lot.h"
 #include "cISC4LotConfiguration.h"
 #include "cRZAutoRefCount.h"
 #include "GlobalPointers.h"
@@ -27,6 +29,7 @@
 #include "Logger.h"
 #include "Patcher.h"
 #include "PropertyIDs.h"
+#include "SC4Rect.h"
 #include "SC4String.h"
 #include "SC4Vector.h"
 #include "SC4VersionDetection.h"
@@ -37,6 +40,47 @@
 
 struct cSC4TractDeveloper
 {
+	struct CandidateLot
+	{
+		enum class DevelopmentType : uint32_t
+		{
+			TakeOverAbandoned = 1,
+			LotSameSize = 2,
+			LotAggregation = 3,
+			LotSubdivision = 4,
+		};
+
+		DevelopmentType developmentType;			// 0x0
+		cISC4Lot* pExistingLot;						// 0x4
+		uint32_t lotLocationX;						// 0x8
+		uint32_t lotLocationZ;						// 0xc
+		uint32_t facing;							// 0x10
+		uint8_t lotSizeX;							// 0x14
+		uint8_t lotSizeZ;							// 0x15
+		uint32_t lotSet[3];							// 0x18 - set<cISC4Lot*>
+		int32_t totalNonVacantCapacity;				// 0x24
+		int32_t totalVacantCapacity;				// 0x28
+		uint32_t growthStage;						// 0x2c
+		cISC4BuildingOccupant::WealthType wealth;	// 0x30
+		float score;								// 0x34
+		SC4Rect<int32_t> lotBounds;					// 0x38
+		uint8_t unknown1[0x28];
+		// The following 4 vectors appear to be network related.
+		// Tracking Road/street connections for each side of the lot?
+		SC4Vector<uint32_t> field_0x70;				// 0x70
+		SC4Vector<uint32_t> field_0x7c;				// 0x7c
+		SC4Vector<uint32_t> field_0x88;				// 0x88
+		SC4Vector<uint32_t> field_0x94;				// 0x94
+		uint8_t field_0xa0;							// 0xa0
+	};
+
+	static_assert(sizeof(CandidateLot) == 0xa4);
+	static_assert(offsetof(CandidateLot, pExistingLot) == 0x4);
+	static_assert(offsetof(CandidateLot, lotSet) == 0x18);
+	static_assert(offsetof(CandidateLot, lotBounds) == 0x38);
+	static_assert(offsetof(CandidateLot, field_0x70) == 0x70);
+	static_assert(offsetof(CandidateLot, field_0xa0) == 0xa0);
+
 	void* vtable;												// 0x0
 	void* messageTarget2;										// 0x4
 	void* gzSerialzable;										// 0x8
@@ -66,7 +110,8 @@ struct cSC4TractDeveloper
 	SC4Vector<uint32_t> availableStyles;						// 0x70
 	int yearsBetweenStyles;										// 0x7c
 	// end tunable values
-	uint8_t unknown1[0x98];										// 0x80 - 0x117
+	cISC4GrowthDeveloper* pCurrentDeveloper;					// 0x80
+	uint8_t unknown1[0x94];										// 0x84 - 0x117
 	SC4Vector<uint32_t> activeStyles;							// 0x118
 	uint32_t currentStyleIndex;									// 0x124
 	uint32_t yearsPassed;										// 0x128
@@ -641,11 +686,171 @@ static bool BuildingHasStyleValue(
 	return false;
 }
 
+static const char* const GetCurrentDeveloperDescription(const cSC4TractDeveloper* pThis)
+{
+	switch (pThis->pCurrentDeveloper->GetSubType())
+	{
+	case 0x1010:
+		return "R§";
+	case 0x1020:
+		return "R§§";
+	case 0x1030:
+		return "R§§§";
+	case 0x3110:
+		return "Cs§";
+	case 0x3120:
+		return "Cs§§";
+	case 0x3130:
+		return "Cs§§§";
+	case 0x3320:
+		return "Co§§";
+	case 0x3330:
+		return "Co§§§";
+	case 0x4100:
+		return "IR";
+	case 0x4200:
+		return "ID";
+	case 0x4300:
+		return "IM";
+	case 0x4400:
+		return "IHT";
+	default:
+		return "Unknown";
+	}
+}
+
+static const char* const GetDevelopmentTypeDescription(const cSC4TractDeveloper::CandidateLot* pCandidateLot)
+{
+	switch (pCandidateLot->developmentType)
+	{
+	case cSC4TractDeveloper::CandidateLot::DevelopmentType::TakeOverAbandoned:
+		return "Take Over Abandoned";
+	case cSC4TractDeveloper::CandidateLot::DevelopmentType::LotSameSize:
+		return "Same Size Lot";
+	case cSC4TractDeveloper::CandidateLot::DevelopmentType::LotAggregation:
+		return "Lot Aggregation";
+	case cSC4TractDeveloper::CandidateLot::DevelopmentType::LotSubdivision:
+		return "Lot Subdivision";
+	default:
+		return "Unknown";
+	}
+}
+
+static const char* const GetLotStateString(cISC4Lot::HabitationState state)
+{
+	switch (state)
+	{
+	case cISC4Lot::HabitationState::Created:
+		return "Created";
+	case cISC4Lot::HabitationState::Ready:
+		return "Ready";
+	case cISC4Lot::HabitationState::Constructing:
+		return "Constructing";
+	case cISC4Lot::HabitationState::Occupied:
+		return "Occupied";
+	case cISC4Lot::HabitationState::Vacant:
+		return "Vacant";
+	case cISC4Lot::HabitationState::Destructing:
+		return "Destructing";
+	case cISC4Lot::HabitationState::Destroyed:
+		return "Destroyed";
+	default:
+		return "Unknown";
+	}
+}
+
+static void LogCandidateLotInfo(
+	const cSC4TractDeveloper* pThis,
+	const cSC4TractDeveloper::CandidateLot* pCandidateLot)
+{
+	if (spPreferences->LogCandidateLots())
+	{
+		Logger& logger = Logger::GetInstance();
+
+		if (pCandidateLot->pExistingLot)
+		{
+			cISC4Lot* pLot = pCandidateLot->pExistingLot;
+
+			const cISC4Lot::HabitationState state = pLot->GetState();
+
+			logger.WriteLineFormatted(
+				LogLevel::Info,
+				"Developer=%s | Development-type=%s | cellX=%u | cellZ=%u | sizeX=%u | sizeZ=%u"
+				" | facing=%u | bounds=[%u, %u, %u, %u] | lot-state=%s (%u) | slope=%f | score=%f",
+				GetCurrentDeveloperDescription(pThis),
+				GetDevelopmentTypeDescription(pCandidateLot),
+				pCandidateLot->lotLocationX,
+				pCandidateLot->lotLocationZ,
+				pCandidateLot->lotSizeX,
+				pCandidateLot->lotSizeZ,
+				pCandidateLot->facing,
+				pCandidateLot->lotBounds.topLeftX,
+				pCandidateLot->lotBounds.topLeftY,
+				pCandidateLot->lotBounds.bottomRightX,
+				pCandidateLot->lotBounds.bottomRightY,
+				GetLotStateString(state),
+				static_cast<uint32_t>(state),
+				pLot->GetSlope(),
+				pCandidateLot->score);
+
+			if (state == cISC4Lot::HabitationState::Occupied || state == cISC4Lot::HabitationState::Vacant)
+			{
+				cISC4BuildingOccupant* pBuilding = pLot->GetBuilding();
+				cISC4LotConfiguration* pLotConfig = pLot->GetLotConfiguration();
+
+				if (pBuilding && pLotConfig)
+				{
+					cRZBaseString lotName;
+					pLotConfig->GetName(lotName);
+
+					const cIGZString* pExemplarName = pBuilding->GetExemplarName();
+					const cIGZString* pBuildingName = pBuilding->GetBuildingName();
+
+					if (pExemplarName && pBuildingName)
+					{
+						logger.WriteLineFormatted(
+							LogLevel::Info,
+							"  Existing Lot: id=0x%08X | name=%s -- Building: id = 0x%08X"
+							" | exemplar-name = %s | display-name = %s",
+							pLotConfig->GetID(),
+							lotName.ToChar(),
+							pBuilding->GetBuildingType(),
+							pExemplarName->ToChar(),
+							pBuildingName->ToChar());
+					}
+				}
+			}
+		}
+		else
+		{
+			logger.WriteLineFormatted(
+				LogLevel::Info,
+				"Developer=%s | Development-type=%s | cellX=%u | cellZ=%u | sizeX=%u | sizeZ=%u"
+				" | facing=%u | bounds=[%u, %u, %u, %u] | score=%f",
+				GetCurrentDeveloperDescription(pThis),
+				GetDevelopmentTypeDescription(pCandidateLot),
+				pCandidateLot->lotLocationX,
+				pCandidateLot->lotLocationZ,
+				pCandidateLot->lotSizeX,
+				pCandidateLot->lotSizeZ,
+				pCandidateLot->facing,
+				pCandidateLot->lotBounds.topLeftX,
+				pCandidateLot->lotBounds.topLeftY,
+				pCandidateLot->lotBounds.bottomRightX,
+				pCandidateLot->lotBounds.bottomRightY,
+				pCandidateLot->score);
+		}
+	}
+}
+
 static bool BuildingHasStyleOccupantGroup(
 	const cSC4TractDeveloper* pThis,
 	uint32_t buildingType,
-	cISC4BuildingOccupant::PurposeType purpose)
+	cISC4BuildingOccupant::PurposeType purpose,
+	const cSC4TractDeveloper::CandidateLot* pCandidateLot)
 {
+	LogCandidateLotInfo(pThis, pCandidateLot);
+
 	bool result = false;
 
 	cGZPersistResourceKey key;
@@ -731,12 +936,14 @@ static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 		add esp, 12
 		test al, al
 		jz compatableStyleFound // If building styles are not supported report that the style is compatible
+		mov ecx, dword ptr[esp - 0xc + 0x10 + 0x3c]
+		push ecx // CandidateLot pointer
 		mov eax, dword ptr[edi]
 		push eax // purpose
 		push ebp // building type
 		push esi // this pointer
 		call BuildingHasStyleOccupantGroup
-		add esp, 12
+		add esp, 16
 		test al, al
 		jz noCompatableStyleFound
 		compatableStyleFound:

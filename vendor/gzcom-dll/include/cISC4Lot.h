@@ -1,5 +1,6 @@
 #pragma once
 #include "cIGZUnknown.h"
+#include "cISC4BuildingOccupant.h"
 #include "cISC4ZoneManager.h"
 #include <list>
 #include <map>
@@ -20,6 +21,28 @@ static const uint32_t GZIID_cISC4Lot = 0xE818FCED;
 class cISC4Lot : public cIGZUnknown
 {
 	public:
+		enum class HabitationState : uint32_t
+		{
+			Created = 0,
+			Ready = 1,
+			Constructing = 2,
+			Occupied = 3,
+			Vacant = 4,
+			Destructing = 5,
+			Destroyed = 6
+		};
+
+		enum class VacateReason : int8_t
+		{
+			None = 0,
+			LowDesirability = 1,
+			NoPower = 2,
+			NoWater = 3,
+			CommuteTime = 4,
+			KickOutOccupants = 5,
+			LowDemand = 6
+		};
+
 		virtual cISCPropertyHolder* AsPropertyHolder(void) = 0;
 		virtual cISC4TrafficSource* AsTrafficSource(void) = 0;
 
@@ -63,8 +86,8 @@ class cISC4Lot : public cIGZUnknown
 		virtual cISC4ZoneManager::ZoneType GetZoneType(void) = 0;
 		virtual bool UpdateZoneType(void) = 0;
 
-		virtual uint32_t GetState(void) = 0;
-		virtual bool SetState(uint32_t dwHabitationState, uint32_t dwWealthType, int8_t cVacateReason) = 0;
+		virtual HabitationState GetState(void) = 0;
+		virtual bool SetState(HabitationState dwHabitationState, cISC4BuildingOccupant::WealthType dwWealthType, VacateReason cVacateReason) = 0;
 
 		virtual uint32_t GetCondition(void) = 0;
 		virtual bool SetCondition(uint32_t dwBuildingCondition) = 0;
@@ -81,7 +104,7 @@ class cISC4Lot : public cIGZUnknown
 		virtual bool IsHistorical(void) = 0;
 		virtual bool SetHistorical(bool bHistorical) = 0;
 
-		virtual int8_t GetVacateReason(void) = 0;
+		virtual VacateReason GetVacateReason(void) = 0;
 
 		virtual uint32_t GetBuildingType(bool bUnknown) = 0;
 		virtual bool SetBuildingType(uint32_t dwBuildingType) = 0;

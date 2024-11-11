@@ -290,6 +290,9 @@
     <ClInclude Include="public\include\cIBuildingStyleInfo2.h">
       <Filter>Header Files\Public Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\vendor\gzcom-dll\include\cISC4GrowthDeveloper.h">
+      <Filter>Header Files\GZCOM</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
