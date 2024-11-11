@@ -15,33 +15,9 @@
 
 namespace
 {
-	std::string GetTimeStamp()
-	{
-		char buffer[1024]{};
-
-		GetTimeFormatA(
-			LOCALE_USER_DEFAULT,
-			0,
-			nullptr,
-			nullptr,
-			buffer,
-			_countof(buffer));
-
-		std::string time(buffer);
-
-		// Add a space to the end of the time string if it doe not have one.
-		if (time.size() > 0 && time[time.size() - 1] != ' ')
-		{
-			time.append(1, ' ');
-		}
-
-		return time;
-	}
-
 #ifdef _DEBUG
-	void PrintLineToDebugOutput(const char* timeStamp, const char* line)
+	void PrintLineToDebugOutput(const char* line)
 	{
-		OutputDebugStringA(timeStamp);
 		OutputDebugStringA(line);
 		OutputDebugStringA("\n");
 	}
@@ -135,12 +111,10 @@ void Logger::WriteLineCore(const char* const message)
 {
 	if (initialized && logFile)
 	{
-		std::string timeStamp = GetTimeStamp();
-
 #ifdef _DEBUG
-		PrintLineToDebugOutput(timeStamp.c_str(), message);
+		PrintLineToDebugOutput(message);
 #endif // _DEBUG
 
-		logFile << timeStamp << message << std::endl;
+		logFile << message << '\n';
 	}
 }
