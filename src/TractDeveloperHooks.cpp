@@ -23,6 +23,7 @@
 #include "cISC4GrowthDeveloper.h"
 #include "cISC4Lot.h"
 #include "cISC4LotConfiguration.h"
+#include "cISC4Occupant.h"
 #include "cRZAutoRefCount.h"
 #include "GlobalPointers.h"
 #include "GZServPtrs.h"
@@ -34,6 +35,8 @@
 #include "SC4Vector.h"
 #include "SC4VersionDetection.h"
 #include "WallToWallOccupantGroups.h"
+#include <format>
+#include <optional>
 #include <span>
 
 #include "wil/result.h"
@@ -843,6 +846,160 @@ static void LogCandidateLotInfo(
 	}
 }
 
+static std::string PrintBuildingStyles(
+	const BuildingStyleCollection& availableStyles,
+	const PropertyData& propertyData)
+{
+	std::string result;
+
+	if (propertyData.values.empty())
+	{
+		if (availableStyles.find_style(propertyData.value) != availableStyles.end())
+		{
+			result = std::format("0x{:08X}", propertyData.value);
+		}
+	}
+	else
+	{
+		bool firstItem = true;
+
+		for (const uint32_t& item : propertyData.values)
+		{
+			if (availableStyles.find_style(item) != availableStyles.end())
+			{
+				if (firstItem)
+				{
+					firstItem = false;
+				}
+				else
+				{
+					result.append(" | ");
+				}
+
+				result.append(std::format("0x{:08X}", item));
+			}
+		}
+	}
+
+	return result;
+}
+
+static void LogStyleMatchInfo(
+	const BuildingStyleCollection& availableStyles,
+	bool result,
+	const PropertyData& oldBuildingStyles,
+	const PropertyData& newBuildingStyles)
+{
+	if (spPreferences->LogBuildingStyleSelection())
+	{
+		const char* const status = result ? "match at least one of" : "do not match at least one of";
+
+		Logger::GetInstance().WriteLineFormatted(
+			LogLevel::Info,
+			"New building styles [ %s ] %s the old building styles [ %s ].",
+			PrintBuildingStyles(availableStyles, newBuildingStyles).c_str(),
+			status,
+			PrintBuildingStyles(availableStyles, oldBuildingStyles).c_str());
+	}
+}
+
+static std::optional<bool> StylesMatch(
+	const BuildingStyleCollection& availableStyles,
+	const PropertyData& newBuildingStyles,
+	const PropertyData& oldBuildingStyles)
+{
+	std::optional<bool> result;
+
+	if (newBuildingStyles.values.empty())
+	{
+		const uint32_t style = newBuildingStyles.value;
+
+		if (availableStyles.find_style(style) != availableStyles.end())
+		{
+			result = oldBuildingStyles.Contains(style);
+		}
+	}
+	else
+	{
+		for (const uint32_t& style : newBuildingStyles.values)
+		{
+			if (availableStyles.find_style(style) != availableStyles.end())
+			{
+				result = oldBuildingStyles.Contains(style);
+
+				if (result.value())
+				{
+					break;
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+static std::optional<bool> StyleMatchesExistingLot(const cISC4Lot* pLot, const PropertyData& newBuildingStyles)
+{
+	std::optional<bool> result;
+
+	if (pLot)
+	{
+		cISC4BuildingOccupant* pBuilding = pLot->GetBuilding();
+
+		if (pBuilding)
+		{
+			const cISCPropertyHolder* pPropertyHolder = pBuilding->AsOccupant()->AsPropertyHolder();
+
+			if (pPropertyHolder)
+			{
+				const cISCProperty* pProperty = pPropertyHolder->GetProperty(kBuildingStylesProperty);
+
+				if (pProperty)
+				{
+					const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+					if (pVariant)
+					{
+						const BuildingStyleCollection& availableStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
+
+						const PropertyData oldBuildingStyles(*pVariant);
+						result = StylesMatch(availableStyles, newBuildingStyles, oldBuildingStyles);
+
+						if (result.has_value())
+						{
+							LogStyleMatchInfo(availableStyles, result.value(), oldBuildingStyles, newBuildingStyles);
+						}
+					}
+				}
+				else
+				{
+					pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
+
+					if (pProperty)
+					{
+						const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+						if (pVariant)
+						{
+							const BuildingStyleCollection& availableStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
+
+							const PropertyData oldBuildingStyles(*pVariant);
+							result = StylesMatch(availableStyles, newBuildingStyles, oldBuildingStyles);
+
+							if (result.has_value())
+							{
+								LogStyleMatchInfo(availableStyles, result.value(), oldBuildingStyles, newBuildingStyles);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
 static bool BuildingHasStyleOccupantGroup(
 	const cSC4TractDeveloper* pThis,
 	uint32_t buildingType,
@@ -883,6 +1040,18 @@ static bool BuildingHasStyleOccupantGroup(
 								buildingType,
 								propertyData,
 								purpose);
+
+							if (result && spBuildingSelectWinManager->GetContext().PreventCrossStyleRedevelopment())
+							{
+								std::optional<bool> styleMatches = StyleMatchesExistingLot(
+									pCandidateLot->pExistingLot,
+									propertyData);
+
+								if (styleMatches.has_value())
+								{
+									result = styleMatches.value();
+								}
+							}
 						}
 					}
 					else
@@ -902,6 +1071,18 @@ static bool BuildingHasStyleOccupantGroup(
 									buildingType,
 									propertyData,
 									purpose);
+
+								if (result && spBuildingSelectWinManager->GetContext().PreventCrossStyleRedevelopment())
+								{
+									std::optional<bool> styleMatches = StyleMatchesExistingLot(
+										pCandidateLot->pExistingLot,
+										propertyData);
+
+									if (styleMatches.has_value())
+									{
+										result = styleMatches.value();
+									}
+								}
 							}
 						}
 					}

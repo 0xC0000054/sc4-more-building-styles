@@ -118,6 +118,12 @@ When this option is disabled (the default), SC4 will use its standard behavior o
 commercial zones to fit its chosen lot.    
 This check box uses the reserved id value `0x103`.
 
+## Prevent Cross-Style Redevelopment Check Box
+
+The DLL supports an optional check box that attempts to prevent the game from replacing an existing lot with one
+that has a different building style.
+This check box uses the reserved id value `0x104`.
+
 ## Kick Out Lower Wealth Check Boxes
 
 The DLL supports optional check boxes that allow the user to change whether the game will kick out lower

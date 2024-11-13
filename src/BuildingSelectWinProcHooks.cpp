@@ -206,6 +206,7 @@ static bool ProcessOptionalUIButton(
 	case AutoGrowifyButtonID:
 	case KickOutLowerWealthButtonID:
 	case NoKickOutLowerWealthButtonID:
+	case PreventCrossStyleRedevelopmentButtonID:
 		UpdateOptionalCheckBox(pThis, buttonID);
 		return true;
 	case KeepLotZoneSizesButtonID:
@@ -381,6 +382,7 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 	InitializeOptionalCheckBox(this, NoKickOutLowerWealthButtonID, context);
 	InitializeOptionalCheckBox(this, DisableLotAggregationButtonID, context);
 	InitializeOptionalCheckBox(this, DisableLotSubdivisionButtonID, context);
+	InitializeOptionalCheckBox(this, PreventCrossStyleRedevelopmentButtonID, context);
 	UpdateWallToWallRadioButtons(this, context.GetWallToWallOption(), /*setContextOption*/false);
 
 	EnableStyleButtons();

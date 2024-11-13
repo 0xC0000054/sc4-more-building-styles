@@ -42,6 +42,8 @@ private:
 
 	LotZoningOptions GetLotZoningOptions() const override;
 
+	bool PreventCrossStyleRedevelopment() const override;
+
 	// Private data
 
 	enum class KickOutLowerWealthOption : uint8_t
@@ -64,5 +66,6 @@ private:
 	WallToWallOption wallToWallOption;
 	LotZoningOptions lotZoningOption;
 	KickOutLowerWealthOption kickOutLowerWealthOption;
+	bool preventCrossStyleRedevelopment;
 };
 

@@ -155,7 +155,8 @@ BuildingSelectWinContext::BuildingSelectWinContext()
 	  automaticallyGrowifyPloppedBuildings(false),
 	  wallToWallOption(WallToWallOption::Mixed),
 	  lotZoningOption(LotZoningOptionNone),
-	  kickOutLowerWealthOption(KickOutLowerWealthOption::Unknown)
+	  kickOutLowerWealthOption(KickOutLowerWealthOption::Unknown),
+	  preventCrossStyleRedevelopment(false)
 {
 }
 
@@ -180,7 +181,16 @@ void BuildingSelectWinContext::LoadFromDBSegment(cIGZPersistDBSegment* pSegment)
 
 				if (pSC4IStream->GetUint32(version))
 				{
-					if (version == 6)
+					if (version == 7)
+					{
+						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
+						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
+						ReadEnum(pSC4IStream, wallToWallOption);
+						ReadEnum(pSC4IStream, lotZoningOption);
+						ReadEnum(pSC4IStream, kickOutLowerWealthOption);
+						ReadBoolean(pSC4IStream, preventCrossStyleRedevelopment);
+					}
+					else if (version == 6)
 					{
 						ReadBoolean(pSC4IStream, automaticallyMarkBuildingsAsHistorical);
 						ReadBoolean(pSC4IStream, automaticallyGrowifyPloppedBuildings);
@@ -241,12 +251,13 @@ void BuildingSelectWinContext::SaveToDBSegment(cIGZPersistDBSegment* pSegment) c
 
 			if (pSC4DBSegment->OpenOStream(key, pSC4OStream.AsPPObj(), true))
 			{
-				pSC4OStream->SetUint32(6); // version
+				pSC4OStream->SetUint32(7); // version
 				WriteBoolean(pSC4OStream, automaticallyMarkBuildingsAsHistorical);
 				WriteBoolean(pSC4OStream, automaticallyGrowifyPloppedBuildings);
 				WriteEnum(pSC4OStream, wallToWallOption);
 				WriteEnum(pSC4OStream, lotZoningOption);
 				WriteEnum(pSC4OStream, kickOutLowerWealthOption);
+				WriteBoolean(pSC4OStream, preventCrossStyleRedevelopment);
 			}
 		}
 	}
@@ -315,6 +326,9 @@ bool BuildingSelectWinContext::GetOptionalCheckBoxState(uint32_t buttonID) const
 	case DisableLotSubdivisionButtonID:
 		result = (lotZoningOption & LotZoningOptionDisableSubdivision) == LotZoningOptionDisableSubdivision;
 		break;
+	case PreventCrossStyleRedevelopmentButtonID:
+		result = preventCrossStyleRedevelopment;
+		break;
 	}
 
 	return result;
@@ -347,6 +361,9 @@ void BuildingSelectWinContext::SetOptionalCheckBoxState(uint32_t buttonID, bool 
 	case DisableLotSubdivisionButtonID:
 		SetLotZoningOption(LotZoningOptionDisableSubdivision, checked);
 		break;
+	case PreventCrossStyleRedevelopmentButtonID:
+		preventCrossStyleRedevelopment = checked;
+		break;
 	}
 }
 
@@ -363,6 +380,11 @@ void BuildingSelectWinContext::SetWallToWallOption(WallToWallOption value)
 LotZoningOptions BuildingSelectWinContext::GetLotZoningOptions() const
 {
 	return lotZoningOption;
+}
+
+bool BuildingSelectWinContext::PreventCrossStyleRedevelopment() const
+{
+	return preventCrossStyleRedevelopment;
 }
 
 void BuildingSelectWinContext::SetLotZoningOption(LotZoningOptions option, bool value)

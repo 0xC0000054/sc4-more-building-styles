@@ -76,3 +76,7 @@ static constexpr uint32_t DisableLotAggregationButtonID = 0x102;
 // The Keep Lot Zone Sizes check box toggles both this option and the Disable Lot Aggregation
 // option.
 static constexpr uint32_t DisableLotSubdivisionButtonID = 0x103;
+// A check box that tries to prevent the game from changing the style of an existing building
+// when redeveloping.
+// Note that this may not always work.
+static constexpr uint32_t PreventCrossStyleRedevelopmentButtonID = 0x104;

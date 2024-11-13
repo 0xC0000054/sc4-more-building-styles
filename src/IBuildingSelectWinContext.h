@@ -46,4 +46,6 @@ public:
 	virtual void SetWallToWallOption(WallToWallOption value) = 0;
 
 	virtual LotZoningOptions GetLotZoningOptions() const = 0;
+
+	virtual bool PreventCrossStyleRedevelopment() const = 0;
 };
