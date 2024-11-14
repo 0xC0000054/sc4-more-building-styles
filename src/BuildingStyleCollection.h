@@ -29,8 +29,8 @@ public:
 	std::vector<BuildingStyleCollectionEntry>::iterator end();
 	std::vector<BuildingStyleCollectionEntry>::const_iterator end() const;
 
-	bool contains(uint32_t buttonID) const;
 	bool contains(const BuildingStyleCollectionEntry& entry) const;
+	bool contains_button(uint32_t buttonID) const;
 	bool empty() const;
 	std::vector<BuildingStyleCollectionEntry>::const_iterator find_button(uint32_t buttonID) const;
 	std::vector<BuildingStyleCollectionEntry>::const_iterator find_style(uint32_t styleID) const;

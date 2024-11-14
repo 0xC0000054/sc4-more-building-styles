@@ -259,7 +259,7 @@ void AvailableBuildingStyles::Initialize()
 
 bool AvailableBuildingStyles::IsStyleButtonIDValid(uint32_t buttonID) const
 {
-	return availableBuildingStyles.contains(buttonID);
+	return availableBuildingStyles.contains_button(buttonID);
 }
 
 const BuildingStyleCollection& AvailableBuildingStyles::GetBuildingStyles() const

@@ -61,7 +61,12 @@ std::vector<BuildingStyleCollectionEntry>::const_iterator BuildingStyleCollectio
 	return entries.end();
 }
 
-bool BuildingStyleCollection::contains(uint32_t buttonID) const
+bool BuildingStyleCollection::contains(const BuildingStyleCollectionEntry& entry) const
+{
+	return contains_button(entry.buttonID);
+}
+
+bool BuildingStyleCollection::contains_button(uint32_t buttonID) const
 {
 	const size_t count = entries.size();
 
@@ -74,11 +79,6 @@ bool BuildingStyleCollection::contains(uint32_t buttonID) const
 	}
 
 	return false;
-}
-
-bool BuildingStyleCollection::contains(const BuildingStyleCollectionEntry& entry) const
-{
-	return contains(entry.buttonID);
 }
 
 bool BuildingStyleCollection::empty() const
@@ -113,7 +113,7 @@ void BuildingStyleCollection::insert(
 	uint32_t styleID,
 	const cRZBaseString& styleName)
 {
-	if (!contains(buttonID))
+	if (!contains_button(buttonID))
 	{
 		entries.emplace_back(buttonID, styleID, styleName);
 	}
@@ -124,7 +124,7 @@ void BuildingStyleCollection::insert(
 	uint32_t styleID,
 	const cIGZString& styleName)
 {
-	if (!contains(buttonID))
+	if (!contains_button(buttonID))
 	{
 		entries.emplace_back(buttonID, styleID, styleName);
 	}
