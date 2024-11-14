@@ -68,17 +68,7 @@ bool BuildingStyleCollection::contains(const BuildingStyleCollectionEntry& entry
 
 bool BuildingStyleCollection::contains_button(uint32_t buttonID) const
 {
-	const size_t count = entries.size();
-
-	for (size_t i = 0; i < count; i++)
-	{
-		if (entries[i].buttonID == buttonID)
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return find_button(buttonID) != end();
 }
 
 bool BuildingStyleCollection::empty() const
