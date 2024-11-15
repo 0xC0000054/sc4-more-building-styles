@@ -71,6 +71,11 @@ bool BuildingStyleCollection::contains_button(uint32_t buttonID) const
 	return find_button(buttonID) != end();
 }
 
+bool BuildingStyleCollection::contains_style(uint32_t styleID) const
+{
+	return find_style(styleID) != end();
+}
+
 bool BuildingStyleCollection::empty() const
 {
 	return entries.empty();

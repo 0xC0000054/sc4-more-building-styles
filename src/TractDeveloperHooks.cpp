@@ -854,7 +854,7 @@ static std::string PrintBuildingStyles(
 
 	if (propertyData.values.empty())
 	{
-		if (availableStyles.find_style(propertyData.value) != availableStyles.end())
+		if (availableStyles.contains_style(propertyData.value))
 		{
 			result = std::format("0x{:08X}", propertyData.value);
 		}
@@ -865,7 +865,7 @@ static std::string PrintBuildingStyles(
 
 		for (const uint32_t& item : propertyData.values)
 		{
-			if (availableStyles.find_style(item) != availableStyles.end())
+			if (availableStyles.contains_style(item))
 			{
 				if (firstItem)
 				{
@@ -914,7 +914,7 @@ static std::optional<bool> StylesMatch(
 	{
 		const uint32_t style = newBuildingStyles.value;
 
-		if (availableStyles.find_style(style) != availableStyles.end())
+		if (availableStyles.contains_style(style))
 		{
 			result = oldBuildingStyles.Contains(style);
 		}
@@ -923,7 +923,7 @@ static std::optional<bool> StylesMatch(
 	{
 		for (const uint32_t& style : newBuildingStyles.values)
 		{
-			if (availableStyles.find_style(style) != availableStyles.end())
+			if (availableStyles.contains_style(style))
 			{
 				result = oldBuildingStyles.Contains(style);
 
