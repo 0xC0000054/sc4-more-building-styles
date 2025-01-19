@@ -11,135 +11,71 @@ This mod patches the game's memory to remove that restriction.
 
 ## Adding More Building Styles into SC4 
 
-Adding new style check boxes requires creating a patch that overrides the default
-Building Style Control UI, TGI `0x00000000,0x96a006b0,0x6bc61f19` in `SimCity_1.dat`.    
-After creating the patch you need to edit the UI to add more check boxes, or use the _BuildingStyles.ini_ file with a
-suitable Building Style Control UI template.
-The check box or style ID (e.g. `0x2003`) identifies the building style to the game.    
 The building style IDs are assigned in the [SimCity 4 Building Styles Index](https://community.simtropolis.com/forums/topic/763276-building-styles-master-iid/) thread, you will need to use the
-16 Maxis/community styles or request your own public and/or private building style ID range in that thread.   
-Finally you will need to update existing buildings to use the new building style IDs.
+16 Maxis/community styles or request your own public and/or private building style ID range in that thread.  
 
-## Building Styles Exemplar Property (0xAA1DD400)
+### Modifying the Building Styles UI
+
+The easiest way to get started is to download the Building Style UI template, but you can also create your own Building Style Control override plugin.
+
+#### Building Style UI Template
+
+A UI template is available [here](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/building_style_ui_template/CoriBoom_32_Slot_Building_Style_UI_v0.45_Gamma.dat), it uses [BuildingStyles.ini](https://github.com/0xC0000054/sc4-more-building-styles#buildingstyles-ini-file), and supports all of the new controls the DLL adds. 
+It was created by CorinaMarie and CycloneBoom at Simtropolis, the original source is [this post](https://community.simtropolis.com/forums/topic/762969-allow-more-building-styles-dll-plugin/?do=findComment&comment=1798030).    
+Once you have configured your styles in _BuildingStyles.ini_, see the section below on assigning buildings to custom styles.
+
+#### Creating a Custom Building Style UI
+
+1. Create a patch that overrides the default Building Style Control UI, TGI `0x00000000,0x96a006b0,0x6bc61f19` in `SimCity_1.dat`.    
+2. Edit the UI to add the style check boxes, and optionally the [new check boxes and radio buttons](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/docs/Building_Style_UI_Controls.md) that the DLL supports.
+The check box or style ID (e.g. `0x2003`) identifies the building style to the game.  
+3. See the section below on assigning buildings to custom styles.
+
+### Adding Buildings to Custom Building Styles
+
+This process is performed with ilive's Reader or PIMX.
+
+The building's intended styles should be added to the building exemplar using the _Building Styles_ property (property id 0xAA1DD400).
+The building will only grow when one or more of the custom or Maxis styles in that property is selected in the game's UI.
+The DLL will ignore the building styles in the _Occupant Groups_ property (property id 0xAA1DD396) when the _Building Styles_ property is present.
+
+For compatibility with players who are not using the DLL, the Maxis styles in the _Occupant Groups_ property should be left alone.
+If you are creating a new building, add the _Building Styles_ property for users with the DLL and set the _Occupant Groups_ property to one
+or more of the 4 Maxis styles for users without the DLL.
+
+For Wall-to-Wall (W2W) buildings, add the _Building Is Wall-to-Wall_ property (property id 0xAA1DD401) to the building's exemplar with the
+value set to _true_.
+If the _Building Is Wall-to-Wall_ property is not present or the value is set to false, the building will be treated as non-W2W.
+
+See the _Building Styles Exemplar Property (0xAA1DD400)_ and _Building Is Wall-to-Wall Exemplar Property (0xAA1DD401)_ sections for more details.
+
+## New Building Exemplar Properties
+
+The DLL adds the following exemplar properties to configure the custom building styles.
+
+### Building Styles Exemplar Property (0xAA1DD400)
 
 This property allows the custom building styles to be specified separately from the Maxis styles
 in the Occupant Groups property (0xAA1DD396).
 
-### Residential and Commercial Buildings
-
-The _Building Styles_ property is optional for custom building style support in residential and commercial buildings. 
+#### Residential and Commercial Buildings
 
 When the property is present, the building will use custom styles specified in the property and ignore
 the styles in the Occupant Groups property (0xAA1DD396).    
 When the property is not present, the building will use the custom and Maxis styles specified in the
 Occupant Groups property (0xAA1DD396).
 
-### Industrial Buildings
-
-The _Building Styles_ property is mandatory for custom building style support in industrial buildings. 
+#### Industrial Buildings
 
 When the property is present, the building will use custom styles specified in the property.    
 When the property is not present, the building will be treated as compatible with all styles.
 
-## Auto-Historical Check Box
-
-The DLL supports an optional check box that will automatically mark new growable lots that use building styles as historical.
-Industrial buildings are only marked as historical if industrial building styles are enabled for that building type.
-This check box uses the reserved id value `0x9476D8DA`.
-
-## Auto-Growify Check Box
-
-The DLL supports an optional check box that will automatically convert plopped growables to use a growable zone type.
-The growified lots will be marked as historical based on the value of the Auto-Historical check box described above.
-This check box uses the reserved id value `0xB510A368`.
-
-## Wall-to-Wall (W2W) Radio Buttons
-
-The DLL supports optional radio buttons that control how the game handles W2W buildings.
-The 3 radio buttons are as follows:
-
-Mixed, both W2W and non-W2W buildings will be built. This is SC4's default behavior, and will also be used if the radio buttons are not present. This radio button uses the reserved id value `0x31150389`.    
-W2W Only, only W2W buildings will be built. This radio button uses the reserved id value `0x3115038A`.    
-Block W2W, no W2W buildings will be built. This radio button uses the reserved id value `0x3115038B`.
-
-### Identifying W2W buildings 
-
-W2W buildings are identified using either of the following methods.
-
-#### Building Is Wall-to-Wall Exemplar Property (0xAA1DD401)
+### Building Is Wall-to-Wall Exemplar Property (0xAA1DD401)
 
 This is a Boolean property, a value of true indicates that the building is W2W.
 If the value is false or the property is not present, the building will not be considered W2W.
+This is the preferred method for identifying W2W buildings that do not already have one of the W2W occupant groups.
 
-#### Wall-to-Wall Occupant Groups
-
-If the building has any of the following values in its Occupant Groups property (0xAA1DD396),
-it indicates that the building is W2W.
-
-BTE: Ind. W2W:     `0xD02C802E`    
-BTE: Comm. W2W:    `0xB5C00A05`    
-BTE: Res. W2W:     `0xB5C00B05`    
-BTE: W2W General:  `0xB5C00DDE`    
-SFBT: Hamburg W2W: `0xB5C00F0A`    
-SFBT: Paris W2W:   `0xB5C00F0B`    
-
-## Keep Lot Zone Sizes Check Box
-
-The DLL supports an optional check box that stops the game from changing the user's zoned lot size in residential and
-commercial zones to fit the lot it picks.
-This check box combines the functionality of the _Disable Lot Aggregation_ and _Disable Lot Subdivision_ check boxes
-into a single control.
-
-When this option is enabled, it forces SC4 to only pick residential and/or commercial lots which have sizes matching
-the zoned area.
-When this option is disabled (the default), SC4 will use its standard behavior of aggregating or subdividing the
-residential and commercial zones to fit its chosen lot.    
-This check box uses the reserved id value `0x3621731B`.
-
-## Disable Lot Aggregation Check Box
-
-The DLL supports an optional check box that stops the game from aggregating multiple smaller lots into one larger lot
-in residential and commercial zones to fit the lot it picks.
-
-When this option is enabled, it forces SC4 to only pick residential and/or commercial lots which are the same size
-or smaller than the zoned area.
-When this option is disabled (the default), SC4 will use its standard behavior of aggregating the residential and
-commercial zones to fit its chosen lot.    
-This check box uses the reserved id value `0x102`.
-
-## Disable Lot Subdivision Check Box
-
-The DLL supports an optional check box that stops the game from subdividing one larger lot into multiple smaller lots
-in residential and commercial zones to fit the lot it picks.
-
-When this option is enabled, it forces SC4 to only pick residential and/or commercial lots which are the same size
-or larger than the zoned area.
-When this option is disabled (the default), SC4 will use its standard behavior of subdividing the residential and
-commercial zones to fit its chosen lot.    
-This check box uses the reserved id value `0x103`.
-
-## Prevent Cross-Style Redevelopment Check Box
-
-The DLL supports an optional check box that attempts to prevent the game from replacing an existing lot with one
-that has a different building style.
-This check box uses the reserved id value `0x104`.
-
-## Kick Out Lower Wealth Check Boxes
-
-The DLL supports optional check boxes that allow the user to change whether the game will kick out lower
-wealth occupants when redeveloping.
-These check boxes come in two versions that have the opposite behavior when checked, the UI developer can
-pick which one to use.
-
-### Kick Out Lower Wealth Check Box
-
-This check box will allow the game to kick out lower wealth occupants when checked, and prevent that behavior when
-unchecked. This check box uses the reserved id value `0x100`.
-
-### No Kick Out Lower Wealth Check Box
-
-This check box will prevent the game from kicking out lower wealth occupants when checked, and allow that behavior when
-unchecked. This check box uses the reserved id value `0x101`.
 
 ## Cheat Codes
 
