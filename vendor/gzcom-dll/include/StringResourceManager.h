@@ -35,7 +35,6 @@ namespace StringResourceManager
 		const StringResourceKey& key,
 		cIGZString** outString);
 
-
 	/**
 	 * @brief Attempts to get a string from the LTEXT files.
 	 * @param key A key representing the LTEXT file to load.
