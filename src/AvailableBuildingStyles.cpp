@@ -14,6 +14,8 @@
 #include "BuildingStyleButtons.h"
 #include "BuildingStyleIniFile.h"
 #include "cGZPersistResourceKey.h"
+#include "cIGZLanguageManager.h"
+#include "cIGZPersistResourceManager.h"
 #include "cIGZWin.h"
 #include "cIGZWinBtn.h"
 #include "cISC4App.h"
@@ -21,6 +23,8 @@
 #include "cRZAutoRefCount.h"
 #include "GZServPtrs.h"
 #include "GZWinUtil.h"
+#include "StringResourceKey.h"
+#include "StringResourceManager.h"
 #include <algorithm>
 
 namespace
@@ -79,14 +83,36 @@ namespace
 		}
 	}
 
+	void SetStyleRadioButtonToolTip(
+		cIGZWinBtn* pBtn,
+		uint32_t styleID,
+		cIGZLanguageManager* pLM,
+		cIGZPersistResourceManager* pRM)
+	{
+		constexpr uint32_t BuildingStyleLTEXTGroupID = 0x3EE5B610;
+
+		const StringResourceKey key(BuildingStyleLTEXTGroupID, styleID);
+
+		cRZAutoRefCount<cIGZString> toolTipText;
+
+		if (StringResourceManager::GetLocalizedString(pLM, pRM, key, toolTipText.AsPPObj()))
+		{
+			pBtn->SetTipText(*toolTipText);
+		}
+	}
+
 	struct InitializeBuildingStyleContext
 	{
 		const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& iniFileBuildingStyles;
 		BuildingStyleCollection availableBuildingStyles;
+		cIGZLanguageManagerPtr languageManager;
+		cIGZPersistResourceManagerPtr resourceManager;
 
 		InitializeBuildingStyleContext(const BuildingStyleIniFile& buildingStyleIniFile)
 			: iniFileBuildingStyles(buildingStyleIniFile.GetStyles()),
-			  availableBuildingStyles()
+			  availableBuildingStyles(),
+			  languageManager(),
+			  resourceManager()
 		{
 		}
 	};
@@ -108,6 +134,7 @@ namespace
 				if (entry.styleID != BuildingStyleIniFile::InvalidStyleID)
 				{
 					state->availableBuildingStyles.insert(item->first, entry.styleID, entry.styleName);
+					SetStyleRadioButtonToolTip(pBtn, entry.styleID, state->languageManager, state->resourceManager);
 				}
 				else
 				{
@@ -136,15 +163,20 @@ namespace
 			cIGZString* caption = pBtn->GetCaption();
 
 			state->availableBuildingStyles.insert(childID, childID, *caption);
+			SetStyleRadioButtonToolTip(pBtn, childID, state->languageManager, state->resourceManager);
 		}
 	}
 
 	struct UpdateINIFileCheckBoxContext
 	{
 		const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& iniFileBuildingStyles;
+		cIGZLanguageManagerPtr languageManager;
+		cIGZPersistResourceManagerPtr resourceManager;
 
 		UpdateINIFileCheckBoxContext(const BuildingStyleIniFile& buildingStyleIniFile)
-			: iniFileBuildingStyles(buildingStyleIniFile.GetStyles())
+			: iniFileBuildingStyles(buildingStyleIniFile.GetStyles()),
+			  languageManager(),
+			  resourceManager()
 		{
 		}
 	};
@@ -162,7 +194,11 @@ namespace
 			{
 				const BuildingStyleIniFile::StyleEntry& entry = item->second;
 
-				if (entry.styleID == BuildingStyleIniFile::InvalidStyleID)
+				if (entry.styleID != BuildingStyleIniFile::InvalidStyleID)
+				{
+					SetStyleRadioButtonToolTip(pBtn, entry.styleID, state->languageManager, state->resourceManager);
+				}
+				else
 				{
 					// The check box is a placeholder, visible but disabled.
 					GZWinUtil::SetWindowEnabled(pBtn->AsIGZWin(), false);
