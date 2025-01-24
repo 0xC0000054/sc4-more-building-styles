@@ -76,13 +76,12 @@ This is a Boolean property, a value of true indicates that the building is W2W.
 If the value is false or the property is not present, the building will not be considered W2W.
 This is the preferred method for identifying W2W buildings that do not already have one of the W2W occupant groups.
 
-## Building Style UI Tool Tips
+## Building Style Check Box Tool Tips
 
-All tool tips use the LTEXT group id `0x3EE5B610`. The group id supports the standard language offset scheme.
+The individual building styles can have a tool tip that describes the style when the user hovers over that check box.
 
-### Building Style Radio Buttons
-
-The style radio button tool tips use the style id as the LTEXT instance id.
+All of these tool tips use the LTEXT group id `0x3EE5B610`, the group id supports the standard language offset scheme.
+The style id is used as the LTEXT instance id.
 
 For example, the 0x2004 building style in would use the following TGI in German: `0x2026960B, 0x3EE5B614, 0x00002004`.
 
