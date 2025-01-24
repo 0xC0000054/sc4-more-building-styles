@@ -20,8 +20,8 @@ The easiest way to get started is to download the Building Style UI template, bu
 
 #### Building Style UI Template
 
-A UI template is available [here](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/building_style_ui_template/CoriBoom_32_Slot_Building_Style_UI_v0.45_Gamma.dat), it uses [BuildingStyles.ini](https://github.com/0xC0000054/sc4-more-building-styles#buildingstyles-ini-file), and supports all of the new controls the DLL adds. 
-It was created by CorinaMarie and CycloneBoom at Simtropolis, the original source is [this post](https://community.simtropolis.com/forums/topic/762969-allow-more-building-styles-dll-plugin/?do=findComment&comment=1798030).    
+A UI template is available [here](https://community.simtropolis.com/forums/topic/762969-allow-more-building-styles-dll-plugin/?do=findComment&comment=1800509), it uses [BuildingStyles.ini](https://github.com/0xC0000054/sc4-more-building-styles#buildingstyles-ini-file),
+and supports all of the [new controls](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/docs/Building_Style_UI_Controls.md) the DLL adds. 
 Once you have configured your styles in _BuildingStyles.ini_, see the section below on assigning buildings to custom styles.
 
 #### Creating a Custom Building Style UI
