@@ -12,7 +12,7 @@ This mod patches the game's memory to remove that restriction.
 ## Adding More Building Styles into SC4 
 
 The building style IDs are assigned in the [SimCity 4 Building Styles Index](https://community.simtropolis.com/forums/topic/763276-building-styles-master-iid/) thread, you will need to use the
-16 Maxis/community styles or request your own public and/or private building style ID range in that thread.  
+Maxis/community styles or request your own public and/or private building style ID range in that thread.  
 
 ### Modifying the Building Styles UI
 
