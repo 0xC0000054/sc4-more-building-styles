@@ -85,6 +85,12 @@ The style id is used as the LTEXT instance id.
 
 For example, the 0x2004 building style in would use the following TGI in German: `0x2026960B, 0x3EE5B614, 0x00002004`.
 
+Tool tips can optionally have a title in addition to a body, this is done by placing both on a single line with a pipe separator.    
+For example, `ToolTip Title|Tool tip body`.   
+Note that how the game displays tool tips with both a title and body will depend on the user's game settings.
+If the user has unchecked the _expanded tooltips_ check box in the play options dialog, the game will display the tool tip
+title (if present) or the body, but not both.
+
 ## Cheat Codes
 
 The plugin provides the following cheat codes:
