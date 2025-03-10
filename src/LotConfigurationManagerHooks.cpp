@@ -86,6 +86,43 @@ static bool InsertPropertyValues(
 	return result;
 }
 
+static void CopyIndustryTypeOccupantGroups(
+	const cISCPropertyHolder* pPropertyHolder,
+	SC4Vector<uint32_t>& vector)
+{
+	const cISCProperty* pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
+
+	if (pProperty)
+	{
+		const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+		if (pVariant)
+		{
+			const uint16_t type = pVariant->GetType();
+
+			if (type == cIGZVariant::Uint32Array)
+			{
+				const uint32_t* data = pVariant->RefUint32();
+				const uint32_t count = pVariant->GetCount();
+
+				constexpr uint32_t kIndustryAnchor = 0x3000;
+				constexpr uint32_t kIndustryOut = 0x3002;
+
+				for (uint32_t i = 0; i < count; i++)
+				{
+					const uint32_t value = data[i];
+
+					if (value >= kIndustryAnchor && value <= kIndustryOut)
+					{
+						vector.push_back(value);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
 static void __cdecl GetBuildingStyles(cGZPersistResourceKey const& key, SC4Vector<uint32_t>& vector)
 {
 	// This method replaces a call the gets the building's occupant groups.
@@ -108,8 +145,11 @@ static void __cdecl GetBuildingStyles(cGZPersistResourceKey const& key, SC4Vecto
 				vector.push_back(kBuildingStylesProperty);
 
 				// Copy over the wall-to-wall (W2W) data, if present.
-				// No other occupant group values are required for the lot style checks.
 				SetWallToWallData(pPropertyHolder, vector);
+
+				// Copy over the industry type occupant groups.
+				// This is checked for industrial buildings in cSC4TractDeveloper::PickBuilding.
+				CopyIndustryTypeOccupantGroups(pPropertyHolder, vector);
 			}
 			else
 			{
