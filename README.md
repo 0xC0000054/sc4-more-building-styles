@@ -164,8 +164,14 @@ The log contains status information for the most recent run of the plugin.
 
 # License
 
-This project is licensed under the terms of the MIT License.    
+This project is licensed under the terms of the GNU Lesser General Public License version 3.0.    
 See [LICENSE.txt](LICENSE.txt) for more information.
+
+## GZCOM Classes Provided by This DLL
+
+The public interface headers for the GZCOM classes that this DLL provides for use by other SimCity 4 DLL plugins
+are separately licensed under the terms of the MIT License (https://opensource.org/license/mit).   
+These headers are located in the src/public/include folder.
 
 ## 3rd party code
 
