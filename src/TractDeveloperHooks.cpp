@@ -188,39 +188,85 @@ static bool LotConfigurationHasOccupantGroupValue(
 
 struct PropertyData
 {
-	uint32_t value;
-	std::span<uint32_t> values;
+	using container = std::span<uint32_t>;
+	using iterator = container::iterator;
 
-	PropertyData(const cIGZVariant& variant)
-		: value(0),
-		  values()
+	PropertyData()
+		: singleValue(0),
+		  data(),
+		  variant()
 	{
-		uint32_t* pData = variant.RefUint32();
-		uint32_t repCount = variant.GetCount();
+	}
 
-		if (repCount == 0)
+	iterator begin() const
+	{
+		return data.begin();
+	}
+
+	iterator end() const
+	{
+		return data.end();
+	}
+
+	bool contains(uint32_t value) const
+	{
+		return std::find(data.begin(), data.end(), value) != data.end();
+	}
+
+	void reset(cIGZVariant* pVariant)
+	{
+		variant = pVariant;
+
+		if (pVariant)
 		{
-			// If the rep count is zero, the pointer's address is the value.
-			value = reinterpret_cast<uint32_t>(pData);
+			uint32_t* pData = pVariant->RefUint32();
+			uint32_t repCount = pVariant->GetCount();
+
+			if (repCount == 0)
+			{
+				// If the rep count is zero, the pointer's address is the value.
+				singleValue = reinterpret_cast<uint32_t>(pData);
+				data = std::span<uint32_t>(std::addressof(singleValue), 1);
+			}
+			else
+			{
+				data = std::span<uint32_t>(pData, repCount);
+			}
 		}
 		else
 		{
-			values = std::span<uint32_t>(pData, repCount);
+			singleValue = 0;
+			data = std::span<uint32_t>();
 		}
 	}
-
-	bool Contains(uint32_t value) const
-	{
-		if (values.empty())
-		{
-			return value == value;
-		}
-		else
-		{
-			return std::find(values.begin(), values.end(), value) != values.end();
-		}
-	}
+private:
+	uint32_t singleValue;
+	container data;
+	cRZAutoRefCount<cIGZVariant> variant;
 };
+
+static bool TryGetPropertyData(
+	cISCPropertyHolder* pPropertyHolder,
+	uint32_t id,
+	PropertyData& output)
+{
+	bool result = false;
+
+	cISCProperty* pProperty = pPropertyHolder->GetProperty(id);
+
+	if (pProperty)
+	{
+		cIGZVariant* pVariant = pProperty->GetPropertyValue();
+
+		if (pVariant)
+		{
+			output.reset(pVariant);
+			result = true;
+		}
+	}
+
+	return result;
+}
 
 static void LogPurposeTypeDoesNotSupportStyles(
 	uint32_t id,
@@ -629,7 +675,7 @@ static bool BuildingHasStyleValue(
 		{
 			if constexpr (isBuildingStylesProperty)
 			{
-				if (propertyData.Contains(style))
+				if (propertyData.contains(style))
 				{
 					LogBuildingStyleSupported(pThis, buildingType, style);
 					return true;
@@ -646,7 +692,7 @@ static bool BuildingHasStyleValue(
 				}
 				else
 				{
-					if (propertyData.Contains(style))
+					if (propertyData.contains(style))
 					{
 						LogBuildingStyleSupported(pThis, buildingType, style);
 						return true;
@@ -663,7 +709,7 @@ static bool BuildingHasStyleValue(
 
 		if constexpr (isBuildingStylesProperty)
 		{
-			if (propertyData.Contains(activeStyle))
+			if (propertyData.contains(activeStyle))
 			{
 				LogBuildingStyleSupported(pThis, buildingType, activeStyle);
 				return true;
@@ -680,7 +726,7 @@ static bool BuildingHasStyleValue(
 			}
 			else
 			{
-				if (propertyData.Contains(activeStyle))
+				if (propertyData.contains(activeStyle))
 				{
 					LogBuildingStyleSupported(pThis, buildingType, activeStyle);
 					return true;
@@ -861,32 +907,22 @@ static std::string PrintBuildingStyles(
 {
 	std::string result;
 
-	if (propertyData.values.empty())
-	{
-		if (availableStyles.contains_style(propertyData.value))
-		{
-			result = std::format("0x{:08X}", propertyData.value);
-		}
-	}
-	else
-	{
-		bool firstItem = true;
+	bool firstItem = true;
 
-		for (const uint32_t& item : propertyData.values)
+	for (const uint32_t& item : propertyData)
+	{
+		if (availableStyles.contains_style(item))
 		{
-			if (availableStyles.contains_style(item))
+			if (firstItem)
 			{
-				if (firstItem)
-				{
-					firstItem = false;
-				}
-				else
-				{
-					result.append(" | ");
-				}
-
-				result.append(std::format("0x{:08X}", item));
+				firstItem = false;
 			}
+			else
+			{
+				result.append(" | ");
+			}
+
+			result.append(std::format("0x{:08X}", item));
 		}
 	}
 
@@ -919,27 +955,15 @@ static std::optional<bool> StylesMatch(
 {
 	std::optional<bool> result;
 
-	if (newBuildingStyles.values.empty())
+	for (const uint32_t& style : newBuildingStyles)
 	{
-		const uint32_t style = newBuildingStyles.value;
-
 		if (availableStyles.contains_style(style))
 		{
-			result = oldBuildingStyles.Contains(style);
-		}
-	}
-	else
-	{
-		for (const uint32_t& style : newBuildingStyles.values)
-		{
-			if (availableStyles.contains_style(style))
-			{
-				result = oldBuildingStyles.Contains(style);
+			result = oldBuildingStyles.contains(style);
 
-				if (result.value())
-				{
-					break;
-				}
+			if (result.value())
+			{
+				break;
 			}
 		}
 	}
@@ -957,48 +981,32 @@ static std::optional<bool> StyleMatchesExistingLot(const cISC4Lot* pLot, const P
 
 		if (pBuilding)
 		{
-			const cISCPropertyHolder* pPropertyHolder = pBuilding->AsOccupant()->AsPropertyHolder();
+			cISCPropertyHolder* pPropertyHolder = pBuilding->AsOccupant()->AsPropertyHolder();
 
 			if (pPropertyHolder)
 			{
-				const cISCProperty* pProperty = pPropertyHolder->GetProperty(kBuildingStylesProperty);
+				const BuildingStyleCollection& availableStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
-				if (pProperty)
+				PropertyData oldBuildingStyles;
+
+				if (TryGetPropertyData(pPropertyHolder, kBuildingStylesProperty, oldBuildingStyles))
 				{
-					const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+					result = StylesMatch(availableStyles, newBuildingStyles, oldBuildingStyles);
 
-					if (pVariant)
+					if (result.has_value())
 					{
-						const BuildingStyleCollection& availableStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
-
-						const PropertyData oldBuildingStyles(*pVariant);
+						LogStyleMatchInfo(availableStyles, result.value(), oldBuildingStyles, newBuildingStyles);
+					}
+				}
+				else
+				{
+					if (TryGetPropertyData(pPropertyHolder, kOccupantGroupsProperty, oldBuildingStyles))
+					{
 						result = StylesMatch(availableStyles, newBuildingStyles, oldBuildingStyles);
 
 						if (result.has_value())
 						{
 							LogStyleMatchInfo(availableStyles, result.value(), oldBuildingStyles, newBuildingStyles);
-						}
-					}
-				}
-				else
-				{
-					pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
-
-					if (pProperty)
-					{
-						const cIGZVariant* pVariant = pProperty->GetPropertyValue();
-
-						if (pVariant)
-						{
-							const BuildingStyleCollection& availableStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
-
-							const PropertyData oldBuildingStyles(*pVariant);
-							result = StylesMatch(availableStyles, newBuildingStyles, oldBuildingStyles);
-
-							if (result.has_value())
-							{
-								LogStyleMatchInfo(availableStyles, result.value(), oldBuildingStyles, newBuildingStyles);
-							}
 						}
 					}
 				}
@@ -1034,17 +1042,33 @@ static bool BuildingHasStyleOccupantGroup(
 				// CheckAdditionalBuildingStyleOptions will write a log message if it fails.
 				if (CheckAdditionalBuildingStyleOptions(pThis, buildingType, pPropertyHolder))
 				{
-					const cISCProperty* pProperty = pPropertyHolder->GetProperty(kBuildingStylesProperty);
+					PropertyData propertyData;
 
-					if (pProperty)
+					if (TryGetPropertyData(pPropertyHolder, kBuildingStylesProperty, propertyData))
 					{
-						const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+						result = BuildingHasStyleValue<true>(
+							pThis,
+							buildingType,
+							propertyData,
+							purpose);
 
-						if (pVariant)
+						if (result && spBuildingSelectWinManager->GetContext().PreventCrossStyleRedevelopment())
 						{
-							const PropertyData propertyData(*pVariant);
+							std::optional<bool> styleMatches = StyleMatchesExistingLot(
+								pCandidateLot->pExistingLot,
+								propertyData);
 
-							result = BuildingHasStyleValue<true>(
+							if (styleMatches.has_value())
+							{
+								result = styleMatches.value();
+							}
+						}
+					}
+					else
+					{
+						if (TryGetPropertyData(pPropertyHolder, kOccupantGroupsProperty, propertyData))
+						{
+							result = BuildingHasStyleValue<false>(
 								pThis,
 								buildingType,
 								propertyData,
@@ -1059,38 +1083,6 @@ static bool BuildingHasStyleOccupantGroup(
 								if (styleMatches.has_value())
 								{
 									result = styleMatches.value();
-								}
-							}
-						}
-					}
-					else
-					{
-						pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
-
-						if (pProperty)
-						{
-							const cIGZVariant* pVariant = pProperty->GetPropertyValue();
-
-							if (pVariant)
-							{
-								const PropertyData propertyData(*pVariant);
-
-								result = BuildingHasStyleValue<false>(
-									pThis,
-									buildingType,
-									propertyData,
-									purpose);
-
-								if (result && spBuildingSelectWinManager->GetContext().PreventCrossStyleRedevelopment())
-								{
-									std::optional<bool> styleMatches = StyleMatchesExistingLot(
-										pCandidateLot->pExistingLot,
-										propertyData);
-
-									if (styleMatches.has_value())
-									{
-										result = styleMatches.value();
-									}
 								}
 							}
 						}
