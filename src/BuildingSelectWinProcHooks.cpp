@@ -45,6 +45,7 @@
 #include "BuildingStyleMessages.h"
 #include "GlobalPointers.h"
 #include "Logger.h"
+#include "MaxisBuildingStyleUIControlIDs.h"
 #include "Patcher.h"
 #include "SC4VersionDetection.h"
 #include "GZWinUtil.h"
@@ -95,13 +96,6 @@ static uintptr_t DoWinProcMessage_Hook_Button_ShowBuildingStyleControl_Continue_
 static uintptr_t DoWinProcMessage_Hook_Button_HideBuildingStyleControl_Continue_Jump;
 static uintptr_t DoWinProcMessage_Hook_StyleValidJump;
 static uintptr_t DoWinProcMessage_Hook_ExitMethodJump;
-
-constexpr uint32_t StyleControlRadio_CycleEveryNYears = 0xcbc61559;
-constexpr uint32_t StyleControlRadio_UseAllStylesAtOnce = 0xebc61560;
-constexpr uint32_t StylePanel_Collapsed_TitleBar = 0xbc61548;
-constexpr uint32_t StylePanel_Expanded_TitleBar = 0x2bc619f3;
-constexpr uint32_t StylePanel_Collapsed_ToggleButton = 0xcbc61567;
-constexpr uint32_t StylePanel_Expanded_ToggleButton = 0xebc619fd;
 
 class cSC4BuildingSelectWinProc : public cIGZWinProc
 {

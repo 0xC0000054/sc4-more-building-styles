@@ -21,6 +21,7 @@
 
 #include "TractDeveloperHooks.h"
 #include "BuildingUtil.h"
+#include "BuildingStyleUtil.h"
 #include "cGZPersistResourceKey.h"
 #include "cIGZPersistResourceManager.h"
 #include "cIGZString.h"
@@ -38,6 +39,7 @@
 #include "GZServPtrs.h"
 #include "Logger.h"
 #include "Patcher.h"
+#include "PropertyData.h"
 #include "PropertyIDs.h"
 #include "SC4Rect.h"
 #include "SC4String.h"
@@ -184,88 +186,6 @@ static bool LotConfigurationHasOccupantGroupValue(
 	}
 
 	return false;
-}
-
-struct PropertyData
-{
-	using container = std::span<uint32_t>;
-	using iterator = container::iterator;
-
-	PropertyData()
-		: singleValue(0),
-		  data(),
-		  variant()
-	{
-	}
-
-	iterator begin() const
-	{
-		return data.begin();
-	}
-
-	iterator end() const
-	{
-		return data.end();
-	}
-
-	bool contains(uint32_t value) const
-	{
-		return std::find(data.begin(), data.end(), value) != data.end();
-	}
-
-	void reset(cIGZVariant* pVariant)
-	{
-		variant = pVariant;
-
-		if (pVariant)
-		{
-			uint32_t* pData = pVariant->RefUint32();
-			uint32_t repCount = pVariant->GetCount();
-
-			if (repCount == 0)
-			{
-				// If the rep count is zero, the pointer's address is the value.
-				singleValue = reinterpret_cast<uint32_t>(pData);
-				data = std::span<uint32_t>(std::addressof(singleValue), 1);
-			}
-			else
-			{
-				data = std::span<uint32_t>(pData, repCount);
-			}
-		}
-		else
-		{
-			singleValue = 0;
-			data = std::span<uint32_t>();
-		}
-	}
-private:
-	uint32_t singleValue;
-	container data;
-	cRZAutoRefCount<cIGZVariant> variant;
-};
-
-static bool TryGetPropertyData(
-	cISCPropertyHolder* pPropertyHolder,
-	uint32_t id,
-	PropertyData& output)
-{
-	bool result = false;
-
-	cISCProperty* pProperty = pPropertyHolder->GetProperty(id);
-
-	if (pProperty)
-	{
-		cIGZVariant* pVariant = pProperty->GetPropertyValue();
-
-		if (pVariant)
-		{
-			output.reset(pVariant);
-			result = true;
-		}
-	}
-
-	return result;
 }
 
 static void LogPurposeTypeDoesNotSupportStyles(
@@ -662,7 +582,7 @@ template <bool isBuildingStylesProperty>
 static bool BuildingHasStyleValue(
 	const cSC4TractDeveloper* pThis,
 	uint32_t buildingType,
-	const PropertyData& propertyData,
+	const PropertyData<uint32_t>& propertyData,
 	cISC4BuildingOccupant::PurposeType purposeType)
 {
 	if (pThis->changeStylesEveryNYears == 0)
@@ -903,7 +823,7 @@ static void LogCandidateLotInfo(
 
 static std::string PrintBuildingStyles(
 	const BuildingStyleCollection& availableStyles,
-	const PropertyData& propertyData)
+	const PropertyData<uint32_t>& propertyData)
 {
 	std::string result;
 
@@ -932,8 +852,8 @@ static std::string PrintBuildingStyles(
 static void LogStyleMatchInfo(
 	const BuildingStyleCollection& availableStyles,
 	bool result,
-	const PropertyData& oldBuildingStyles,
-	const PropertyData& newBuildingStyles)
+	const PropertyData<uint32_t>& oldBuildingStyles,
+	const PropertyData<uint32_t>& newBuildingStyles)
 {
 	if (spPreferences->LogBuildingStyleSelection())
 	{
@@ -948,10 +868,43 @@ static void LogStyleMatchInfo(
 	}
 }
 
+static bool ReadBuildingStylesProperty(
+	cISCPropertyHolder* pPropertyHolder,
+	PropertyData<uint32_t>& output)
+{
+	bool result = false;
+	PropertyData<uint32_t> temp(pPropertyHolder, kBuildingStylesProperty);
+
+	if (temp)
+	{
+		// A Building Styles property set to the PIM-X placeholder style is currently
+		// used on over 100 released buildings.
+		// This style acts as a blocker when the DLL is installed with one of these
+		// updated buildings.
+		// Additionally, there are a number of other values that can't be used as a
+		// style id such as the control ids in the Building Style Control UI.
+		//
+		// Buildings that have only the reserved style ids in their Building Styles
+		// property will be made to use the legacy Maxis styles in the
+		// Occupant Groups property.
+
+		if (std::find_if_not(
+			temp.begin(),
+			temp.end(),
+			BuildingStyleUtil::IsReservedStyleID) != temp.end())
+		{
+			output = std::move(temp);
+			result = true;
+		}
+	}
+
+	return result;
+}
+
 static std::optional<bool> StylesMatch(
 	const BuildingStyleCollection& availableStyles,
-	const PropertyData& newBuildingStyles,
-	const PropertyData& oldBuildingStyles)
+	const PropertyData<uint32_t>& newBuildingStyles,
+	const PropertyData<uint32_t>& oldBuildingStyles)
 {
 	std::optional<bool> result;
 
@@ -971,7 +924,7 @@ static std::optional<bool> StylesMatch(
 	return result;
 }
 
-static std::optional<bool> StyleMatchesExistingLot(const cISC4Lot* pLot, const PropertyData& newBuildingStyles)
+static std::optional<bool> StyleMatchesExistingLot(const cISC4Lot* pLot, const PropertyData<uint32_t>& newBuildingStyles)
 {
 	std::optional<bool> result;
 
@@ -987,9 +940,9 @@ static std::optional<bool> StyleMatchesExistingLot(const cISC4Lot* pLot, const P
 			{
 				const BuildingStyleCollection& availableStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
-				PropertyData oldBuildingStyles;
+				PropertyData<uint32_t> oldBuildingStyles;
 
-				if (TryGetPropertyData(pPropertyHolder, kBuildingStylesProperty, oldBuildingStyles))
+				if (ReadBuildingStylesProperty(pPropertyHolder, oldBuildingStyles))
 				{
 					result = StylesMatch(availableStyles, newBuildingStyles, oldBuildingStyles);
 
@@ -1000,7 +953,7 @@ static std::optional<bool> StyleMatchesExistingLot(const cISC4Lot* pLot, const P
 				}
 				else
 				{
-					if (TryGetPropertyData(pPropertyHolder, kOccupantGroupsProperty, oldBuildingStyles))
+					if (oldBuildingStyles.load(pPropertyHolder, kOccupantGroupsProperty))
 					{
 						result = StylesMatch(availableStyles, newBuildingStyles, oldBuildingStyles);
 
@@ -1042,9 +995,9 @@ static bool BuildingHasStyleOccupantGroup(
 				// CheckAdditionalBuildingStyleOptions will write a log message if it fails.
 				if (CheckAdditionalBuildingStyleOptions(pThis, buildingType, pPropertyHolder))
 				{
-					PropertyData propertyData;
+					PropertyData<uint32_t> propertyData;
 
-					if (TryGetPropertyData(pPropertyHolder, kBuildingStylesProperty, propertyData))
+					if (ReadBuildingStylesProperty(pPropertyHolder, propertyData))
 					{
 						result = BuildingHasStyleValue<true>(
 							pThis,
@@ -1066,7 +1019,7 @@ static bool BuildingHasStyleOccupantGroup(
 					}
 					else
 					{
-						if (TryGetPropertyData(pPropertyHolder, kOccupantGroupsProperty, propertyData))
+						if (propertyData.load(pPropertyHolder, kOccupantGroupsProperty))
 						{
 							result = BuildingHasStyleValue<false>(
 								pThis,

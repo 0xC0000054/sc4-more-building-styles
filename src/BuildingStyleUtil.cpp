@@ -19,20 +19,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-#include "cISC4BuildingOccupant.h"
+#include "BuildingStyleUtil.h"
+#include "BuildingStyleButtons.h"
+#include "MaxisBuildingStyleUIControlIDs.h"
+#include "ReservedStyleIDs.h"
 
-class cISC4Occupant;
-class cISCPropertyHolder;
-
-namespace BuildingUtil
+bool BuildingStyleUtil::IsMaxisStyleID(uint32_t style)
 {
-	cISC4BuildingOccupant::PurposeType GetPurposeType(cISC4Occupant* pOccupant);
+	// We check the high value first as an optimization, custom building styles
+	// should be 0x2004 or higher.
+	return style <= 0x2003 && style >= 0x2000;
+}
 
-	bool PurposeTypeSupportsBuildingStyles(cISC4BuildingOccupant::PurposeType purposeType);
+bool BuildingStyleUtil::IsReservedStyleID(uint32_t style)
+{
+	// The following values are invalid for use as a style id:
+	// 1. All values in the DLL's special button range.
+	// 2. The PIM-X Building Style property template placeholder.
+	// 3. The Maxis Building Style UI control ids.
+	// 4. The DLL's optional Building Style UI control ids.
 
-	bool IsIndustrialBuilding(cISC4BuildingOccupant::PurposeType purposeType);
-
-	bool IsWallToWall(const cISCPropertyHolder* pPropertyHolder);
-	bool IsWallToWall(cISC4Occupant* pOccupant);
+	return style <= StyleControlReservedButtonRangeEnd
+		|| style == PIMXPlaceholderStyleID
+		|| MaxisUIControlIDs.count(style) != 0
+		|| OptionalButtonIDs.count(style) != 0;
 }

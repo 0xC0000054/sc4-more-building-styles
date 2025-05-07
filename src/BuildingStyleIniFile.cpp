@@ -21,6 +21,7 @@
 
 #include "BuildingStyleIniFile.h"
 #include "BuildingStyleButtons.h"
+#include "BuildingStyleUtil.h"
 #include "cIGZWin.h"
 #include "cIGZWinBtn.h"
 #include "cISC4App.h"
@@ -137,7 +138,7 @@ namespace
 				return false;
 			}
 
-			if (entry.styleID == BuildingStyleIniFile::InvalidStyleID)
+			if (BuildingStyleUtil::IsReservedStyleID(entry.styleID))
 			{
 				logger.WriteLineFormatted(
 					LogLevel::Error,

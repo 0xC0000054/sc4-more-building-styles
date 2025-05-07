@@ -29,13 +29,6 @@
 #include "PropertyIDs.h"
 #include "WallToWallOccupantGroups.h"
 
-bool BuildingUtil::IsMaxisBuildingStyle(uint32_t style)
-{
-	// We check the high value first as an optimization, custom building styles
-	// should be 0x2004 or higher.
-	return style <= 0x2003 && style >= 0x2000;
-}
-
 cISC4BuildingOccupant::PurposeType BuildingUtil::GetPurposeType(cISC4Occupant* pOccupant)
 {
 	cISC4BuildingOccupant::PurposeType purposeType = cISC4BuildingOccupant::PurposeType::None;

@@ -84,6 +84,7 @@ template<typename T> class SC4Vector
 public:
 	typedef SC4VectorIterator<T> iterator;
 	typedef SC4VectorIterator<const T> const_iterator;
+	typedef T value_type;
 
 	iterator begin()
 	{

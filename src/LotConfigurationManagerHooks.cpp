@@ -21,6 +21,7 @@
 
 #include "LotConfigurationManagerHooks.h"
 #include "BuildingUtil.h"
+#include "BuildingStyleUtil.h"
 #include "cGZPersistResourceKey.h"
 #include "cIGZPersistResourceManager.h"
 #include "cIGZVariant.h"
@@ -30,106 +31,105 @@
 #include "GZServPtrs.h"
 #include "Logger.h"
 #include "Patcher.h"
+#include "PropertyData.h"
 #include "PropertyIDs.h"
 #include "SC4Vector.h"
 #include "SC4VersionDetection.h"
 #include "WallToWallOccupantGroups.h"
 #include "wil/result.h"
 
-#include <array>
+#include <algorithm>
+#include <functional>
+#include <iterator>
 
-
-static void SetWallToWallData(
-	const cISCPropertyHolder* pPropertyHolder,
+static void CopyOccupantGroupValues(
+	cISCPropertyHolder* pPropertyHolder,
 	SC4Vector<uint32_t>& vector)
 {
-	if (BuildingUtil::IsWallToWall(pPropertyHolder))
+	const PropertyData<uint32_t> propertyData(pPropertyHolder, kOccupantGroupsProperty);
+
+	if (propertyData)
 	{
-		// The exact W2W style doesn't matter, only the fact
-		// that it is present in the occupant groups.
-
-		constexpr uint32_t W2WGeneral = 0xB5C00DDE;
-
-		vector.push_back(W2WGeneral);
+		vector.push_back(propertyData.data(), propertyData.size());
 	}
-}
-
-static bool InsertPropertyValues(
-	const cISCPropertyHolder* pPropertyHolder,
-	uint32_t propertyID,
-	SC4Vector<uint32_t>& vector,
-	size_t reserveExtraSize = 0)
-{
-	bool result = false;
-
-	const cISCProperty* pProperty = pPropertyHolder->GetProperty(propertyID);
-
-	if (pProperty)
-	{
-		const cIGZVariant* pVariant = pProperty->GetPropertyValue();
-
-		if (pVariant)
-		{
-			const uint16_t type = pVariant->GetType();
-
-			if (type == cIGZVariant::Uint32Array)
-			{
-				const uint32_t count = pVariant->GetCount();
-
-				if (count > 0)
-				{
-					vector.reserve(vector.size() + count + reserveExtraSize);
-					vector.push_back(pVariant->RefUint32(), count);
-					result = true;
-				}
-			}
-			else if (type == cIGZVariant::Uint32)
-			{
-				vector.reserve(vector.size() + 1 + reserveExtraSize);
-				vector.push_back(pVariant->GetValUint32());
-				result = true;
-			}
-		}
-	}
-
-	return result;
 }
 
 static void CopyIndustryTypeOccupantGroups(
-	const cISCPropertyHolder* pPropertyHolder,
+	cISCPropertyHolder* pPropertyHolder,
 	SC4Vector<uint32_t>& vector)
 {
-	const cISCProperty* pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
+	const PropertyData<uint32_t> propertyData(pPropertyHolder, kOccupantGroupsProperty);
 
-	if (pProperty)
+	if (propertyData)
 	{
-		const cIGZVariant* pVariant = pProperty->GetPropertyValue();
+		constexpr uint32_t kIndustryAnchor = 0x3000;
+		constexpr uint32_t kIndustryOut = 0x3002;
 
-		if (pVariant)
-		{
-			const uint16_t type = pVariant->GetType();
-
-			if (type == cIGZVariant::Uint32Array)
+		const auto it = std::find_if(
+			propertyData.begin(),
+			propertyData.end(),
+			[](uint32_t value)
 			{
-				const uint32_t* data = pVariant->RefUint32();
-				const uint32_t count = pVariant->GetCount();
+				return value >= kIndustryAnchor && value <= kIndustryOut;
+			});
 
-				constexpr uint32_t kIndustryAnchor = 0x3000;
-				constexpr uint32_t kIndustryOut = 0x3002;
-
-				for (uint32_t i = 0; i < count; i++)
-				{
-					const uint32_t value = data[i];
-
-					if (value >= kIndustryAnchor && value <= kIndustryOut)
-					{
-						vector.push_back(value);
-						break;
-					}
-				}
-			}
+		if (it != propertyData.end())
+		{
+			vector.push_back(*it);
 		}
 	}
+}
+
+static bool ReadBuildingStylePropertyValues(
+	cISCPropertyHolder* pPropertyHolder,
+	SC4Vector<uint32_t>& vector)
+{
+	vector.clear();
+
+	const PropertyData<uint32_t> propertyData(pPropertyHolder, kBuildingStylesProperty);
+
+	if (propertyData)
+	{
+		std::copy_if(
+			propertyData.begin(),
+			propertyData.end(),
+			std::back_inserter(vector),
+			std::not_fn(BuildingStyleUtil::IsReservedStyleID));
+	}
+
+	return !vector.empty();
+}
+
+static bool ReadBuildingStyleProperty(
+	cISCPropertyHolder* pPropertyHolder,
+	SC4Vector<uint32_t>& vector)
+{
+	bool result = false;
+
+	if (ReadBuildingStylePropertyValues(pPropertyHolder, vector))
+	{
+		// Add the BuildingStyles property id to indicate that the property is present.
+		vector.push_back(kBuildingStylesProperty);
+
+		// Copy over the wall-to-wall (W2W) data, if present.
+		if (BuildingUtil::IsWallToWall(pPropertyHolder))
+		{
+			// The exact W2W style doesn't matter, only the fact
+			// that it is present in the occupant groups.
+
+			constexpr uint32_t W2WGeneral = 0xB5C00DDE;
+
+			vector.push_back(W2WGeneral);
+		}
+
+		// Copy over the industry type occupant groups.
+		// This is checked for industrial buildings in cSC4TractDeveloper::PickBuilding.
+		CopyIndustryTypeOccupantGroups(pPropertyHolder, vector);
+
+		result = true;
+	}
+
+	return result;
 }
 
 static void __cdecl GetBuildingStyles(cGZPersistResourceKey const& key, SC4Vector<uint32_t>& vector)
@@ -148,21 +148,9 @@ static void __cdecl GetBuildingStyles(cGZPersistResourceKey const& key, SC4Vecto
 
 		if (pRM->GetResource(key, GZIID_cISCPropertyHolder, pPropertyHolder.AsPPVoid(), 0, nullptr))
 		{
-			if (InsertPropertyValues(pPropertyHolder, kBuildingStylesProperty, vector, 1))
+			if (!ReadBuildingStyleProperty(pPropertyHolder, vector))
 			{
-				// Add the BuildingStyles property id to indicate that the property is present.
-				vector.push_back(kBuildingStylesProperty);
-
-				// Copy over the wall-to-wall (W2W) data, if present.
-				SetWallToWallData(pPropertyHolder, vector);
-
-				// Copy over the industry type occupant groups.
-				// This is checked for industrial buildings in cSC4TractDeveloper::PickBuilding.
-				CopyIndustryTypeOccupantGroups(pPropertyHolder, vector);
-			}
-			else
-			{
-				InsertPropertyValues(pPropertyHolder, kOccupantGroupsProperty, vector);
+				CopyOccupantGroupValues(pPropertyHolder, vector);
 			}
 		}
 	}

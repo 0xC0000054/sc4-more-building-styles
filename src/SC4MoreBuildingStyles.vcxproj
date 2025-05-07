@@ -37,6 +37,7 @@
     <ClCompile Include="BuildingStyleCollectionEntry.cpp" />
     <ClCompile Include="BuildingStyleInfo.cpp" />
     <ClCompile Include="BuildingStyleIniFile.cpp" />
+    <ClCompile Include="BuildingStyleUtil.cpp" />
     <ClCompile Include="BuildingUtil.cpp" />
     <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="FileSystem.cpp" />
@@ -77,7 +78,10 @@
     <ClInclude Include="BuildingStyleInfo.h" />
     <ClInclude Include="BuildingStyleIniFile.h" />
     <ClInclude Include="BuildingStyleMessages.h" />
+    <ClInclude Include="BuildingStyleUtil.h" />
     <ClInclude Include="BuildingUtil.h" />
+    <ClInclude Include="MaxisBuildingStyleUIControlIDs.h" />
+    <ClInclude Include="PropertyData.h" />
     <ClInclude Include="PropertyIDs.h" />
     <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="FileSystem.h" />
@@ -92,6 +96,7 @@
     <ClInclude Include="public\include\cIBuildingStyleInfo.h" />
     <ClInclude Include="public\include\cIBuildingStyleInfo2.h" />
     <ClInclude Include="public\include\cIBuildingStyleWallToWall.h" />
+    <ClInclude Include="ReservedStyleIDs.h" />
     <ClInclude Include="SC4NotificationDialog.h" />
     <ClInclude Include="SC4Vector.h" />
     <ClInclude Include="SC4VersionDetection.h" />

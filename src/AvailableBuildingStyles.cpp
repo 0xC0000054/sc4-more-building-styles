@@ -32,6 +32,8 @@
 #include "cRZAutoRefCount.h"
 #include "GZServPtrs.h"
 #include "GZWinUtil.h"
+#include "MaxisBuildingStyleUIControlIDs.h"
+#include "ReservedStyleIDs.h"
 #include "StringResourceKey.h"
 #include "StringResourceManager.h"
 #include <algorithm>
@@ -48,15 +50,12 @@ namespace
 
 	bool BuildingStyleWinEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
 	{
-		constexpr uint32_t titleBarButton = 0x2BC619F3;
-		constexpr uint32_t minimizeButton = 0xEBC619FD;
+		// The Maxis UI control ids, optional UI control ids, and PIM-X placeholder id are excluded,
+		// every other button in the dialog is a style radio button.
 
-		// The title bar, minimize button, and optional buttons are excluded, every other button
-		// in the dialog is a style radio button.
-
-		if (childID != titleBarButton
-			&& childID != minimizeButton
-			&& OptionalButtonIDs.find(childID) == OptionalButtonIDs.end())
+		if (MaxisUIControlIDs.count(childID) == 0
+			&& OptionalButtonIDs.count(childID) == 0
+			&& childID != PIMXPlaceholderStyleID)
 		{
 			cRZAutoRefCount<cIGZWinBtn> pBtn;
 

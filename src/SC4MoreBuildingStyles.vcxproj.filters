@@ -150,6 +150,9 @@
     <ClCompile Include="BuildingUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BuildingStyleUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -292,6 +295,18 @@
     </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\include\cISC4GrowthDeveloper.h">
       <Filter>Header Files\GZCOM</Filter>
+    </ClInclude>
+    <ClInclude Include="MaxisBuildingStyleUIControlIDs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingStyleUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ReservedStyleIDs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertyData.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

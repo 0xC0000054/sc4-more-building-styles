@@ -20,19 +20,22 @@
  */
 
 #pragma once
-#include "cISC4BuildingOccupant.h"
+#include <cstdint>
+#include "frozen/unordered_set.h"
 
-class cISC4Occupant;
-class cISCPropertyHolder;
+constexpr uint32_t StyleControlRadio_CycleEveryNYears = 0xCBC61559;
+constexpr uint32_t StyleControlRadio_UseAllStylesAtOnce = 0xEBC61560;
+constexpr uint32_t StylePanel_Collapsed_TitleBar = 0xBC61548;
+constexpr uint32_t StylePanel_Expanded_TitleBar = 0x2BC619F3;
+constexpr uint32_t StylePanel_Collapsed_ToggleButton = 0xCBC61567;
+constexpr uint32_t StylePanel_Expanded_ToggleButton = 0xEBC619FD;
 
-namespace BuildingUtil
+static constexpr frozen::unordered_set<uint32_t, 6> MaxisUIControlIDs =
 {
-	cISC4BuildingOccupant::PurposeType GetPurposeType(cISC4Occupant* pOccupant);
-
-	bool PurposeTypeSupportsBuildingStyles(cISC4BuildingOccupant::PurposeType purposeType);
-
-	bool IsIndustrialBuilding(cISC4BuildingOccupant::PurposeType purposeType);
-
-	bool IsWallToWall(const cISCPropertyHolder* pPropertyHolder);
-	bool IsWallToWall(cISC4Occupant* pOccupant);
-}
+	StyleControlRadio_CycleEveryNYears,
+	StyleControlRadio_UseAllStylesAtOnce,
+	StylePanel_Collapsed_TitleBar,
+	StylePanel_Expanded_TitleBar,
+	StylePanel_Collapsed_ToggleButton,
+	StylePanel_Expanded_ToggleButton
+};

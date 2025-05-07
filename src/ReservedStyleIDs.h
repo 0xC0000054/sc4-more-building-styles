@@ -20,19 +20,8 @@
  */
 
 #pragma once
-#include "cISC4BuildingOccupant.h"
+#include <cstdint>
 
-class cISC4Occupant;
-class cISCPropertyHolder;
+// PIM-X uses this as a placeholder in its Building Style property template.
+static constexpr uint32_t PIMXPlaceholderStyleID = 0x7B6BC069;
 
-namespace BuildingUtil
-{
-	cISC4BuildingOccupant::PurposeType GetPurposeType(cISC4Occupant* pOccupant);
-
-	bool PurposeTypeSupportsBuildingStyles(cISC4BuildingOccupant::PurposeType purposeType);
-
-	bool IsIndustrialBuilding(cISC4BuildingOccupant::PurposeType purposeType);
-
-	bool IsWallToWall(const cISCPropertyHolder* pPropertyHolder);
-	bool IsWallToWall(cISC4Occupant* pOccupant);
-}
