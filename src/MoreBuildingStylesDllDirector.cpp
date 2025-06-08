@@ -47,6 +47,7 @@
 #include "cRZBaseString.h"
 #include "GZServPtrs.h"
 #include "SC4NotificationDialog.h"
+#include "SC4Vector.h"
 
 #include <array>
 #include <filesystem>
@@ -56,9 +57,6 @@
 #include <Windows.h>
 #include "wil/resource.h"
 #include "wil/win32_helpers.h"
-
-#include "EASTLConfigSC4.h"
-#include "EASTL\vector.h"
 
 static constexpr uint32_t kMessageCheatIssued = 0x230E27AC;
 static constexpr uint32_t kSC4MessagePostCityInitComplete = 0xEA8AE29A;
@@ -191,7 +189,7 @@ public:
 
 				if (pTractDeveloper)
 				{
-					const eastl::vector<uint32_t>& activeStyles = pTractDeveloper->GetActiveStyles();
+					const SC4Vector<uint32_t>& activeStyles = pTractDeveloper->GetActiveStyles();
 
 					Logger& logger = Logger::GetInstance();
 

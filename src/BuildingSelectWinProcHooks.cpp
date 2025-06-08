@@ -55,6 +55,7 @@
 #include "cIGZMessageServer2.h"
 #include "cRZMessage2Standard.h"
 #include "GZServPtrs.h"
+#include "SC4Vector.h"
 
 #include <Windows.h>
 #include "wil/resource.h"
@@ -63,7 +64,7 @@
 namespace
 {
 	template <typename T>
-	bool Contains(const eastl::vector<T>& vector, const T& value)
+	bool Contains(const SC4Vector<T>& vector, const T& value)
 	{
 		return std::find(vector.begin(), vector.end(), value) != vector.end();
 	}
@@ -367,7 +368,7 @@ void __thiscall cSC4BuildingSelectWinProc::SetActiveStyleButtons()
 {
 	const BuildingStyleCollection& allBuildingStyles = spBuildingSelectWinManager->GetAvailableBuildingStyles();
 
-	const eastl::vector<uint32_t>& activeBuildingStyles = spBuildingSelectWinManager->GetTractDeveloper()->GetActiveStyles();
+	const SC4Vector<uint32_t>& activeBuildingStyles = spBuildingSelectWinManager->GetTractDeveloper()->GetActiveStyles();
 
 	for (const auto& item : allBuildingStyles)
 	{
@@ -405,7 +406,7 @@ void __thiscall cSC4BuildingSelectWinProc::AddActiveStyle(uint32_t buttonID)
 
 		// This is a copy of the existing active style list, not a reference to it.
 		// We will call SetActiveStyles to update SC4's copy after we modify it.
-		eastl::vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
+		SC4Vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
 
 		if (!Contains(activeStyles, entry.styleID))
 		{
@@ -431,7 +432,7 @@ void __thiscall cSC4BuildingSelectWinProc::RemoveActiveStyle(uint32_t buttonID)
 
 		// This is a copy of the existing active style list, not a reference to it.
 		// We will call SetActiveStyles to update SC4's copy after we modify it.
-		eastl::vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
+		SC4Vector<uint32_t> activeStyles = pTractDeveloper->GetActiveStyles();
 		bool itemRemoved = false;
 
 		for (auto it = activeStyles.begin(); it != activeStyles.end(); it++)

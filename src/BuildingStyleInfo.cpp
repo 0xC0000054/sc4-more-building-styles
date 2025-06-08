@@ -252,7 +252,7 @@ bool BuildingStyleInfo::GetBuildingStyleNamesEx(
 						// The strings in SimCityLocale.dat don't use the per-language group id
 						// offset system that is used by DBPF plug-ins, so we use GetString
 						// instead of GetLocalizedString.
-						if (StringResourceManager::GetString(key, temp.AsPPObj()))
+						if (StringResourceManager::GetString(key, temp))
 						{
 							destination.Copy(*temp);
 						}

@@ -135,19 +135,15 @@ void SC4NotificationDialog::ShowDialog(cIGZString const& message, cIGZString con
 
 void SC4NotificationDialog::ShowDialog(StringResourceKey const& messageKey, StringResourceKey const& captionKey)
 {
-	cIGZString* pMessage = nullptr;
+	cRZAutoRefCount<cIGZString> message;
 
-	if (StringResourceManager::GetLocalizedString(messageKey, &pMessage))
+	if (StringResourceManager::GetLocalizedString(messageKey, message))
 	{
-		cIGZString* pCaption = nullptr;
+		cRZAutoRefCount<cIGZString> caption;
 
-		if (StringResourceManager::GetLocalizedString(captionKey, &pCaption))
+		if (StringResourceManager::GetLocalizedString(captionKey, caption))
 		{
-			ShowNotificationDialog(*pMessage, *pCaption);
-
-			pCaption->Release();
+			ShowNotificationDialog(*message, *caption);
 		}
-
-		pMessage->Release();
 	}
 }

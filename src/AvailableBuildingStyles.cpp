@@ -48,7 +48,7 @@ namespace
 		void* callbackState;
 	};
 
-	bool BuildingStyleWinEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
+	bool BuildingStyleWinEnumProc(cIGZWin* parent, uint32_t childID, void* child, void* pState)
 	{
 		// The Maxis UI control ids, optional UI control ids, and PIM-X placeholder id are excluded,
 		// every other button in the dialog is a style radio button.
@@ -57,14 +57,9 @@ namespace
 			&& OptionalButtonIDs.count(childID) == 0
 			&& childID != PIMXPlaceholderStyleID)
 		{
-			cRZAutoRefCount<cIGZWinBtn> pBtn;
+			BuildingStyleWinEnumContext* state = static_cast<BuildingStyleWinEnumContext*>(pState);
 
-			if (child->QueryInterface(GZIID_cIGZWinBtn, pBtn.AsPPVoid()))
-			{
-				BuildingStyleWinEnumContext* state = static_cast<BuildingStyleWinEnumContext*>(pState);
-
-				state->callback(childID, pBtn, state->callbackState);
-			}
+			state->callback(childID, static_cast<cIGZWinBtn*>(child), state->callbackState);
 		}
 
 		return true;
@@ -103,7 +98,7 @@ namespace
 
 		cRZAutoRefCount<cIGZString> toolTipText;
 
-		if (StringResourceManager::GetLocalizedString(pLM, pRM, key, toolTipText.AsPPObj()))
+		if (StringResourceManager::GetLocalizedString(pLM, pRM, key, toolTipText))
 		{
 			pBtn->SetTipText(*toolTipText);
 		}

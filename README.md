@@ -176,9 +176,7 @@ These headers are located in the src/public/include folder.
 
 ## 3rd party code
 
-[gzcom-dll](https://github.com/nsgomez/gzcom-dll/tree/master) Located in the vendor folder, MIT License.    
-[EABase](https://github.com/electronicarts/EABase) Located in the vendor folder, BSD 3-Clause License.    
-[EASTL](https://github.com/electronicarts/EASTL) Located in the vendor folder, BSD 3-Clause License.    
+[gzcom-dll](https://github.com/nsgomez/gzcom-dll/tree/master) - MIT License.      
 [Windows Implementation Library](https://github.com/microsoft/wil) - MIT License    
 [SC4Fix](https://github.com/nsgomez/sc4fix) - MIT License.    
 [Frozen](https://github.com/serge-sans-paille/frozen) - Apache 2.0 License.    
@@ -190,6 +188,7 @@ These headers are located in the src/public/include folder.
 ## Prerequisites
 
 * Visual Studio 2022
+* `git submodule update --init`
 * [VCPkg](https://github.com/microsoft/vcpkg) with the Visual Studio integration
 
 ## Building the plugin

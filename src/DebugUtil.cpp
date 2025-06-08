@@ -126,7 +126,7 @@ void DebugUtil::PrintOccupantNameToDebugOutput(cISC4Occupant* pOccupant)
 	{
 		cRZAutoRefCount<cIGZString> name;
 
-		if (StringResourceManager::GetLocalizedString(occupantNameKey, name.AsPPObj()))
+		if (StringResourceManager::GetLocalizedString(occupantNameKey, name))
 		{
 			PrintLineToDebugOutput(name->ToChar());
 		}

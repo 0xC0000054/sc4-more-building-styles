@@ -89,7 +89,7 @@ namespace
 
 			cRZAutoRefCount<cIGZString> localizedString;
 
-			if (!StringResourceManager::GetLocalizedString(key, localizedString.AsPPObj()))
+			if (!StringResourceManager::GetLocalizedString(key, localizedString))
 			{
 				logger.WriteLineFormatted(
 					LogLevel::Error,
@@ -206,7 +206,7 @@ namespace
 		}
 	};
 
-	bool SupportedUIButtonEnumProc(cIGZWin* parent, uint32_t childID, cIGZWin* child, void* pState)
+	bool SupportedUIButtonEnumProc(cIGZWin* parent, uint32_t childID, void* child, void* pState)
 	{
 		if (childID <= BuildingStyleIniMaxButtonID)
 		{
