@@ -50,22 +50,22 @@ BuildingStyleCollection& BuildingStyleCollection::operator=(BuildingStyleCollect
 	return *this;
 }
 
-std::vector<BuildingStyleCollectionEntry>::iterator BuildingStyleCollection::begin()
+BuildingStyleCollection::iterator BuildingStyleCollection::begin()
 {
 	return entries.begin();
 }
 
-std::vector<BuildingStyleCollectionEntry>::const_iterator BuildingStyleCollection::begin() const
+BuildingStyleCollection::const_iterator BuildingStyleCollection::begin() const
 {
 	return entries.begin();
 }
 
-std::vector<BuildingStyleCollectionEntry>::iterator BuildingStyleCollection::end()
+BuildingStyleCollection::iterator BuildingStyleCollection::end()
 {
 	return entries.end();
 }
 
-std::vector<BuildingStyleCollectionEntry>::const_iterator BuildingStyleCollection::end() const
+BuildingStyleCollection::const_iterator BuildingStyleCollection::end() const
 {
 	return entries.end();
 }
@@ -90,7 +90,7 @@ bool BuildingStyleCollection::empty() const
 	return entries.empty();
 }
 
-std::vector<BuildingStyleCollectionEntry>::const_iterator BuildingStyleCollection::find_button(uint32_t buttonID) const
+BuildingStyleCollection::const_iterator BuildingStyleCollection::find_button(uint32_t buttonID) const
 {
 	return std::find_if(
 		entries.begin(),
@@ -101,7 +101,7 @@ std::vector<BuildingStyleCollectionEntry>::const_iterator BuildingStyleCollectio
 		});
 }
 
-std::vector<BuildingStyleCollectionEntry>::const_iterator BuildingStyleCollection::find_style(uint32_t styleID) const
+BuildingStyleCollection::const_iterator BuildingStyleCollection::find_style(uint32_t styleID) const
 {
 	return std::find_if(
 		entries.begin(),
