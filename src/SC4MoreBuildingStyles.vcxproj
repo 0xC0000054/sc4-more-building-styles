@@ -28,6 +28,7 @@
     <ClCompile Include="BuildingStyleInfo.cpp" />
     <ClCompile Include="BuildingStyleIniFile.cpp" />
     <ClCompile Include="BuildingStyleUtil.cpp" />
+    <ClCompile Include="BuildingStyleWinUtil.cpp" />
     <ClCompile Include="BuildingUtil.cpp" />
     <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="FileSystem.cpp" />
@@ -70,6 +71,7 @@
     <ClInclude Include="BuildingStyleIniFile.h" />
     <ClInclude Include="BuildingStyleMessages.h" />
     <ClInclude Include="BuildingStyleUtil.h" />
+    <ClInclude Include="BuildingStyleWinUtil.h" />
     <ClInclude Include="BuildingUtil.h" />
     <ClInclude Include="MaxisBuildingStyleUIControlIDs.h" />
     <ClInclude Include="PropertyData.h" />

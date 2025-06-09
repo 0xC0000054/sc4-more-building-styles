@@ -22,12 +22,9 @@
 #include "BuildingStyleIniFile.h"
 #include "BuildingStyleButtons.h"
 #include "BuildingStyleUtil.h"
-#include "cIGZWin.h"
-#include "cIGZWinBtn.h"
-#include "cISC4App.h"
+#include "BuildingStyleWinUtil.h"
 #include "cRZAutoRefCount.h"
 #include "FileSystem.h"
-#include "GZServPtrs.h"
 #include "Logger.h"
 #include "StringResourceKey.h"
 #include "StringResourceManager.h"
@@ -222,40 +219,13 @@ namespace
 	{
 		std::unordered_set<uint32_t> supportedButtonIDs;
 
-		cISC4AppPtr pSC4App;
+		SupportedUIButtonContext context;
 
-		if (pSC4App)
-		{
-			cIGZWin* mainWindow = pSC4App->GetMainWindow();
+		BuildingStyleWinUtil::EnumerateBuildingStyleContainerButtons(
+			SupportedUIButtonEnumProc,
+			&context);
 
-			if (mainWindow)
-			{
-				constexpr uint32_t kGZWin_WinSC4App = 0x6104489a;
-
-				cIGZWin* pSC4AppWin = mainWindow->GetChildWindowFromID(kGZWin_WinSC4App);
-
-				if (pSC4AppWin)
-				{
-					// Get the child window that contains the building style radio buttons.
-
-					constexpr uint32_t BuildingStyleListContainer = 0x8bca20c3;
-
-					cIGZWin* pStyleListContainer = pSC4AppWin->GetChildWindowFromIDRecursive(BuildingStyleListContainer);
-
-					if (pStyleListContainer)
-					{
-						SupportedUIButtonContext context;
-
-						pStyleListContainer->EnumChildren(
-							GZIID_cIGZWinBtn,
-							SupportedUIButtonEnumProc,
-							&context);
-
-						supportedButtonIDs.swap(context.buttonIDs);
-					}
-				}
-			}
-		}
+		supportedButtonIDs.swap(context.buttonIDs);
 
 		return supportedButtonIDs;
 	}

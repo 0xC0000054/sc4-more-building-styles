@@ -22,12 +22,11 @@
 #include "AvailableBuildingStyles.h"
 #include "BuildingStyleButtons.h"
 #include "BuildingStyleIniFile.h"
+#include "BuildingStyleWinUtil.h"
 #include "cGZPersistResourceKey.h"
 #include "cIGZLanguageManager.h"
 #include "cIGZPersistResourceManager.h"
-#include "cIGZWin.h"
 #include "cIGZWinBtn.h"
-#include "cISC4App.h"
 #include "cISC4View3DWin.h"
 #include "cRZAutoRefCount.h"
 #include "GZServPtrs.h"
@@ -229,38 +228,11 @@ namespace
 	{
 		if (callback)
 		{
-			cISC4AppPtr pSC4App;
+			BuildingStyleWinEnumContext context(callback, pCallbackState);
 
-			if (pSC4App)
-			{
-				cIGZWin* mainWindow = pSC4App->GetMainWindow();
-
-				if (mainWindow)
-				{
-					constexpr uint32_t kGZWin_WinSC4App = 0x6104489a;
-
-					cIGZWin* pSC4AppWin = mainWindow->GetChildWindowFromID(kGZWin_WinSC4App);
-
-					if (pSC4AppWin)
-					{
-						// Get the child window that contains the building style radio buttons.
-
-						constexpr uint32_t BuildingStyleListContainer = 0x8bca20c3;
-
-						cIGZWin* pStyleListContainer = pSC4AppWin->GetChildWindowFromIDRecursive(BuildingStyleListContainer);
-
-						if (pStyleListContainer)
-						{
-							BuildingStyleWinEnumContext context(callback, pCallbackState);
-
-							pStyleListContainer->EnumChildren(
-								GZIID_cIGZWinBtn,
-								&BuildingStyleWinEnumProc,
-								&context);
-						}
-					}
-				}
-			}
+			BuildingStyleWinUtil::EnumerateBuildingStyleContainerButtons(
+				&BuildingStyleWinEnumProc,
+				&context);
 		}
 	}
 }
