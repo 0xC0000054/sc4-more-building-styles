@@ -179,6 +179,7 @@ These headers are located in the src/public/include folder.
 [gzcom-dll](https://github.com/nsgomez/gzcom-dll/tree/master) - MIT License.      
 [Windows Implementation Library](https://github.com/microsoft/wil) - MIT License    
 [SC4Fix](https://github.com/nsgomez/sc4fix) - MIT License.    
+[SafeInt](https://github.com/dcleblanc/SafeInt) - MIT License   
 [Frozen](https://github.com/serge-sans-paille/frozen) - Apache 2.0 License.    
 [Boost.Algorithm](https://www.boost.org/doc/libs/1_84_0/libs/algorithm/doc/html/index.html) - Boost Software License, Version 1.0.    
 [Boost.PropertyTree](https://www.boost.org/doc/libs/1_84_0/doc/html/property_tree.html) - Boost Software License, Version 1.0.

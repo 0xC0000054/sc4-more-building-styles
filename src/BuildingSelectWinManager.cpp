@@ -38,6 +38,7 @@
 #include "GlobalPointers.h"
 #include "GZCLSIDDefs.h"
 #include "Logger.h"
+#include "LuaExtensionRegistration.h"
 
 #include <array>
 
@@ -286,6 +287,7 @@ void BuildingSelectWinManager::PostCityInit(cIGZMessage2Standard* pStandardMsg)
 		pTractDeveloper = pCity->GetTractDeveloper();
 		pZoneManager = pCity->GetZoneManager();
 		context.SetTractDeveloper(pTractDeveloper);
+		LuaExtensionRegistration::Register(pCity->GetAdvisorSystem());
 	}
 }
 

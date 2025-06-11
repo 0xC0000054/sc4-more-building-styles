@@ -19,6 +19,7 @@
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cS3DVector3.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cSCBaseProperty.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\SC4UI.cpp" />
+    <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\SCLuaUtil.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\StringResourceManager.cpp" />
     <ClCompile Include="BuildingSelectWinContext.cpp" />
     <ClCompile Include="BuildingSelectWinManager.cpp" />
@@ -35,6 +36,9 @@
     <ClCompile Include="GZWinUtil.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="LotConfigurationManagerHooks.cpp" />
+    <ClCompile Include="lua-extensions\BuildingStyleLuaFunctions.cpp" />
+    <ClCompile Include="lua-extensions\BuildingStyleLuaFunctionTests.cpp" />
+    <ClCompile Include="lua-extensions\LuaExtensionRegistration.cpp" />
     <ClCompile Include="MoreBuildingStylesDllDirector.cpp" />
     <ClCompile Include="AvailableBuildingStyles.cpp" />
     <ClCompile Include="Patcher.cpp" />
@@ -73,6 +77,9 @@
     <ClInclude Include="BuildingStyleUtil.h" />
     <ClInclude Include="BuildingStyleWinUtil.h" />
     <ClInclude Include="BuildingUtil.h" />
+    <ClInclude Include="lua-extensions\BuildingStyleLuaFunctions.h" />
+    <ClInclude Include="lua-extensions\BuildingStyleLuaFunctionTests.h" />
+    <ClInclude Include="lua-extensions\LuaExtensionRegistration.h" />
     <ClInclude Include="MaxisBuildingStyleUIControlIDs.h" />
     <ClInclude Include="PropertyData.h" />
     <ClInclude Include="PropertyIDs.h" />
@@ -151,7 +158,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;.\;.\public\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\SafeInt;.\;.\public\include;.\lua-extensions</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -175,7 +182,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;.\;.\public\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\SafeInt;.\;.\public\include;.\lua-extensions</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
