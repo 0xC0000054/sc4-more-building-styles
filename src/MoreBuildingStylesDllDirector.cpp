@@ -130,7 +130,7 @@ public:
 
 		Logger::GetInstance().WriteLineFormatted(
 			LogLevel::Info,
-			"Style 0x%08X (%s) %s",
+			"Style 0x%X (%s) %s",
 			styleID,
 			styleButtonText->ToChar(),
 			added ? "added" : "removed");
@@ -197,7 +197,7 @@ public:
 
 					for (uint32_t style : activeStyles)
 					{
-						logger.WriteLineFormatted(LogLevel::Info, "0x%08X", style);
+						logger.WriteLineFormatted(LogLevel::Info, "0x%X", style);
 					}
 				}
 			}

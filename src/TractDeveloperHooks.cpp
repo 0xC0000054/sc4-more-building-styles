@@ -842,7 +842,7 @@ static std::string PrintBuildingStyles(
 				result.append(" | ");
 			}
 
-			result.append(std::format("0x{:08X}", item));
+			result.append(std::format("0x{:X}", item));
 		}
 	}
 
