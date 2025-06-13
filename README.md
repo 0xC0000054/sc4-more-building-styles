@@ -136,6 +136,12 @@ a large log file.
 As an example from one of my tests, a 22 second run with the _BuildingStyleSelection_ and _LotStyleSelection_ options enabled 
 produced a ~2 MB log file with ~15,500 lines.
 
+## Lua Functions
+
+The DLL provides a number of building style related functions for use by Lua scripts.
+See [building_style.lua](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/dat/building_style.lua) for a list of the provided functions,
+and [building_style_tests.lua](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/dat/building_style_tests.lua) for examples of their use.
+
 ## For DLL Modders
 
 This DLL provides several types for use by other DLL plugins, see the [documentation](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/docs/For_DLL_Plugins.md) for more details.
@@ -155,7 +161,7 @@ The plugin may work on Windows 7 or later, but I do not have the ability to test
 ## Installation
 
 1. Close SimCity 4.
-2. Copy _SC4MoreBuildingStyles.dll_, _SC4MoreBuildingStyles.ini_ and _BuildingStyles.ini_ into the top-level of the Plugins folder in the SimCity 4 installation directory or Documents/SimCity 4 directory.
+2. Copy _SC4MoreBuildingStyles.dll_, _SC4MoreBuildingStyles.ini_, _SC4MoreBuildingStyles.dat_, and _BuildingStyles.ini_ into the top-level of the Plugins folder in the SimCity 4 installation directory or Documents/SimCity 4 directory.
 3. Start SimCity 4.
 
 ## Troubleshooting
