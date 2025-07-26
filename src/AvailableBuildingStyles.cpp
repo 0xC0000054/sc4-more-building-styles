@@ -21,7 +21,6 @@
 
 #include "AvailableBuildingStyles.h"
 #include "BuildingStyleButtons.h"
-#include "BuildingStyleIniFile.h"
 #include "BuildingStyleWinUtil.h"
 #include "cGZPersistResourceKey.h"
 #include "cIGZLanguageManager.h"
@@ -103,15 +102,38 @@ namespace
 		}
 	}
 
+	void SetStyleRadioButtonToolTip(
+		cIGZWinBtn* pBtn,
+		const DefinedBuildingStyleEntry& entry,
+		cIGZLanguageManager* pLM,
+		cIGZPersistResourceManager* pRM)
+	{
+		const StringResourceKey& key = entry.toolTipKey;
+
+		if (key.groupID != 0 && key.instanceID != 0)
+		{
+			cRZAutoRefCount<cIGZString> toolTipText;
+
+			if (StringResourceManager::GetLocalizedString(pLM, pRM, key, toolTipText))
+			{
+				pBtn->SetTipText(*toolTipText);
+			}
+		}
+		else
+		{
+			SetStyleRadioButtonToolTip(pBtn, entry.styleID, pLM, pRM);
+		}		
+	}
+
 	struct InitializeBuildingStyleContext
 	{
-		const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& iniFileBuildingStyles;
+		const std::unordered_map<uint32_t, DefinedBuildingStyleEntry>& styles;
 		BuildingStyleCollection availableBuildingStyles;
 		cIGZLanguageManagerPtr languageManager;
 		cIGZPersistResourceManagerPtr resourceManager;
 
-		InitializeBuildingStyleContext(const BuildingStyleIniFile& buildingStyleIniFile)
-			: iniFileBuildingStyles(buildingStyleIniFile.GetStyles()),
+		InitializeBuildingStyleContext(const DefinedBuildingStyles& definedBuildingStyles)
+			: styles(definedBuildingStyles.GetStyles()),
 			  availableBuildingStyles(),
 			  languageManager(),
 			  resourceManager()
@@ -123,20 +145,20 @@ namespace
 	{
 		InitializeBuildingStyleContext* state = static_cast<InitializeBuildingStyleContext*>(pState);
 
-		if (childID <= BuildingStyleIniMaxButtonID)
+		if (childID <= BuildingStyleMappedCheckBoxMaxButtonID)
 		{
-			const auto& styles = state->iniFileBuildingStyles;
+			const auto& styles = state->styles;
 
 			const auto item = styles.find(childID);
 
 			if (item != styles.end())
 			{
-				const BuildingStyleIniFile::StyleEntry& entry = item->second;
+				const DefinedBuildingStyleEntry& entry = item->second;
 
-				if (entry.styleID != BuildingStyleIniFile::InvalidStyleID)
+				if (entry.styleID != DefinedBuildingStyleEntry::InvalidStyleID)
 				{
 					state->availableBuildingStyles.insert(item->first, entry.styleID, entry.styleName);
-					SetStyleRadioButtonToolTip(pBtn, entry.styleID, state->languageManager, state->resourceManager);
+					SetStyleRadioButtonToolTip(pBtn, entry, state->languageManager, state->resourceManager);
 				}
 				else
 				{
@@ -169,36 +191,36 @@ namespace
 		}
 	}
 
-	struct UpdateINIFileCheckBoxContext
+	struct UpdateAutomaticCheckBoxContext
 	{
-		const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& iniFileBuildingStyles;
+		const std::unordered_map<uint32_t, DefinedBuildingStyleEntry>& styles;
 		cIGZLanguageManagerPtr languageManager;
 		cIGZPersistResourceManagerPtr resourceManager;
 
-		UpdateINIFileCheckBoxContext(const BuildingStyleIniFile& buildingStyleIniFile)
-			: iniFileBuildingStyles(buildingStyleIniFile.GetStyles()),
+		UpdateAutomaticCheckBoxContext(const DefinedBuildingStyles& definedBuildingStyles)
+			: styles(definedBuildingStyles.GetStyles()),
 			  languageManager(),
 			  resourceManager()
 		{
 		}
 	};
 
-	void UpdateINIFileCheckBoxNamesCallback(uint32_t childID, cIGZWinBtn* pBtn, void* pState)
+	void UpdateAutomaticCheckBoxNamesCallback(uint32_t childID, cIGZWinBtn* pBtn, void* pState)
 	{
-		if (childID <= BuildingStyleIniMaxButtonID)
+		if (childID <= BuildingStyleMappedCheckBoxMaxButtonID)
 		{
-			const UpdateINIFileCheckBoxContext* state = static_cast<UpdateINIFileCheckBoxContext*>(pState);
-			const auto& styles = state->iniFileBuildingStyles;
+			const UpdateAutomaticCheckBoxContext* state = static_cast<UpdateAutomaticCheckBoxContext*>(pState);
+			const auto& styles = state->styles;
 
 			const auto item = styles.find(childID);
 
 			if (item != styles.end())
 			{
-				const BuildingStyleIniFile::StyleEntry& entry = item->second;
+				const DefinedBuildingStyleEntry& entry = item->second;
 
-				if (entry.styleID != BuildingStyleIniFile::InvalidStyleID)
+				if (entry.styleID != DefinedBuildingStyleEntry::InvalidStyleID)
 				{
-					SetStyleRadioButtonToolTip(pBtn, entry.styleID, state->languageManager, state->resourceManager);
+					SetStyleRadioButtonToolTip(pBtn, entry, state->languageManager, state->resourceManager);
 				}
 				else
 				{
@@ -246,17 +268,17 @@ void AvailableBuildingStyles::Initialize()
 {
 	if (firstCityLoaded)
 	{
-		UpdateINIFileCheckBoxContext context(buildingStyleIniFile);
+		UpdateAutomaticCheckBoxContext context(definedBuildingStyles);
 
-		EnumerateBuildingStyleCheckBoxes(UpdateINIFileCheckBoxNamesCallback, &context);
+		EnumerateBuildingStyleCheckBoxes(UpdateAutomaticCheckBoxNamesCallback, &context);
 	}
 	else
 	{
 		firstCityLoaded = true;
 
-		buildingStyleIniFile.Load();
+		definedBuildingStyles.Load();
 
-		InitializeBuildingStyleContext context(buildingStyleIniFile);
+		InitializeBuildingStyleContext context(definedBuildingStyles);
 
 		EnumerateBuildingStyleCheckBoxes(InitializeBuildingStylesCallback, &context);
 

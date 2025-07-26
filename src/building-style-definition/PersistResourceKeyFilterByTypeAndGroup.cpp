@@ -19,27 +19,38 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-#include "BuildingStyleCollection.h"
-#include "DefinedBuildingStyles.h"
+#include "PersistResourceKeyFilterByTypeAndGroup.h"
+#include "cGZPersistResourceKey.h"
 
-class cIGZWin;
-
-class AvailableBuildingStyles
+PersistResourceKeyFilterByTypeAndGroup::PersistResourceKeyFilterByTypeAndGroup(uint32_t type, uint32_t group)
+	: type(type), group(group)
 {
-public:
-	AvailableBuildingStyles();
+}
 
-	// Initializes the list of available building styles.
-	void Initialize();
+bool PersistResourceKeyFilterByTypeAndGroup::QueryInterface(uint32_t riid, void** ppvObj)
+{
+	if (riid == GZIID_cIGZPersistResourceKeyFilter)
+	{
+		*ppvObj = static_cast<cIGZPersistResourceKeyFilter*>(this);
+		AddRef();
 
-	bool IsStyleButtonIDValid(uint32_t buttonID) const;
+		return true;
+	}
 
-	const BuildingStyleCollection& GetBuildingStyles() const;
+	return cRZBaseUnknown::QueryInterface(riid, ppvObj);
+}
 
-private:
-	BuildingStyleCollection availableBuildingStyles;
-	DefinedBuildingStyles definedBuildingStyles;
-	bool firstCityLoaded;
-};
+uint32_t PersistResourceKeyFilterByTypeAndGroup::AddRef()
+{
+	return cRZBaseUnknown::AddRef();
+}
 
+uint32_t PersistResourceKeyFilterByTypeAndGroup::Release()
+{
+	return cRZBaseUnknown::Release();
+}
+
+bool PersistResourceKeyFilterByTypeAndGroup::IsKeyIncluded(cGZPersistResourceKey const& key)
+{
+	return key.type == type && key.group == group;
+}

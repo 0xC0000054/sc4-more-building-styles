@@ -20,26 +20,11 @@
  */
 
 #pragma once
-#include "BuildingStyleCollection.h"
-#include "DefinedBuildingStyles.h"
+#include "DefinedBuildingStyleEntry.h"
+#include <unordered_set>
+#include <vector>
 
-class cIGZWin;
-
-class AvailableBuildingStyles
+namespace BuildingStyleExemplars
 {
-public:
-	AvailableBuildingStyles();
-
-	// Initializes the list of available building styles.
-	void Initialize();
-
-	bool IsStyleButtonIDValid(uint32_t buttonID) const;
-
-	const BuildingStyleCollection& GetBuildingStyles() const;
-
-private:
-	BuildingStyleCollection availableBuildingStyles;
-	DefinedBuildingStyles definedBuildingStyles;
-	bool firstCityLoaded;
-};
-
+	std::vector<DefinedBuildingStyleEntry> GetDefinedStyles(const std::unordered_set<uint32_t>& iniFileStyles);
+}

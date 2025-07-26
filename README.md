@@ -80,9 +80,10 @@ This is the preferred method for identifying W2W buildings that do not already h
 
 The individual building styles can have a tool tip that describes the style when the user hovers over that check box.
 
-All of these tool tips use the LTEXT group id `0x3EE5B610`, the group id supports the standard language offset scheme.
-The style id is used as the LTEXT instance id.
+When defining styles in a Building Style exemplar, the tool tip can be set with the _Building Style Exemplar: ToolTip Key_ property.
+For styles that are defined in BuildingStyles.ini, the tool tips must use the LTEXT group id `0x3EE5B610` with the style id as the LTEXT instance id.
 
+The group id supports the standard language offset scheme.
 For example, the 0x2004 building style in would use the following TGI in German: `0x2026960B, 0x3EE5B614, 0x00002004`.
 
 Tool tips can optionally have a title in addition to a body, this is done by placing both on a single line with a pipe separator.    
@@ -90,6 +91,13 @@ For example, `ToolTip Title|Tool tip body`.
 Note that how the game displays tool tips with both a title and body will depend on the user's game settings.
 If the user has unchecked the _expanded tooltips_ check box in the play options dialog, the game will display the tool tip
 title (if present) or the body, but not both.
+
+## Building Style Exemplars
+
+These exemplars provide a way for building style mods to define the style check boxes without requiring the user
+to edit _BuildingStyles.ini_.
+
+See the [Building Style Exemplars](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/docs/Building_Style_Exemplars.md) page for more information.
 
 ## Cheat Codes
 

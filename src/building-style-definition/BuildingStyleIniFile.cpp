@@ -109,7 +109,7 @@ namespace
 	bool ParseStyleData(
 		uint32_t buttonID,
 		const std::string_view& input,
-		BuildingStyleIniFile::StyleEntry& entry)
+		DefinedBuildingStyleEntry& entry)
 	{
 		Logger& logger = Logger::GetInstance();
 
@@ -139,8 +139,8 @@ namespace
 			{
 				logger.WriteLineFormatted(
 					LogLevel::Error,
-					"The style id cannot have a value of %d.",
-					BuildingStyleIniFile::InvalidStyleID);
+					"The style id cannot have a value of 0x%X.",
+					entry.styleID);
 				return false;
 			}
 		}
@@ -181,88 +181,45 @@ namespace
 		}
 		else
 		{
-			if (entry.styleID == BuildingStyleIniFile::InvalidStyleID)
+			if (entry.styleID == DefinedBuildingStyleEntry::InvalidStyleID)
 			{
 				entry.styleName.Sprintf("Style Slot %d", buttonID);
 			}
 			else
 			{
-				entry.styleName.Sprintf("Style Slot %d (Style 0x%04X)", buttonID, entry.styleID);
+				entry.styleName.Sprintf("Style Slot %d (Style 0x%X)", buttonID, entry.styleID);
 			}
 		}
 
 		return result;
 	}
-
-	struct SupportedUIButtonContext
-	{
-		std::unordered_set<uint32_t> buttonIDs;
-
-		SupportedUIButtonContext() : buttonIDs()
-		{
-		}
-	};
-
-	bool SupportedUIButtonEnumProc(cIGZWin* parent, uint32_t childID, void* child, void* pState)
-	{
-		if (childID <= BuildingStyleIniMaxButtonID)
-		{
-			SupportedUIButtonContext* state = static_cast<SupportedUIButtonContext*>(pState);
-
-			state->buttonIDs.insert(childID);
-		}
-
-		return true;
-	}
-
-	std::unordered_set<uint32_t> GetSupportedUIButtons()
-	{
-		std::unordered_set<uint32_t> supportedButtonIDs;
-
-		SupportedUIButtonContext context;
-
-		BuildingStyleWinUtil::EnumerateBuildingStyleContainerButtons(
-			SupportedUIButtonEnumProc,
-			&context);
-
-		supportedButtonIDs.swap(context.buttonIDs);
-
-		return supportedButtonIDs;
-	}
 }
 
-BuildingStyleIniFile::BuildingStyleIniFile()
-{
-}
-
-const std::unordered_map<uint32_t, BuildingStyleIniFile::StyleEntry>& BuildingStyleIniFile::GetStyles() const
-{
-	return entries;
-}
-
-void BuildingStyleIniFile::Load()
+std::vector<DefinedBuildingStyleEntryWithButtonID> BuildingStyleIniFile::GetDefinedStyles(const std::vector<uint32_t>& supportedButtonIDs)
 {
 	Logger& logger = Logger::GetInstance();
 
+	std::vector<DefinedBuildingStyleEntryWithButtonID> entries;
+
 	try
 	{
-		const std::unordered_set<uint32_t> supportedButtonIDs = GetSupportedUIButtons();
+		std::filesystem::path path = FileSystem::GetBuildingStylesIniFilePath();
 
-		if (!supportedButtonIDs.empty())
+		std::ifstream stream(path, std::ifstream::in);
+
+		if (stream)
 		{
-			std::filesystem::path path = FileSystem::GetBuildingStylesIniFilePath();
+			boost::property_tree::ptree tree;
 
-			std::ifstream stream(path, std::ifstream::in);
+			boost::property_tree::ini_parser::read_ini(stream, tree);
 
-			if (stream)
+			const boost::property_tree::ptree buildingStylesSection = tree.get_child("BuildingStyles");
+
+			const size_t sectionSize = buildingStylesSection.size();
+
+			if (sectionSize > 0)
 			{
-				boost::property_tree::ptree tree;
-
-				boost::property_tree::ini_parser::read_ini(stream, tree);
-
-				const boost::property_tree::ptree buildingStylesSection = tree.get_child("BuildingStyles");
-
-				entries.reserve(buildingStylesSection.size());
+				entries.reserve(sectionSize);
 
 				for (const auto& item : buildingStylesSection)
 				{
@@ -270,14 +227,14 @@ void BuildingStyleIniFile::Load()
 
 					if (StringViewUtil::TryParse(item.first, buttonID))
 					{
-						if (supportedButtonIDs.contains(buttonID))
+						if (std::find(supportedButtonIDs.begin(), supportedButtonIDs.end(), buttonID) != supportedButtonIDs.end())
 						{
-							StyleEntry entry;
+							DefinedBuildingStyleEntryWithButtonID style(buttonID);
 
 							// ParseStyleData will write an error message if it fails.
-							if (ParseStyleData(buttonID, item.second.data(), entry))
+							if (ParseStyleData(buttonID, item.second.data(), style.styleData))
 							{
-								entries.insert(std::make_pair(buttonID, entry));
+								entries.emplace_back(std::move(style));
 							}
 						}
 						else
@@ -297,10 +254,10 @@ void BuildingStyleIniFile::Load()
 					}
 				}
 			}
-			else
-			{
-				logger.WriteLine(LogLevel::Error, "Failed to open the BuildingStyles INI file.");
-			}
+		}
+		else
+		{
+			logger.WriteLine(LogLevel::Error, "Failed to open the BuildingStyles INI file.");
 		}
 	}
 	catch (const std::exception& e)
@@ -310,5 +267,6 @@ void BuildingStyleIniFile::Load()
 			"Failed to read the BuildingStyles INI file: %s",
 			e.what());
 	}
-}
 
+	return entries;
+}

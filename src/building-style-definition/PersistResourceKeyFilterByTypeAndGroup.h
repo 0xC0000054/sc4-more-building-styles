@@ -20,41 +20,21 @@
  */
 
 #pragma once
-#include "cRZBaseString.h"
-#include <unordered_map>
+#include "cRZBaseUnknown.h"
+#include "cIGZPersistResourceKeyFilter.h"
 
-class cIGZWin;
-
-class BuildingStyleIniFile
+class PersistResourceKeyFilterByTypeAndGroup : public cRZBaseUnknown, public cIGZPersistResourceKeyFilter
 {
 public:
-	// A style id value of 0 is used by some Maxis blockers,
-	// so it can never be a valid building style id.
-	// We use it as a marker value for unused style
-	// check boxes that are not hidden in the menu.
-	static constexpr uint32_t InvalidStyleID = 0;
+	PersistResourceKeyFilterByTypeAndGroup(uint32_t type, uint32_t group);
 
-	struct StyleEntry
-	{
-		uint32_t styleID;
-		cRZBaseString styleName;
-		bool boldText;
+	bool QueryInterface(uint32_t riid, void** ppvObj) override;
+	uint32_t AddRef() override;
+	uint32_t Release() override;
+	bool IsKeyIncluded(cGZPersistResourceKey const& key) override;
 
-		StyleEntry()
-			: styleID(InvalidStyleID),
-			  styleName(),
-			  boldText(false)
-		{
-		}
-	};
-
-	BuildingStyleIniFile();
-
-	const std::unordered_map<uint32_t, StyleEntry>& GetStyles() const;
-
-	void Load();
 private:
-
-	std::unordered_map<uint32_t, StyleEntry> entries;
+	uint32_t type;
+	uint32_t group;
 };
 
