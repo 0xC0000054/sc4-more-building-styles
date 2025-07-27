@@ -9,7 +9,7 @@ This is done to preserve the behavior of the INI file allowing for fully custom 
 
 ## Examples
 
-An DAT file that demonstrates how to creat this exemplar is located in the [examples](https://github.com/0xC0000054/sc4-more-building-styles/tree/main/examples) folder.
+An DAT file that demonstrates how to create this exemplar is located in the [examples](https://github.com/0xC0000054/sc4-more-building-styles/tree/main/examples) folder.
 
 ## Exemplar Properties
 
