@@ -12,7 +12,7 @@ This mod patches the game's memory to remove that restriction.
 ## Adding More Building Styles into SC4 
 
 The building style IDs are assigned in the [SimCity 4 Building Styles Index](https://community.simtropolis.com/forums/topic/763276-building-styles-master-iid/) thread, you will need to use the
-Maxis/community styles or request your own public and/or private building style ID range in that thread.  
+existing styles or request your own building style ID range in that thread. 
 
 ### Modifying the Building Styles UI
 
@@ -20,9 +20,9 @@ The easiest way to get started is to download the Building Style UI template, bu
 
 #### Building Style UI Template
 
-A UI template is available [here](https://community.simtropolis.com/forums/topic/762969-allow-more-building-styles-dll-plugin/?do=findComment&comment=1800509), it uses [BuildingStyles.ini](https://github.com/0xC0000054/sc4-more-building-styles#buildingstyles-ini-file),
-and supports all of the [new controls](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/docs/Building_Style_UI_Controls.md) the DLL adds. 
-Once you have configured your styles in _BuildingStyles.ini_, see the section below on assigning buildings to custom styles.
+A UI template is available [here](https://community.simtropolis.com/forums/topic/762969-allow-more-building-styles-dll-plugin/?do=findComment&comment=1800509), which supports all of the [new controls](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/docs/Building_Style_UI_Controls.md) the DLL adds.    
+The UI Template can be configured using either [BuildingStyles.ini](https://github.com/0xC0000054/sc4-more-building-styles#buildingstyles-ini-file) or the [Building Style exemplars](https://github.com/0xC0000054/sc4-more-building-styles/blob/main/docs/Building_Style_Exemplars.md).    
+Once you have configured your styles in _BuildingStyles.ini_ or the style exemplars, see the section below on assigning buildings to custom styles.
 
 #### Creating a Custom Building Style UI
 
