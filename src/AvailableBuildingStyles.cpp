@@ -122,7 +122,7 @@ namespace
 		else
 		{
 			SetStyleRadioButtonToolTip(pBtn, entry.styleID, pLM, pRM);
-		}		
+		}
 	}
 
 	struct InitializeBuildingStyleContext
@@ -187,7 +187,6 @@ namespace
 			cIGZString* caption = pBtn->GetCaption();
 
 			state->availableBuildingStyles.insert(childID, childID, *caption);
-			SetStyleRadioButtonToolTip(pBtn, childID, state->languageManager, state->resourceManager);
 		}
 	}
 
