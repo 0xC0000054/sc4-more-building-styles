@@ -21,6 +21,8 @@
 
 #pragma once
 #include "cIGZVariant.h"
+#include "cISCProperty.h"
+#include "cISCPropertyHolder.h"
 #include "cRZAutoRefCount.h"
 #include <span>
 #include <type_traits>
@@ -61,9 +63,24 @@ public:
 	PropertyData(const PropertyData& other) = delete;
 
 	PropertyData(PropertyData&& other) noexcept
-		: singleValue(0), span(), variant()
+		: singleValue(0), span(), variant(std::move(other.variant))
 	{
-		operator=(other);
+		if (variant)
+		{
+			T* pData = get_variant_data(variant);
+			uint32_t repCount = variant->GetCount();
+
+			if (repCount == 0)
+			{
+				// If the rep count is zero, the pointer's address is the value.
+				singleValue = reinterpret_cast<T>(pData);
+				span = std::span<T>(std::addressof(singleValue), 1);
+			}
+			else
+			{
+				span = std::span<T>(pData, repCount);
+			}
+		}
 	}
 
 	PropertyData& operator=(const PropertyData& other) = delete;
@@ -74,24 +91,24 @@ public:
 
 		if (variant)
 		{
-			uint32_t* pData = get_variant_data(variant);
+			T* pData = get_variant_data(variant);
 			uint32_t repCount = variant->GetCount();
 
 			if (repCount == 0)
 			{
 				// If the rep count is zero, the pointer's address is the value.
-				singleValue = reinterpret_cast<uint32_t>(pData);
-				span = std::span<uint32_t>(std::addressof(singleValue), 1);
+				singleValue = reinterpret_cast<T>(pData);
+				span = std::span<T>(std::addressof(singleValue), 1);
 			}
 			else
 			{
-				span = std::span<uint32_t>(pData, repCount);
+				span = std::span<T>(pData, repCount);
 			}
 		}
 		else
 		{
 			singleValue = 0;
-			span = std::span<uint32_t>();
+			span = std::span<T>();
 		}
 
 		return *this;
@@ -161,14 +178,14 @@ public:
 			else
 			{
 				singleValue = 0;
-				span = std::span<uint32_t>();
+				span = std::span<T>();
 				variant = nullptr;
 			}
 		}
 		else
 		{
 			singleValue = 0;
-			span = std::span<uint32_t>();
+			span = std::span<T>();
 			variant = nullptr;
 		}
 
