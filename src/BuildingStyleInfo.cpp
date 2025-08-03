@@ -37,7 +37,8 @@
 
 namespace
 {
-	void AppendBuildingStyleName(
+	template <bool useFallbackStyleName>
+	bool AppendBuildingStyleName(
 		const BuildingStyleCollection& availableBuildingStyles,
 		uint32_t styleID,
 		cIGZString& destination)
@@ -47,8 +48,9 @@ namespace
 		if (item != availableBuildingStyles.end())
 		{
 			destination.Append(item->styleName);
+			return true;
 		}
-		else
+		else if constexpr (useFallbackStyleName)
 		{
 			// The specified style is not present in the UI, display a fall back string.
 
@@ -59,10 +61,14 @@ namespace
 			if (length > 0)
 			{
 				destination.Append(buffer, static_cast<uint32_t>(length));
+				return true;
 			}
 		}
+
+		return false;
 	}
 
+	template <bool useFallbackStyleName>
 	void GetStyleNamesFromVariant(
 		const cIGZVariant& variant,
 		const BuildingStyleCollection& availableBuildingStyles,
@@ -74,7 +80,7 @@ namespace
 
 		if (repCount > 1)
 		{
-			bool firstStyle = true;
+			bool trimFinalSeparator = false;
 
 			// The styles are printed in the order that they are listed in the exemplar property.
 			// Previous versions of the DLL did this as a side effect of the implementation, and
@@ -82,23 +88,26 @@ namespace
 
 			for (size_t i = 0; i < repCount; i++)
 			{
-				AppendBuildingStyleName(availableBuildingStyles, pData[i], destination);
-
-				if (firstStyle)
-				{
-					firstStyle = false;
-				}
-				else
+				if (AppendBuildingStyleName<useFallbackStyleName>(availableBuildingStyles, pData[i], destination))
 				{
 					destination.Append(separator);
+					trimFinalSeparator = true;
 				}
+			}
+
+			if (trimFinalSeparator)
+			{
+				// Remove the trailing separator.
+
+				const uint32_t separatorLength = separator.Strlen();
+				destination.Erase(destination.Strlen() - separatorLength, separatorLength);
 			}
 		}
 		else
 		{
 			const uint32_t targetStyleID = repCount == 0 ? reinterpret_cast<uint32_t>(pData) : pData[0];
 
-			AppendBuildingStyleName(availableBuildingStyles, targetStyleID, destination);
+			AppendBuildingStyleName<useFallbackStyleName>(availableBuildingStyles, targetStyleID, destination);
 		}
 	}
 }
@@ -192,7 +201,7 @@ bool BuildingStyleInfo::GetBuildingStyleName(uint32_t style, cIGZString& name) c
 	const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
 
 	name.Erase(0, UINT_MAX);
-	AppendBuildingStyleName(availableBuildingStyles, style, name);
+	AppendBuildingStyleName<false>(availableBuildingStyles, style, name);
 
 	return name.Strlen() > 0;
 }
@@ -238,7 +247,7 @@ bool BuildingStyleInfo::GetBuildingStyleNamesEx(
 
 					if (pVariant)
 					{
-						GetStyleNamesFromVariant(
+						GetStyleNamesFromVariant<true>(
 							*pVariant,
 							availableBuildingStyles,
 							destination,
@@ -276,7 +285,7 @@ bool BuildingStyleInfo::GetBuildingStyleNamesEx(
 
 							if (pVariant)
 							{
-								GetStyleNamesFromVariant(
+								GetStyleNamesFromVariant<false>(
 									*pVariant,
 									availableBuildingStyles,
 									destination,
