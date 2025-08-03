@@ -37,6 +37,32 @@
 
 namespace
 {
+	void AppendBuildingStyleName(
+		const BuildingStyleCollection& availableBuildingStyles,
+		uint32_t styleID,
+		cIGZString& destination)
+	{
+		auto item = availableBuildingStyles.find_style(styleID);
+
+		if (item != availableBuildingStyles.end())
+		{
+			destination.Append(item->styleName);
+		}
+		else
+		{
+			// The specified style is not present in the UI, display a fall back string.
+
+			char buffer[128]{};
+
+			int length = std::snprintf(buffer, sizeof(buffer), "Unknown (0x%X)", styleID);
+
+			if (length > 0)
+			{
+				destination.Append(buffer, static_cast<uint32_t>(length));
+			}
+		}
+	}
+
 	void GetStyleNamesFromVariant(
 		const cIGZVariant& variant,
 		const BuildingStyleCollection& availableBuildingStyles,
@@ -56,20 +82,15 @@ namespace
 
 			for (size_t i = 0; i < repCount; i++)
 			{
-				auto item = availableBuildingStyles.find_style(pData[i]);
+				AppendBuildingStyleName(availableBuildingStyles, pData[i], destination);
 
-				if (item != availableBuildingStyles.end())
+				if (firstStyle)
 				{
-					if (firstStyle)
-					{
-						firstStyle = false;
-					}
-					else
-					{
-						destination.Append(separator);
-					}
-
-					destination.Append(item->styleName);
+					firstStyle = false;
+				}
+				else
+				{
+					destination.Append(separator);
 				}
 			}
 		}
@@ -77,12 +98,7 @@ namespace
 		{
 			const uint32_t targetStyleID = reinterpret_cast<uint32_t>(pData);
 
-			auto item = availableBuildingStyles.find_style(targetStyleID);
-
-			if (item != availableBuildingStyles.end())
-			{
-				destination.Append(item->styleName);
-			}
+			AppendBuildingStyleName(availableBuildingStyles, targetStyleID, destination);
 		}
 	}
 }
@@ -175,17 +191,10 @@ bool BuildingStyleInfo::GetBuildingStyleName(uint32_t style, cIGZString& name) c
 {
 	const BuildingStyleCollection& availableBuildingStyles = buildingWinManager.GetAvailableBuildingStyles();
 
-	bool result = false;
+	name.Erase(0, UINT_MAX);
+	AppendBuildingStyleName(availableBuildingStyles, style, name);
 
-	auto item = availableBuildingStyles.find_style(style);
-
-	if (item != availableBuildingStyles.end())
-	{
-		name = item->styleName;
-		result = true;
-	}
-
-	return result;
+	return name.Strlen() > 0;
 }
 
 bool BuildingStyleInfo::GetBuildingStyleNames(cISC4Occupant* pBuildingOccupant, cIGZString& destination) const
