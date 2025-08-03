@@ -72,7 +72,7 @@ namespace
 		const uint32_t* pData = variant.RefUint32();
 		const uint32_t repCount = variant.GetCount();
 
-		if (repCount > 0)
+		if (repCount > 1)
 		{
 			bool firstStyle = true;
 
@@ -96,7 +96,7 @@ namespace
 		}
 		else
 		{
-			const uint32_t targetStyleID = reinterpret_cast<uint32_t>(pData);
+			const uint32_t targetStyleID = repCount == 0 ? reinterpret_cast<uint32_t>(pData) : pData[0];
 
 			AppendBuildingStyleName(availableBuildingStyles, targetStyleID, destination);
 		}
