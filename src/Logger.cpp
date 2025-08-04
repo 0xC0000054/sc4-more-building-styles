@@ -106,11 +106,24 @@ void Logger::WriteLineFormatted(LogLevel level, const char* const format, ...)
 	{
 		size_t formattedStringLengthWithNull = static_cast<size_t>(formattedStringLength) + 1;
 
-		std::unique_ptr<char[]> buffer = std::make_unique_for_overwrite<char[]>(formattedStringLengthWithNull);
+		constexpr size_t stackBufferSize = 1024;
 
-		std::vsnprintf(buffer.get(), formattedStringLengthWithNull, format, args);
+		if (formattedStringLengthWithNull >= stackBufferSize)
+		{
+			std::unique_ptr<char[]> buffer = std::make_unique_for_overwrite<char[]>(formattedStringLengthWithNull);
 
-		WriteLineCore(buffer.get());
+			std::vsnprintf(buffer.get(), formattedStringLengthWithNull, format, args);
+
+			WriteLineCore(buffer.get());
+		}
+		else
+		{
+			char buffer[stackBufferSize]{};
+
+			std::vsnprintf(buffer, stackBufferSize, format, args);
+
+			WriteLineCore(buffer);
+		}
 	}
 
 	va_end(args);
