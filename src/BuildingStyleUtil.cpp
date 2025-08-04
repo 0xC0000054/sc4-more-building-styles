@@ -22,7 +22,9 @@
 #include "BuildingStyleUtil.h"
 #include "BuildingStyleButtons.h"
 #include "MaxisBuildingStyleUIControlIDs.h"
+#include "PropertyIDs.h"
 #include "ReservedStyleIDs.h"
+#include <algorithm>
 
 bool BuildingStyleUtil::IsMaxisStyleID(uint32_t style)
 {
@@ -43,4 +45,37 @@ bool BuildingStyleUtil::IsReservedStyleID(uint32_t style)
 		|| style == PIMXPlaceholderStyleID
 		|| MaxisUIControlIDs.count(style) != 0
 		|| OptionalButtonIDs.count(style) != 0;
+}
+
+bool BuildingStyleUtil::TryReadBuildingStylesProperty(
+	cISCPropertyHolder* pPropertyHolder,
+	PropertyData<uint32_t>& output)
+{
+	bool result = false;
+	PropertyData<uint32_t> temp(pPropertyHolder, kBuildingStylesProperty);
+
+	if (temp)
+	{
+		// A Building Styles property set to the PIM-X placeholder style is currently
+		// used on over 100 released buildings.
+		// This style acts as a blocker when the DLL is installed with one of these
+		// updated buildings.
+		// Additionally, there are a number of other values that can't be used as a
+		// style id such as the control ids in the Building Style Control UI.
+		//
+		// Buildings that have only the reserved style ids in their Building Styles
+		// property will be made to use the legacy Maxis styles in the
+		// Occupant Groups property.
+
+		if (std::find_if_not(
+			temp.begin(),
+			temp.end(),
+			IsReservedStyleID) != temp.end())
+		{
+			output = std::move(temp);
+			result = true;
+		}
+	}
+
+	return result;
 }

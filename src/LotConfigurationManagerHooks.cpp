@@ -86,15 +86,14 @@ static bool ReadBuildingStylePropertyValues(
 {
 	vector.clear();
 
-	const PropertyData<uint32_t> propertyData(pPropertyHolder, kBuildingStylesProperty);
+	PropertyData<uint32_t> propertyData;
 
-	if (propertyData)
+	if (BuildingStyleUtil::TryReadBuildingStylesProperty(pPropertyHolder, propertyData))
 	{
-		std::copy_if(
+		std::copy(
 			propertyData.begin(),
 			propertyData.end(),
-			std::back_inserter(vector),
-			std::not_fn(BuildingStyleUtil::IsReservedStyleID));
+			std::back_inserter(vector));
 	}
 
 	return !vector.empty();

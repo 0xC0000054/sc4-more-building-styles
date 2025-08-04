@@ -868,39 +868,6 @@ static void LogStyleMatchInfo(
 	}
 }
 
-static bool ReadBuildingStylesProperty(
-	cISCPropertyHolder* pPropertyHolder,
-	PropertyData<uint32_t>& output)
-{
-	bool result = false;
-	PropertyData<uint32_t> temp(pPropertyHolder, kBuildingStylesProperty);
-
-	if (temp)
-	{
-		// A Building Styles property set to the PIM-X placeholder style is currently
-		// used on over 100 released buildings.
-		// This style acts as a blocker when the DLL is installed with one of these
-		// updated buildings.
-		// Additionally, there are a number of other values that can't be used as a
-		// style id such as the control ids in the Building Style Control UI.
-		//
-		// Buildings that have only the reserved style ids in their Building Styles
-		// property will be made to use the legacy Maxis styles in the
-		// Occupant Groups property.
-
-		if (std::find_if_not(
-			temp.begin(),
-			temp.end(),
-			BuildingStyleUtil::IsReservedStyleID) != temp.end())
-		{
-			output = std::move(temp);
-			result = true;
-		}
-	}
-
-	return result;
-}
-
 static std::optional<bool> StylesMatch(
 	const BuildingStyleCollection& availableStyles,
 	const PropertyData<uint32_t>& newBuildingStyles,
@@ -942,7 +909,7 @@ static std::optional<bool> StyleMatchesExistingLot(const cISC4Lot* pLot, const P
 
 				PropertyData<uint32_t> oldBuildingStyles;
 
-				if (ReadBuildingStylesProperty(pPropertyHolder, oldBuildingStyles))
+				if (BuildingStyleUtil::TryReadBuildingStylesProperty(pPropertyHolder, oldBuildingStyles))
 				{
 					result = StylesMatch(availableStyles, newBuildingStyles, oldBuildingStyles);
 
@@ -997,7 +964,7 @@ static bool BuildingHasStyleOccupantGroup(
 				{
 					PropertyData<uint32_t> propertyData;
 
-					if (ReadBuildingStylesProperty(pPropertyHolder, propertyData))
+					if (BuildingStyleUtil::TryReadBuildingStylesProperty(pPropertyHolder, propertyData))
 					{
 						result = BuildingHasStyleValue<true>(
 							pThis,

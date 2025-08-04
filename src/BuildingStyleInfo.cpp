@@ -21,6 +21,7 @@
 
 #include "BuildingStyleInfo.h"
 #include "BuildingUtil.h"
+#include "BuildingStyleUtil.h"
 #include "cIGZString.h"
 #include "cIGZVariant.h"
 #include "cISC4BuildingOccupant.h"
@@ -31,6 +32,7 @@
 #include "cRZBaseString.h"
 #include "GlobalPointers.h"
 #include "IBuildingSelectWinManager.h"
+#include "PropertyData.h"
 #include "PropertyIDs.h"
 #include "StringResourceKey.h"
 #include "StringResourceManager.h"
@@ -69,45 +71,51 @@ namespace
 	}
 
 	template <bool useFallbackStyleName>
-	void GetStyleNamesFromVariant(
-		const cIGZVariant& variant,
+	void GetStyleNamesFromPropertyData(
+		const PropertyData<uint32_t>& propertyData,
 		const BuildingStyleCollection& availableBuildingStyles,
 		cIGZString& destination,
 		const cIGZString& separator)
 	{
-		const uint32_t* pData = variant.RefUint32();
-		const uint32_t repCount = variant.GetCount();
+		const uint32_t count = propertyData.size();
 
-		if (repCount > 1)
+		if (count > 0)
 		{
-			bool trimFinalSeparator = false;
-
-			// The styles are printed in the order that they are listed in the exemplar property.
-			// Previous versions of the DLL did this as a side effect of the implementation, and
-			// we have to preserve the behavior because users came to depend on it.
-
-			for (size_t i = 0; i < repCount; i++)
+			if (count > 1)
 			{
-				if (AppendBuildingStyleName<useFallbackStyleName>(availableBuildingStyles, pData[i], destination))
+				bool trimFinalSeparator = false;
+
+				// The styles are printed in the order that they are listed in the exemplar property.
+				// Previous versions of the DLL did this as a side effect of the implementation, and
+				// we have to preserve the behavior because users came to depend on it.
+
+				for (size_t i = 0; i < count; i++)
 				{
-					destination.Append(separator);
-					trimFinalSeparator = true;
+					if (AppendBuildingStyleName<useFallbackStyleName>(
+						availableBuildingStyles,
+						propertyData[i],
+						destination))
+					{
+						destination.Append(separator);
+						trimFinalSeparator = true;
+					}
+				}
+
+				if (trimFinalSeparator)
+				{
+					// Remove the trailing separator.
+
+					const uint32_t separatorLength = separator.Strlen();
+					destination.Erase(destination.Strlen() - separatorLength, separatorLength);
 				}
 			}
-
-			if (trimFinalSeparator)
+			else
 			{
-				// Remove the trailing separator.
-
-				const uint32_t separatorLength = separator.Strlen();
-				destination.Erase(destination.Strlen() - separatorLength, separatorLength);
+				AppendBuildingStyleName<useFallbackStyleName>(
+					availableBuildingStyles,
+					propertyData[0],
+					destination);
 			}
-		}
-		else
-		{
-			const uint32_t targetStyleID = repCount == 0 ? reinterpret_cast<uint32_t>(pData) : pData[0];
-
-			AppendBuildingStyleName<useFallbackStyleName>(availableBuildingStyles, targetStyleID, destination);
 		}
 	}
 }
@@ -235,24 +243,19 @@ bool BuildingStyleInfo::GetBuildingStyleNamesEx(
 
 		if (availableBuildingStyles.size() > 0)
 		{
-			const cISCPropertyHolder* pPropertyHolder = pBuildingOccupant->AsPropertyHolder();
+			cISCPropertyHolder* pPropertyHolder = pBuildingOccupant->AsPropertyHolder();
 
 			if (pPropertyHolder)
 			{
-				const cISCProperty* pProperty = pPropertyHolder->GetProperty(kBuildingStylesProperty);
+				PropertyData<uint32_t> propertyData;
 
-				if (pProperty)
+				if (BuildingStyleUtil::TryReadBuildingStylesProperty(pPropertyHolder, propertyData))
 				{
-					const cIGZVariant* pVariant = pProperty->GetPropertyValue();
-
-					if (pVariant)
-					{
-						GetStyleNamesFromVariant<true>(
-							*pVariant,
-							availableBuildingStyles,
-							destination,
-							separator);
-					}
+					GetStyleNamesFromPropertyData<true>(
+						propertyData,
+						availableBuildingStyles,
+						destination,
+						separator);
 				}
 				else
 				{
@@ -275,23 +278,13 @@ bool BuildingStyleInfo::GetBuildingStyleNamesEx(
 							destination.Copy(*temp);
 						}
 					}
-					else
+					else if (propertyData.load(pPropertyHolder, kOccupantGroupsProperty))
 					{
-						pProperty = pPropertyHolder->GetProperty(kOccupantGroupsProperty);
-
-						if (pProperty)
-						{
-							const cIGZVariant* pVariant = pProperty->GetPropertyValue();
-
-							if (pVariant)
-							{
-								GetStyleNamesFromVariant<false>(
-									*pVariant,
-									availableBuildingStyles,
-									destination,
-									separator);
-							}
-						}
+						GetStyleNamesFromPropertyData<false>(
+							propertyData,
+							availableBuildingStyles,
+							destination,
+							separator);
 					}
 				}
 			}
