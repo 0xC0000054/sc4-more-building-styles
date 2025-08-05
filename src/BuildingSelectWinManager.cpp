@@ -288,6 +288,13 @@ void BuildingSelectWinManager::PostCityInit(cIGZMessage2Standard* pStandardMsg)
 		pZoneManager = pCity->GetZoneManager();
 		context.SetTractDeveloper(pTractDeveloper);
 		LuaExtensionRegistration::Register(pCity->GetAdvisorSystem());
+
+		// Check for buildings in the user's plugins that use the Building Styles property and
+		// do not have at least one style present in the UI.
+		// These buildings will be logged as an error and fall back to using the Maxis styles.
+		// This check will only be performed when loading the first city, it isn't necessary
+		// to perform it more than once per game session.
+		unavailableUIBuildingStyles.Initialize(*pCity, availableBuildingStyles.GetBuildingStyles());
 	}
 }
 

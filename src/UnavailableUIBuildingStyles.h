@@ -20,49 +20,23 @@
  */
 
 #pragma once
-#include <filesystem>
-#include <fstream>
+#include "IUnavailableUIBuildingStyles.h"
+#include "BuildingStyleCollection.h"
+#include <vector>
 
-enum class LogLevel : int32_t
-{
-	Info = 0,
-	Error = 1,
-	Debug = 2,
-	Trace = 3
-};
+class cISC4City;
 
-class Logger
+class UnavailableUIBuildingStyles : public IUnavailableUIBuildingStyles
 {
 public:
+	UnavailableUIBuildingStyles();
 
-	static Logger& GetInstance();
+	void Initialize(cISC4City& city, const BuildingStyleCollection& availableUIStyles);
 
-	void Flush();
-
-	void Init(std::filesystem::path logFilePath, LogLevel logLevel);
-
-	bool IsEnabled(LogLevel option) const;
-
-	void Write(LogLevel level, const char* const message);
-
-	void WriteFormatted(LogLevel level, const char* const format, ...);
-
-	void WriteLogFileHeader(const char* const message);
-
-	void WriteLine(LogLevel level, const char* const message);
-
-	void WriteLineFormatted(LogLevel level, const char* const format, ...);
+	bool Contains(uint32_t styleID) const override;
 
 private:
-
-	Logger();
-	~Logger();
-
-	void WriteCore(const char* const message);
-	void WriteLineCore(const char* const message);
-
+	std::vector<uint32_t> unavailableBuildingStyleIDs;
 	bool initialized;
-	LogLevel logLevel;
-	std::ofstream logFile;
 };
 

@@ -25,6 +25,7 @@
 #include "BuildingSelectWinContext.h"
 #include "cIGZMessageTarget2.h"
 #include "cISC4ZoneManager.h"
+#include "UnavailableUIBuildingStyles.h"
 
 class cIGZMessage2Standard;
 class cIGZMessageServer2;
@@ -75,6 +76,7 @@ private:
 	cISC4ZoneManager* pZoneManager;
 	AvailableBuildingStyles availableBuildingStyles;
 	BuildingSelectWinContext context;
+	UnavailableUIBuildingStyles unavailableUIBuildingStyles;
 	bool initialized;
 };
 

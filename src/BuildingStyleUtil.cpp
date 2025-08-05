@@ -21,6 +21,7 @@
 
 #include "BuildingStyleUtil.h"
 #include "BuildingStyleButtons.h"
+#include "IUnavailableUIBuildingStyles.h"
 #include "MaxisBuildingStyleUIControlIDs.h"
 #include "PropertyIDs.h"
 #include "ReservedStyleIDs.h"
@@ -47,6 +48,11 @@ bool BuildingStyleUtil::IsReservedStyleID(uint32_t style)
 		|| OptionalButtonIDs.count(style) != 0;
 }
 
+bool BuildingStyleUtil::IsStyleIDReservedOrNotInUI(uint32_t style)
+{
+	return IsReservedStyleID(style) || spUnavailableUIBuildingStyles->Contains(style);
+}
+
 bool BuildingStyleUtil::TryReadBuildingStylesProperty(
 	cISCPropertyHolder* pPropertyHolder,
 	PropertyData<uint32_t>& output)
@@ -63,14 +69,18 @@ bool BuildingStyleUtil::TryReadBuildingStylesProperty(
 		// Additionally, there are a number of other values that can't be used as a
 		// style id such as the control ids in the Building Style Control UI.
 		//
-		// Buildings that have only the reserved style ids in their Building Styles
-		// property will be made to use the legacy Maxis styles in the
-		// Occupant Groups property.
+		// We also handle the case where the Building Styles property doesn't contain
+		// any styles that are present as check boxes in the Building Style Control UI,
+		// which would act as a blocker for those buildings.
+		//
+		// Buildings that have only the reserved or unavailable style ids in their
+		// Building Styles property will be made to use the legacy Maxis styles
+		// in the Occupant Groups property.
 
 		if (std::find_if_not(
 			temp.begin(),
 			temp.end(),
-			IsReservedStyleID) != temp.end())
+			IsStyleIDReservedOrNotInUI) != temp.end())
 		{
 			output = std::move(temp);
 			result = true;

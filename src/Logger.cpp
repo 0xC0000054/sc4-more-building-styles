@@ -25,10 +25,15 @@
 namespace
 {
 #ifdef _DEBUG
-	void PrintLineToDebugOutput(const char* line)
+	void PrintToDebugOutput(const char* line)
 	{
 		OutputDebugStringA(line);
-		OutputDebugStringA("\n");
+	}
+
+	void PrintLineToDebugOutput(const char* line)
+	{
+		PrintToDebugOutput(line);
+		PrintToDebugOutput("\n");
 	}
 #endif // _DEBUG
 }
@@ -38,6 +43,14 @@ Logger& Logger::GetInstance()
 	static Logger logger;
 
 	return logger;
+}
+
+void Logger::Flush()
+{
+	if (initialized && logFile)
+	{
+		logFile.flush();
+	}
 }
 
 Logger::Logger() : initialized(false), logFile(), logLevel(LogLevel::Error)
@@ -65,6 +78,60 @@ void Logger::Init(std::filesystem::path logFilePath, LogLevel options)
 bool Logger::IsEnabled(LogLevel level) const
 {
 	return logLevel >= level;
+}
+
+void Logger::Write(LogLevel level, const char* const message)
+{
+	if (!IsEnabled(level))
+	{
+		return;
+	}
+
+	WriteCore(message);
+}
+
+void Logger::WriteFormatted(LogLevel level, const char* const format, ...)
+{
+	if (!IsEnabled(level))
+	{
+		return;
+	}
+
+	va_list args;
+	va_start(args, format);
+
+	va_list argsCopy;
+	va_copy(argsCopy, args);
+
+	int formattedStringLength = std::vsnprintf(nullptr, 0, format, argsCopy);
+
+	va_end(argsCopy);
+
+	if (formattedStringLength > 0)
+	{
+		size_t formattedStringLengthWithNull = static_cast<size_t>(formattedStringLength) + 1;
+
+		constexpr size_t stackBufferSize = 1024;
+
+		if (formattedStringLengthWithNull >= stackBufferSize)
+		{
+			std::unique_ptr<char[]> buffer = std::make_unique_for_overwrite<char[]>(formattedStringLengthWithNull);
+
+			std::vsnprintf(buffer.get(), formattedStringLengthWithNull, format, args);
+
+			WriteCore(buffer.get());
+		}
+		else
+		{
+			char buffer[stackBufferSize]{};
+
+			std::vsnprintf(buffer, stackBufferSize, format, args);
+
+			WriteCore(buffer);
+		}
+	}
+
+	va_end(args);
 }
 
 void Logger::WriteLogFileHeader(const char* const text)
@@ -127,6 +194,18 @@ void Logger::WriteLineFormatted(LogLevel level, const char* const format, ...)
 	}
 
 	va_end(args);
+}
+
+void Logger::WriteCore(const char* const message)
+{
+	if (initialized && logFile)
+	{
+#ifdef _DEBUG
+		PrintToDebugOutput(message);
+#endif // _DEBUG
+
+		logFile << message;
+	}
 }
 
 void Logger::WriteLineCore(const char* const message)

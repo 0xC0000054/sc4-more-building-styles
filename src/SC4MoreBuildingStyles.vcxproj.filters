@@ -168,6 +168,9 @@
     <ClCompile Include="building-style-definition\DefinedBuildingStyleEntryWithButtonID.cpp">
       <Filter>Source Files\building-style-definition</Filter>
     </ClCompile>
+    <ClCompile Include="UnavailableUIBuildingStyles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -349,6 +352,12 @@
     </ClInclude>
     <ClInclude Include="building-style-definition\DefinedBuildingStyleEntryWithButtonID.h">
       <Filter>Header Files\building-style-definition</Filter>
+    </ClInclude>
+    <ClInclude Include="UnavailableUIBuildingStyles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IUnavailableUIBuildingStyles.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

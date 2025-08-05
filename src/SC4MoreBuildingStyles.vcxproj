@@ -55,6 +55,7 @@
     <ClCompile Include="StringViewUtil.cpp" />
     <ClCompile Include="TractDeveloperHooks.cpp" />
     <ClCompile Include="BuildingStyleWallToWall.cpp" />
+    <ClCompile Include="UnavailableUIBuildingStyles.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cIGZCheatCodeManager.h" />
@@ -89,6 +90,7 @@
     <ClInclude Include="BuildingStyleUtil.h" />
     <ClInclude Include="BuildingStyleWinUtil.h" />
     <ClInclude Include="BuildingUtil.h" />
+    <ClInclude Include="IUnavailableUIBuildingStyles.h" />
     <ClInclude Include="lua-extensions\BuildingStyleLuaFunctions.h" />
     <ClInclude Include="lua-extensions\BuildingStyleLuaFunctionTests.h" />
     <ClInclude Include="lua-extensions\LuaExtensionRegistration.h" />
@@ -114,6 +116,7 @@
     <ClInclude Include="Preferences.h" />
     <ClInclude Include="StringViewUtil.h" />
     <ClInclude Include="TractDeveloperHooks.h" />
+    <ClInclude Include="UnavailableUIBuildingStyles.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="BuildingStyleWallToWall.h" />
     <ClInclude Include="WallToWallOccupantGroups.h" />

@@ -27,10 +27,12 @@ namespace BuildingStyleUtil
 {
 	bool IsMaxisStyleID(uint32_t style);
 	bool IsReservedStyleID(uint32_t style);
+	bool IsStyleIDReservedOrNotInUI(uint32_t style);
 
 	// Attempts to read the building styles property.
 	// Returns true if the property is present and contains
-	// at least one non-reserved style id.
+	// at least one non-reserved style id that is also present
+	// in the Building Style Control UI.
 	bool TryReadBuildingStylesProperty(
 		cISCPropertyHolder* pPropertyHolder,
 		PropertyData<uint32_t>& output);
