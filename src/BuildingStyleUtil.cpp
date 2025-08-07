@@ -25,7 +25,86 @@
 #include "MaxisBuildingStyleUIControlIDs.h"
 #include "PropertyIDs.h"
 #include "ReservedStyleIDs.h"
+#include "frozen/unordered_set.h"
 #include <algorithm>
+
+
+namespace
+{
+	static constexpr frozen::unordered_set<uint32_t, 24> PIMXBuildingTemplateIDs =
+	{
+		0x2c8fbb95, // (R $) Low Wealth
+		0xf6a23754, // (R $) Low Wealth W2W
+		0x6c8fbba5, // (R $$) Medium Wealth
+		0xce253a47, // (R $$) Medium Wealth W2W
+		0x0c8fbbae, // (R $$$) High Wealth
+		0x4ec7d949, // (R $$$) High Wealth W2W
+		0x8c8fbbcc, // (CS $) Low Wealth
+		0xbcd2c7e1, // (CS $) Low Wealth W2W
+		0x0c8fbbdc, // (CS $$) Medium Wealth
+		0x539f3c1d, // (CS $$) Medium Wealth W2W
+		0xac8fbbeb, // (CS $$$) High Wealth
+		0x3b3f3641, // (CS $$$) High Wealth W2W
+		0x6c8fbbf5, // (CO $$) Medium Wealth
+		0x452925b6, // (CO $$) Medium Wealth W2W
+		0xcc8fbc01, // (CO $$$) High Wealth
+		0x8840bc41, // (CO $$$) High Wealth W2W
+		0x2caa4d2a, // (I-a) Agricultural Industry
+		0xc035b844, // (I-a) Agricultural Industry W2W
+		0x2c8fbc17, // (I-d) Dirty Industry
+		0x4b2d4f0b, // (I-d) Dirty Industry W2W
+		0x6c7e983b, // (I-m) Manufacturing Industry
+		0xee28b711, // (I-m) Manufacturing Industry W2W
+		0x6c8fbddc, // (I-ht) High-Tech Industry
+		0x3b238bc0, // (I-ht) High-Tech Industry W2W
+	};
+
+	bool IsPIMXTemplateBuildingExemplar(cISCPropertyHolder* pPropertyHolder)
+	{
+		const uint32_t kExemplarCategoryPropertyID = 0x2C8F8746;
+
+		bool result = false;
+
+		// The PIMX building templates set the ExemplarCategory property to
+		// the template id, which we use to detect the exemplars it modified.
+
+		const PropertyData<uint32_t> exemplarCategory(pPropertyHolder, kExemplarCategoryPropertyID);
+
+		if (exemplarCategory)
+		{
+			if (exemplarCategory.size() == 1)
+			{
+				const uint32_t category = exemplarCategory[0];
+
+				result = PIMXBuildingTemplateIDs.contains(category);
+			}
+		}
+
+		return result;
+	}
+
+	bool IsPIMXStyle2004Placeholder(
+		cISCPropertyHolder* pPropertyHolder,
+		const PropertyData<uint32_t>& buildingStyles)
+	{
+		bool result = false;
+
+		// Some versions of PIMX accidentally used the community style id 0x2004
+		// as a placeholder in the Building Styles property.
+
+		if (buildingStyles.size() == 1 && buildingStyles[0] == 0x2004)
+		{
+			// Detect PIMX and fall back to the Maxis styles if the
+			// Building Styles PIMX Template Marker is not present.
+			if (IsPIMXTemplateBuildingExemplar(pPropertyHolder))
+			{
+				result = !pPropertyHolder->HasProperty(kBuildingStylesPIMXTemplateMarker);
+			}
+		}
+
+		return result;
+	}
+}
 
 bool BuildingStyleUtil::IsMaxisStyleID(uint32_t style)
 {
@@ -44,8 +123,8 @@ bool BuildingStyleUtil::IsReservedStyleID(uint32_t style)
 
 	return style <= StyleControlReservedButtonRangeEnd
 		|| style == PIMXPlaceholderStyleID
-		|| MaxisUIControlIDs.count(style) != 0
-		|| OptionalButtonIDs.count(style) != 0;
+		|| MaxisUIControlIDs.contains(style)
+		|| OptionalButtonIDs.contains(style);
 }
 
 bool BuildingStyleUtil::IsStyleIDReservedOrNotInUI(uint32_t style)
@@ -82,8 +161,14 @@ bool BuildingStyleUtil::TryReadBuildingStylesProperty(
 			temp.end(),
 			IsStyleIDReservedOrNotInUI) != temp.end())
 		{
-			output = std::move(temp);
-			result = true;
+			// Some versions of PIMX accidentally used the community style id 0x2004
+			// as a placeholder in the Building Styles property, fall back to the
+			// Maxis styles in that case.
+			if (!IsPIMXStyle2004Placeholder(pPropertyHolder, temp))
+			{
+				output = std::move(temp);
+				result = true;
+			}
 		}
 	}
 

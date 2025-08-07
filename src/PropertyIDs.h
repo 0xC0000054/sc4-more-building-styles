@@ -32,6 +32,12 @@ static constexpr uint32_t kBuildingStylesProperty = 0xAA1DD400;
 // A Boolean property that indicates if the building is
 // Wall to Wall (W2W) compatible.
 static constexpr uint32_t kBuildingIsWallToWallProperty = 0xAA1DD401;
+// A marker property whose absence identifies building exemplars created
+// with older versions of the Plugin Manager X (PIMX) tool.
+// Some versions of this tool accidentally used the community style id
+// 0x2004 as a placeholder value for the Building Styles property in
+// its building templates.
+static constexpr uint32_t kBuildingStylesPIMXTemplateMarker = 0xAA1DD402;
 
 // The Maxis occupant groups property.
 constexpr uint32_t kOccupantGroupsProperty = 0xAA1DD396;
