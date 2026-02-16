@@ -2,7 +2,7 @@
  * This file is part of sc4-more-building-styles, a DLL Plugin for
  * SimCity 4 that adds support for more building styles.
  *
- * Copyright (C) 2024, 2025 Nicholas Hayes
+ * Copyright (C) 2024, 2025, 2026 Nicholas Hayes
  *
  * sc4-more-building-styles is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License as
