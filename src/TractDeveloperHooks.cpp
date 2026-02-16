@@ -937,12 +937,72 @@ static std::optional<bool> StyleMatchesExistingLot(const cISC4Lot* pLot, const P
 	return result;
 }
 
+static LotZoningOptions GetLotZoningOptionsForPurposeType(cISC4BuildingOccupant::PurposeType purposeType)
+{
+	LotZoningOptions result = LotZoningOptionNone;
+
+	// Lot aggregation and subdivision is only disabled for the residential and commercial building purpose types.
+	//
+	// Lot aggregation and subdivision must always be active for the Processing, Manufacturing and High Tech
+	// purpose types, the industrial medium and high density zones require it for anything to grow.
+	// Agriculture zones only support aggregation, not subdivision. They are excluded because the game always
+	// picks the same items when aggregation is disabled, but it appears to work fine otherwise.
+
+	switch (purposeType)
+	{
+	case cISC4BuildingOccupant::PurposeType::Residence:
+	case cISC4BuildingOccupant::PurposeType::Services:
+	case cISC4BuildingOccupant::PurposeType::Office:
+		result = spBuildingSelectWinManager->GetContext().GetLotZoningOptions();
+		break;
+	}
+
+	return result;
+}
+
+static bool CandidateLotMatchesZoningOptions(
+	cISC4BuildingOccupant::PurposeType purposeType,
+	const cSC4TractDeveloper::CandidateLot* pCandidateLot)
+{
+	bool result = true;
+
+	switch (pCandidateLot->developmentType)
+	{
+	case cSC4TractDeveloper::CandidateLot::DevelopmentType::LotAggregation:
+		result = (GetLotZoningOptionsForPurposeType(purposeType) & LotZoningOptionDisableAggregation) == 0;
+		break;
+	case cSC4TractDeveloper::CandidateLot::DevelopmentType::LotSubdivision:
+		result = (GetLotZoningOptionsForPurposeType(purposeType) & LotZoningOptionDisableSubdivision) == 0;
+		break;
+	}
+
+	return result;
+}
+
 static bool BuildingHasStyleOccupantGroup(
 	const cSC4TractDeveloper* pThis,
 	uint32_t buildingType,
 	cISC4BuildingOccupant::PurposeType purpose,
 	const cSC4TractDeveloper::CandidateLot* pCandidateLot)
 {
+	if (!CandidateLotMatchesZoningOptions(purpose, pCandidateLot))
+	{
+		// The game selected a lot that uses aggregation or subdivision when the user has it disabled.
+		// While in theory this should be handled by Grow_LotAggregationAndSubdivisionHook, there are
+		// cases where the game somehow bypasses that code.
+
+		if (spPreferences->LogCandidateLots())
+		{
+			Logger::GetInstance().Write(
+				LogLevel::Info,
+				"Rejected due to the development type being disabled by the user: ");
+			// Finish the line with the candidate info.
+			LogCandidateLotInfo(pThis, pCandidateLot);
+		}
+
+		return false;
+	}
+
 	LogCandidateLotInfo(pThis, pCandidateLot);
 
 	bool result = false;
@@ -1067,25 +1127,7 @@ static void NAKED_FUN IsBuildingCompatible_BuildingStyleSelectionHook()
 
 static LotZoningOptions __fastcall GetLotZoningOptions(cISC4BuildingOccupant::PurposeType purposeType, void* edxUnused)
 {
-	LotZoningOptions result = LotZoningOptionNone;
-
-	// Lot aggregation and subdivision is only disabled for the residential and commercial building purpose types.
-	//
-	// Lot aggregation and subdivision must always be active for the Processing, Manufacturing and High Tech
-	// purpose types, the industrial medium and high density zones require it for anything to grow.
-	// Agriculture zones only support aggregation, not subdivision. They are excluded because the game always
-	// picks the same items when aggregation is disabled, but it appears to work fine otherwise.
-
-	switch (purposeType)
-	{
-	case cISC4BuildingOccupant::PurposeType::Residence:
-	case cISC4BuildingOccupant::PurposeType::Services:
-	case cISC4BuildingOccupant::PurposeType::Office:
-		result = spBuildingSelectWinManager->GetContext().GetLotZoningOptions();
-		break;
-	}
-
-	return result;
+	return GetLotZoningOptionsForPurposeType(purposeType);
 }
 
 static bool __fastcall DisableLotSubdivisionForPurposeType(cISC4BuildingOccupant::PurposeType purposeType, void* edxUnused)
