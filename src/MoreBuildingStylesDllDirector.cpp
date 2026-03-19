@@ -64,8 +64,10 @@ static constexpr uint32_t kSC4MessagePostCityShutdown = 0x26D31EC3;
 
 static constexpr uint32_t kMoreBuildingStylesDirectorID = 0x3BF9E52C;
 
-static constexpr uint32_t kDebugActiveStyles = 0x730FF429;
-static constexpr uint32_t kActiveStyle = 0x4580A54D;
+static constexpr std::string_view kDebugActiveStylesCheatName = "DebugActiveStyles";
+static constexpr std::string_view kActiveStyleCheatName = "ActiveStyle";
+static constexpr uint32_t kDebugActiveStylesCheatID = 0x730FF429;
+static constexpr uint32_t kActiveStyleCheatID = 0x4580A54D;
 
 IBuildingSelectWinManager* spBuildingSelectWinManager = nullptr;
 const Preferences* spPreferences = nullptr;
@@ -151,8 +153,12 @@ public:
 				if (pCheatCodeManager)
 				{
 					pCheatCodeManager->AddNotification2(this, 0);
-					pCheatCodeManager->RegisterCheatCode(kDebugActiveStyles, cRZBaseString("DebugActiveStyles"));
-					pCheatCodeManager->RegisterCheatCode(kActiveStyle, cRZBaseString("ActiveStyle"));
+					pCheatCodeManager->RegisterCheatCode(
+						kDebugActiveStylesCheatID,
+						cRZBaseString(kDebugActiveStylesCheatName.data(), kDebugActiveStylesCheatName.size()));
+					pCheatCodeManager->RegisterCheatCode(
+						kActiveStyleCheatID,
+						cRZBaseString(kActiveStyleCheatName.data(), kActiveStyleCheatName.size()));
 				}
 			}
 		}
@@ -170,8 +176,8 @@ public:
 
 			if (pCheatCodeManager)
 			{
-				pCheatCodeManager->UnregisterCheatCode(kDebugActiveStyles);
-				pCheatCodeManager->UnregisterCheatCode(kActiveStyle);
+				pCheatCodeManager->UnregisterCheatCode(kDebugActiveStylesCheatID);
+				pCheatCodeManager->UnregisterCheatCode(kActiveStyleCheatID);
 				pCheatCodeManager->RemoveNotification2(this, 0);
 			}
 		}
@@ -181,7 +187,7 @@ public:
 	{
 		uint32_t cheatID = static_cast<uint32_t>(pStandardMsg->GetData1());
 
-		if (cheatID == kDebugActiveStyles)
+		if (cheatID == kDebugActiveStylesCheatID)
 		{
 			if (pCity)
 			{
@@ -202,7 +208,7 @@ public:
 				}
 			}
 		}
-		else if (cheatID == kActiveStyle)
+		else if (cheatID == kActiveStyleCheatID)
 		{
 			if (pCity)
 			{
@@ -214,7 +220,7 @@ public:
 					{
 						SC4NotificationDialog::ShowDialog(
 							cRZBaseString("All styles are being built at once."),
-							cRZBaseString("ActiveStyle"));
+							cRZBaseString(kActiveStyleCheatName.data(), kActiveStyleCheatName.size()));
 					}
 					else
 					{
@@ -226,7 +232,7 @@ public:
 
 						SC4NotificationDialog::ShowDialog(
 							cRZBaseString(buffer),
-							cRZBaseString("ActiveStyle"));
+							cRZBaseString(kActiveStyleCheatName.data(), kActiveStyleCheatName.size()));
 					}
 				}
 			}
