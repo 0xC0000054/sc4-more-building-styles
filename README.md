@@ -109,7 +109,7 @@ display a message saying that mode is active.
 
 `DebugActiveStyles` writes the currently enabled style IDs to the plugin's log file.
 
-`MaxisDebugRCIGrowth` is a restored development cheat that allows the user to toggle the per-tract RCI growth debug logging that is pat of the game's _Query.txt_ log file.
+`MaxisDebugRCIGrowth` is a restored development cheat that allows the user to toggle the per-tract RCI growth debug logging that is part of the game's _Query.txt_ log file.
 This logging shows the last successful and failed RCI builds for each tract, along with a status table containing the total number of lots the game tried to build.
 The columns of the status table list abbreviations of the tract developer function names, while the rows list the error status of each function. The cell values are
 the total number of lots meeting that status.   
