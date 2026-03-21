@@ -290,13 +290,101 @@ static void LogWallToWallStyleOptionFailure(
 	}
 }
 
-static void LogGrowableFunctionResult(const char* const functionName, int32_t result)
+static void LogGrowableFunctionResult(const char* const functionName, int32_t status)
 {
+	const char* statusMessage = "unknown error";
+
+	switch (static_cast<cISC4TractDeveloper::Outcome>(status))
+	{
+	case cISC4TractDeveloper::Outcome::NothingToReoccupy:
+		statusMessage = "nothing to reoccupy";
+		break;
+	case cISC4TractDeveloper::Outcome::MonopolyPiece:
+		statusMessage = "monopoly piece";
+		break;
+	case cISC4TractDeveloper::Outcome::NoLot:
+		statusMessage = "no lot";
+		break;
+	case cISC4TractDeveloper::Outcome::LotNotReady:
+		statusMessage = "lot not ready";
+		break;
+	case cISC4TractDeveloper::Outcome::NoLotConfiguration:
+		statusMessage = "no lot configuration";
+		break;
+	case cISC4TractDeveloper::Outcome::WrongZone:
+		statusMessage = "wrong zone";
+		break;
+	case cISC4TractDeveloper::Outcome::WrongPurpose:
+		statusMessage = "wrong purpose";
+		break;
+	case cISC4TractDeveloper::Outcome::WrongWealth:
+		statusMessage = "wrong wealth";
+		break;
+	case cISC4TractDeveloper::Outcome::WrongStyle:
+		statusMessage = "wrong style";
+		break;
+	case cISC4TractDeveloper::Outcome::TooSteep:
+		statusMessage = "too steep";
+		break;
+	case cISC4TractDeveloper::Outcome::BuildingTooSmall:
+		statusMessage = "no building big enough";
+		break;
+	case cISC4TractDeveloper::Outcome::GrowthStageTooSmall:
+		statusMessage = "stage too small";
+		break;
+	case cISC4TractDeveloper::Outcome::BuildingTooBig:
+		statusMessage = "all buildings too big";
+		break;
+	case cISC4TractDeveloper::Outcome::GrowthStageTooBig:
+		statusMessage = "stage too big";
+		break;
+	case cISC4TractDeveloper::Outcome::ResidentHasDifferentPurpose:
+		statusMessage = "resident has different purpose";
+		break;
+	case cISC4TractDeveloper::Outcome::ResidentHasDifferentWealth:
+		statusMessage = "resident has different wealth";
+		break;
+	case cISC4TractDeveloper::Outcome::NotBiggerThanExistingGrowthStage:
+		statusMessage = "not bigger than existing stage";
+		break;
+	case cISC4TractDeveloper::Outcome::Historical:
+		statusMessage = "historical";
+		break;
+	case cISC4TractDeveloper::Outcome::JustBuiltRecently:
+		statusMessage = "just built recently";
+		break;
+	case cISC4TractDeveloper::Outcome::InsufficentConstructionResources:
+		statusMessage = "not enough construction resources";
+		break;
+	case cISC4TractDeveloper::Outcome::PoorRoads:
+		statusMessage = "poor roads";
+		break;
+	case cISC4TractDeveloper::Outcome::WrongLandValue:
+		statusMessage = "wrong land value";
+		break;
+	case cISC4TractDeveloper::Outcome::NoFireCoverage:
+		statusMessage = "no fire coverage";
+		break;
+	case cISC4TractDeveloper::Outcome::NoPark:
+		statusMessage = "no park";
+		break;
+	case cISC4TractDeveloper::Outcome::NoWater:
+		statusMessage = "no water";
+		break;
+	case cISC4TractDeveloper::Outcome::NoPower:
+		statusMessage = "no power";
+		break;
+	case cISC4TractDeveloper::Outcome::Success:
+		statusMessage = "success";
+		break;
+	}
+
 	Logger::GetInstance().WriteLineFormatted(
 		LogLevel::Info,
-		"%s returned %d",
+		"%s returned %d (%s)",
 		functionName,
-		result);
+		status,
+		statusMessage);
 }
 
 static bool DoesLotSupportBuildingStyles(
