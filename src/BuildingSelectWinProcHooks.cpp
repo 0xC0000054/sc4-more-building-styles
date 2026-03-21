@@ -567,7 +567,7 @@ void BuildingSelectWinProcHooks::Install()
 	{
 		logger.WriteLineFormatted(
 			LogLevel::Error,
-			"Unsupported game version: %d",
+			"Failed to install the building select window patch, unsupported game version: %d",
 			gameVersion);
 	}
 }

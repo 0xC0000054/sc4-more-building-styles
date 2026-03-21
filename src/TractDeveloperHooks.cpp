@@ -1490,4 +1490,11 @@ void TractDeveloperHooks::Install(const Preferences& preferences)
 				e.what());
 		}
 	}
+	else
+	{
+		logger.WriteLineFormatted(
+			LogLevel::Error,
+			"Failed to install the building style algorithm patch, unsupported game version %d",
+			gameVersion);
+	}
 }

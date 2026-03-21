@@ -188,4 +188,11 @@ void LotConfigurationManagerHooks::Install()
 				e.what());
 		}
 	}
+	else
+	{
+		logger.WriteLineFormatted(
+			LogLevel::Error,
+			"Failed to install the lot configuration manager patch, unsupported game version %d",
+			gameVersion);
+	}
 }

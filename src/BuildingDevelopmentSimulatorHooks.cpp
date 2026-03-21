@@ -94,13 +94,13 @@ void BuildingDevelopmentSimulatorHooks::Install()
 			Patcher::InstallJump(DoMessage_FightThePowerCheatHook_Inject, reinterpret_cast<uintptr_t>(&DoMessage_FightThePowerCheatHook));
 			Patcher::InstallJump(DoMessage_HowDryAmICheatHook_Inject, reinterpret_cast<uintptr_t>(&DoMessage_HowDryAmICheatHook));
 
-			logger.WriteLine(LogLevel::Info, "Installed the FightThePowerand HowDryAmI toggle patches.");
+			logger.WriteLine(LogLevel::Info, "Installed the FightThePower and HowDryAmI toggle patches.");
 		}
 		catch (const wil::ResultException& e)
 		{
 			logger.WriteLineFormatted(
 				LogLevel::Error,
-				"Failed to install the FightThePowerand HowDryAmI toggle patches.\n%s",
+				"Failed to install the FightThePower and HowDryAmI toggle patches.\n%s",
 				e.what());
 		}
 	}
@@ -108,7 +108,7 @@ void BuildingDevelopmentSimulatorHooks::Install()
 	{
 		logger.WriteLineFormatted(
 			LogLevel::Error,
-			"Failed to install the FightThePowerand HowDryAmI toggle patches, unsupported game version: %d",
+			"Failed to install the FightThePower and HowDryAmI toggle patches, unsupported game version: %d",
 			gameVersion);
 	}
 }
