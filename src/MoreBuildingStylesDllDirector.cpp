@@ -21,6 +21,7 @@
 
 #include "version.h"
 #include "GlobalPointers.h"
+#include "BuildingDevelopmentSimulatorHooks.h"
 #include "BuildingSelectWinProcHooks.h"
 #include "BuildingSelectWinManager.h"
 #include "BuildingStyleInfo.h"
@@ -66,8 +67,12 @@ static constexpr uint32_t kMoreBuildingStylesDirectorID = 0x3BF9E52C;
 
 static constexpr std::string_view kDebugActiveStylesCheatName = "DebugActiveStyles";
 static constexpr std::string_view kActiveStyleCheatName = "ActiveStyle";
+static constexpr std::string_view kMaxisDebugRCIGrowthCheatName = "MaxisDebugRCIGrowth";
+static constexpr std::string_view kMaxisIgnoreRCIGrowthCapsCheatName = "MaxisIgnoreRCIGrowthCaps";
 static constexpr uint32_t kDebugActiveStylesCheatID = 0x730FF429;
 static constexpr uint32_t kActiveStyleCheatID = 0x4580A54D;
+static constexpr uint32_t kMaxisDebugRCIGrowthCheatID = 0x7B01A355;
+static constexpr uint32_t kMaxisIgnoreRCIGrowthCapsCheatID = 0x7B01A356;
 
 IBuildingSelectWinManager* spBuildingSelectWinManager = nullptr;
 const Preferences* spPreferences = nullptr;
@@ -159,6 +164,16 @@ public:
 					pCheatCodeManager->RegisterCheatCode(
 						kActiveStyleCheatID,
 						cRZBaseString(kActiveStyleCheatName.data(), kActiveStyleCheatName.size()));
+
+					if (BuildingDevelopmentSimulatorHooks::IsSupportedGameVersion())
+					{
+						pCheatCodeManager->RegisterCheatCode(
+							kMaxisDebugRCIGrowthCheatID,
+							cRZBaseString(kMaxisDebugRCIGrowthCheatName.data(), kMaxisDebugRCIGrowthCheatName.size()));
+						pCheatCodeManager->RegisterCheatCode(
+							kMaxisIgnoreRCIGrowthCapsCheatID,
+							cRZBaseString(kMaxisIgnoreRCIGrowthCapsCheatName.data(), kMaxisIgnoreRCIGrowthCapsCheatName.size()));
+					}
 				}
 			}
 		}
@@ -178,6 +193,13 @@ public:
 			{
 				pCheatCodeManager->UnregisterCheatCode(kDebugActiveStylesCheatID);
 				pCheatCodeManager->UnregisterCheatCode(kActiveStyleCheatID);
+
+				if (BuildingDevelopmentSimulatorHooks::IsSupportedGameVersion())
+				{
+					pCheatCodeManager->UnregisterCheatCode(kMaxisDebugRCIGrowthCheatID);
+					pCheatCodeManager->UnregisterCheatCode(kMaxisIgnoreRCIGrowthCapsCheatID);
+				}
+
 				pCheatCodeManager->RemoveNotification2(this, 0);
 			}
 		}
@@ -237,6 +259,20 @@ public:
 				}
 			}
 		}
+		else if (cheatID == kMaxisDebugRCIGrowthCheatID)
+		{
+			if (pCity)
+			{
+				BuildingDevelopmentSimulatorHooks::ToggleDebugGrowthCheatState(pCity->GetBuildingDevelopmentSimulator());
+			}
+		}
+		else if (cheatID == kMaxisIgnoreRCIGrowthCapsCheatID)
+		{
+			if (pCity)
+			{
+				BuildingDevelopmentSimulatorHooks::ToggleIgnoreCapsCheatState(pCity->GetBuildingDevelopmentSimulator());
+			}
+		}
 	}
 
 	bool DoMessage(cIGZMessage2* pMessage)
@@ -277,6 +313,7 @@ public:
 		BuildingSelectWinProcHooks::Install();
 		LotConfigurationManagerHooks::Install();
 		TractDeveloperHooks::Install(preferences);
+		BuildingDevelopmentSimulatorHooks::Install();
 
 		if (!buildingSelectWinManager.Initialize())
 		{

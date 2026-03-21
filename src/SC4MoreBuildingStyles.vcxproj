@@ -29,6 +29,7 @@
     <ClCompile Include="building-style-definition\DefinedBuildingStyleEntry.cpp" />
     <ClCompile Include="building-style-definition\DefinedBuildingStyles.cpp" />
     <ClCompile Include="building-style-definition\PersistResourceKeyFilterByTypeAndGroup.cpp" />
+    <ClCompile Include="BuildingDevelopmentSimulatorHooks.cpp" />
     <ClCompile Include="BuildingSelectWinContext.cpp" />
     <ClCompile Include="BuildingSelectWinManager.cpp" />
     <ClCompile Include="BuildingSelectWinProcHooks.cpp" />
@@ -79,6 +80,7 @@
     <ClInclude Include="building-style-definition\DefinedBuildingStyleEntry.h" />
     <ClInclude Include="building-style-definition\DefinedBuildingStyles.h" />
     <ClInclude Include="building-style-definition\PersistResourceKeyFilterByTypeAndGroup.h" />
+    <ClInclude Include="BuildingDevelopmentSimulatorHooks.h" />
     <ClInclude Include="BuildingSelectWinContext.h" />
     <ClInclude Include="BuildingSelectWinManager.h" />
     <ClInclude Include="BuildingSelectWinProcHooks.h" />

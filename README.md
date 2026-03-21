@@ -109,6 +109,21 @@ display a message saying that mode is active.
 
 `DebugActiveStyles` writes the currently enabled style IDs to the plugin's log file.
 
+`MaxisDebugRCIGrowth` is a restored development cheat that allows the user to toggle the per-tract RCI growth debug logging that is pat of the game's _Query.txt_ log file.
+This logging shows the last successful and failed RCI builds for each tract, along with a status table containing the total number of lots the game tried to build.
+The columns of the status table list abbreviations of the tract developer function names, while the rows list the error status of each function. The cell values are
+the total number of lots meeting that status.   
+This cheat requires the simulation to run for a while after activating it in order for the game to start tracking RCI construction.
+The game will only write the _Query.txt_ log file if the Extra Cheat DLL is installed, then you must query a lot while holding down `Control + Alt + Shift`
+and close the query dialog.
+The log file will be written to the Apps folder that contains the SimCity 4 executable.
+
+`MaxisIgnoreRCIGrowthCaps` is a restored development cheat that allows the user to toggle making the game ignore the power, water, park effect, and fire coverage
+caps for growable RCI buildings. This is a superset of the existing `FightThePower` and `HowDryAmI` cheats for ignoring power and water caps.
+Like `FightThePower` and `HowDryAmI` the cheat code's state is persisted in the save game.
+
+Additionally, the DLL modifies the `FightThePower` and `HowDryAmI` cheat codes to allow them to be toggled off by re-entering the cheat code.
+
 ## BuildingStyles INI File
 
 This file allows styles to be defined without editing the Building Style Control UI file.

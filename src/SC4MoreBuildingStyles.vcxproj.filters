@@ -171,6 +171,9 @@
     <ClCompile Include="UnavailableUIBuildingStyles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BuildingDevelopmentSimulatorHooks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -357,6 +360,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IUnavailableUIBuildingStyles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingDevelopmentSimulatorHooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
