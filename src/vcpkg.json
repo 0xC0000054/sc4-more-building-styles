@@ -2,8 +2,6 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "dependencies": [
     "boost-algorithm",
-    "boost-property-tree",
-    "frozen",
-    "wil"
+    "boost-property-tree"
   ]
 }

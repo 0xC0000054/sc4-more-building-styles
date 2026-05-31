@@ -177,7 +177,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\sc4-dll-utilities\sc4-dll-utilities\include;..\vendor\SafeInt;.\;.\public\include;.\lua-extensions;.\building-style-definition</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\sc4-dll-utilities\sc4-dll-utilities\include;..\vendor\SafeInt;..\vendor\frozen\include;..\vendor\wil\include;.\;.\public\include;.\lua-extensions;.\building-style-definition</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -201,7 +201,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\sc4-dll-utilities\sc4-dll-utilities\include;..\vendor\SafeInt;.\;.\public\include;.\lua-extensions;.\building-style-definition</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\sc4-dll-utilities\sc4-dll-utilities\include;..\vendor\SafeInt;..\vendor\frozen\include;..\vendor\wil\include;.\;.\public\include;.\lua-extensions;.\building-style-definition</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
