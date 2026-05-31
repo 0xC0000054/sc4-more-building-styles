@@ -4,3 +4,6 @@
 [submodule "vendor/SafeInt"]
 	path = vendor/SafeInt
 	url = https://github.com/dcleblanc/SafeInt.git
+[submodule "vendor/sc4-dll-utilities"]
+	path = vendor/sc4-dll-utilities
+	url = https://github.com/0xC0000054/sc4-dll-utilities.git

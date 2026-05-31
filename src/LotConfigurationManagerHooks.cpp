@@ -161,7 +161,7 @@ void LotConfigurationManagerHooks::Install()
 
 	uintptr_t InitBuildingInformation_Inject = 0;
 
-	const uint16_t gameVersion = SC4VersionDetection::GetInstance().GetGameVersion();
+	const uint16_t gameVersion = SC4VersionDetection::GetGameVersion();
 	bool setCallbacks = false;
 
 	switch (gameVersion)
@@ -176,7 +176,7 @@ void LotConfigurationManagerHooks::Install()
 	{
 		try
 		{
-			Patcher::InstallCallHook(InitBuildingInformation_Inject, reinterpret_cast<uintptr_t>(&GetBuildingStyles));
+			Patcher::InstallCallHook(InitBuildingInformation_Inject, &GetBuildingStyles);
 
 			logger.WriteLine(LogLevel::Info, "Installed the lot configuration manager patch.");
 		}

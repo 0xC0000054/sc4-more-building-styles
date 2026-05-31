@@ -23,6 +23,15 @@
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\SCLuaUtil.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\SCPropertyUtil.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\StringResourceManager.cpp" />
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\DebugUtil.cpp" />
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\GZWinUtil.cpp" />
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\Logger.cpp" />
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\Patcher.cpp" />
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\SC4NotificationDialog.cpp" />
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\SC4VersionDetection.cpp" />
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\StringConversion.cpp" />
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\StringViewUtil.cpp" />
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\Utf8TextOFStream.cpp" />
     <ClCompile Include="building-style-definition\DefinedBuildingStyleEntryWithButtonID.cpp" />
     <ClCompile Include="building-style-definition\BuildingStyleExemplars.cpp" />
     <ClCompile Include="building-style-definition\BuildingStyleIniFile.cpp" />
@@ -39,21 +48,14 @@
     <ClCompile Include="BuildingStyleUtil.cpp" />
     <ClCompile Include="BuildingStyleWinUtil.cpp" />
     <ClCompile Include="BuildingUtil.cpp" />
-    <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="FileSystem.cpp" />
-    <ClCompile Include="GZWinUtil.cpp" />
-    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="LotConfigurationManagerHooks.cpp" />
     <ClCompile Include="lua-extensions\BuildingStyleLuaFunctions.cpp" />
     <ClCompile Include="lua-extensions\BuildingStyleLuaFunctionTests.cpp" />
     <ClCompile Include="lua-extensions\LuaExtensionRegistration.cpp" />
     <ClCompile Include="MoreBuildingStylesDllDirector.cpp" />
     <ClCompile Include="AvailableBuildingStyles.cpp" />
-    <ClCompile Include="Patcher.cpp" />
-    <ClCompile Include="SC4NotificationDialog.cpp" />
-    <ClCompile Include="SC4VersionDetection.cpp" />
     <ClCompile Include="Preferences.cpp" />
-    <ClCompile Include="StringViewUtil.cpp" />
     <ClCompile Include="TractDeveloperHooks.cpp" />
     <ClCompile Include="BuildingStyleWallToWall.cpp" />
     <ClCompile Include="UnavailableUIBuildingStyles.cpp" />
@@ -74,6 +76,13 @@
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\SC4Vector.h" />
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\StringResourceKey.h" />
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\StringResourceManager.h" />
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\DebugUtil.h" />
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\GZWinUtil.h" />
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\Logger.h" />
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\Patcher.h" />
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\SC4NotificationDialog.h" />
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\SC4VersionDetection.h" />
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\StringViewUtil.h" />
     <ClInclude Include="building-style-definition\DefinedBuildingStyleEntryWithButtonID.h" />
     <ClInclude Include="building-style-definition\BuildingStyleExemplars.h" />
     <ClInclude Include="building-style-definition\BuildingStyleIniFile.h" />
@@ -99,24 +108,17 @@
     <ClInclude Include="MaxisBuildingStyleUIControlIDs.h" />
     <ClInclude Include="PropertyData.h" />
     <ClInclude Include="PropertyIDs.h" />
-    <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="GlobalPointers.h" />
-    <ClInclude Include="GZWinUtil.h" />
     <ClInclude Include="IBuildingSelectWinContext.h" />
     <ClInclude Include="IBuildingSelectWinManager.h" />
-    <ClInclude Include="Logger.h" />
     <ClInclude Include="AvailableBuildingStyles.h" />
     <ClInclude Include="LotConfigurationManagerHooks.h" />
-    <ClInclude Include="Patcher.h" />
     <ClInclude Include="public\include\cIBuildingStyleInfo.h" />
     <ClInclude Include="public\include\cIBuildingStyleInfo2.h" />
     <ClInclude Include="public\include\cIBuildingStyleWallToWall.h" />
     <ClInclude Include="ReservedStyleIDs.h" />
-    <ClInclude Include="SC4NotificationDialog.h" />
-    <ClInclude Include="SC4VersionDetection.h" />
     <ClInclude Include="Preferences.h" />
-    <ClInclude Include="StringViewUtil.h" />
     <ClInclude Include="TractDeveloperHooks.h" />
     <ClInclude Include="UnavailableUIBuildingStyles.h" />
     <ClInclude Include="version.h" />
@@ -170,12 +172,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;SC4BUDGETDEPARTMENTTESTING_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NOMINMAX;_DEBUG;SC4BUDGETDEPARTMENTTESTING_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\SafeInt;.\;.\public\include;.\lua-extensions;.\building-style-definition</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\sc4-dll-utilities\sc4-dll-utilities\include;..\vendor\SafeInt;.\;.\public\include;.\lua-extensions;.\building-style-definition</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -194,12 +196,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;SC4BUDGETDEPARTMENTTESTING_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NOMINMAX;NDEBUG;SC4BUDGETDEPARTMENTTESTING_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\SafeInt;.\;.\public\include;.\lua-extensions;.\building-style-definition</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\sc4-dll-utilities\sc4-dll-utilities\include;..\vendor\SafeInt;.\;.\public\include;.\lua-extensions;.\building-style-definition</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>

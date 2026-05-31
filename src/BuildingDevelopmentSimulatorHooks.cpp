@@ -73,7 +73,7 @@ void BuildingDevelopmentSimulatorHooks::Install()
 	uintptr_t DoMessage_HowDryAmICheatHook_Inject = 0;
 	DoMessage_HowDryAmICheatHook_JumpContinue = 0;
 
-	const uint16_t gameVersion = SC4VersionDetection::GetInstance().GetGameVersion();
+	const uint16_t gameVersion = SC4VersionDetection::GetGameVersion();
 	bool setCallbacks = false;
 
 	switch (gameVersion)
@@ -91,8 +91,8 @@ void BuildingDevelopmentSimulatorHooks::Install()
 	{
 		try
 		{
-			Patcher::InstallJump(DoMessage_FightThePowerCheatHook_Inject, reinterpret_cast<uintptr_t>(&DoMessage_FightThePowerCheatHook));
-			Patcher::InstallJump(DoMessage_HowDryAmICheatHook_Inject, reinterpret_cast<uintptr_t>(&DoMessage_HowDryAmICheatHook));
+			Patcher::InstallHook(DoMessage_FightThePowerCheatHook_Inject, &DoMessage_FightThePowerCheatHook);
+			Patcher::InstallHook(DoMessage_HowDryAmICheatHook_Inject, &DoMessage_HowDryAmICheatHook);
 
 			logger.WriteLine(LogLevel::Info, "Installed the FightThePower and HowDryAmI toggle patches.");
 		}
@@ -115,7 +115,7 @@ void BuildingDevelopmentSimulatorHooks::Install()
 
 bool BuildingDevelopmentSimulatorHooks::IsSupportedGameVersion()
 {
-	return SC4VersionDetection::GetInstance().GetGameVersion() == 641;
+	return SC4VersionDetection::GetGameVersion() == 641;
 }
 
 void BuildingDevelopmentSimulatorHooks::ToggleDebugGrowthCheatState(cISC4BuildingDevelopmentSimulator* pBuildingDevelopmentSimulator)
@@ -124,7 +124,7 @@ void BuildingDevelopmentSimulatorHooks::ToggleDebugGrowthCheatState(cISC4Buildin
 	{
 		intptr_t address = 0;
 
-		switch (SC4VersionDetection::GetInstance().GetGameVersion())
+		switch (SC4VersionDetection::GetGameVersion())
 		{
 		case 641:
 			address = reinterpret_cast<intptr_t>(pBuildingDevelopmentSimulator) + 0xe0;
@@ -145,7 +145,7 @@ void BuildingDevelopmentSimulatorHooks::ToggleIgnoreCapsCheatState(cISC4Building
 	{
 		intptr_t address = 0;
 
-		switch (SC4VersionDetection::GetInstance().GetGameVersion())
+		switch (SC4VersionDetection::GetGameVersion())
 		{
 		case 641:
 			address = reinterpret_cast<intptr_t>(pBuildingDevelopmentSimulator) + 0xdf;

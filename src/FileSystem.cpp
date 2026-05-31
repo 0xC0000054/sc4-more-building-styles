@@ -59,11 +59,3 @@ std::filesystem::path FileSystem::GetConfigFilePath()
 
 	return path;
 }
-
-std::filesystem::path FileSystem::GetLogFilePath()
-{
-	std::filesystem::path path = GetDllFolderPath();
-	path /= L"SC4MoreBuildingStyles.log"sv;
-
-	return path;
-}

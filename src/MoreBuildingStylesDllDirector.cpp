@@ -28,7 +28,6 @@
 #include "BuildingStyleMessages.h"
 #include "BuildingStyleWallToWall.h"
 #include "AvailableBuildingStyles.h"
-#include "FileSystem.h"
 #include "Logger.h"
 #include "LotConfigurationManagerHooks.h"
 #include "Preferences.h"
@@ -86,10 +85,7 @@ public:
 		  buildingSelectWinManager(),
 		  buildingStyleInfo(buildingSelectWinManager)
 	{
-		std::filesystem::path logFilePath = FileSystem::GetLogFilePath();
-
 		Logger& logger = Logger::GetInstance();
-		logger.Init(logFilePath, LogLevel::Error);
 		logger.WriteLogFileHeader("SC4MoreBuildingStyles v" PLUGIN_VERSION_STR);
 	}
 

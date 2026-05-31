@@ -205,7 +205,8 @@ These headers are located in the src/public/include folder.
 
 ## 3rd party code
 
-[gzcom-dll](https://github.com/nsgomez/gzcom-dll/tree/master) - MIT License.      
+[gzcom-dll](https://github.com/nsgomez/gzcom-dll/tree/master) - LGPL 2.1 or later License.   
+[sc4-dll-utilities](https://github.com/0xC0000054/sc4-dll-utilities) - LGPL 2.1 or later License.   
 [Windows Implementation Library](https://github.com/microsoft/wil) - MIT License    
 [SC4Fix](https://github.com/nsgomez/sc4fix) - MIT License.    
 [SafeInt](https://github.com/dcleblanc/SafeInt) - MIT License   

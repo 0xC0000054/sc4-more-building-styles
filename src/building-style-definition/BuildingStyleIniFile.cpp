@@ -62,7 +62,7 @@ namespace
 
 			uint32_t group = 0;
 
-			if (!StringViewUtil::TryParse(StringViewUtil::TrimWhiteSpace(captionResValues[0]), group))
+			if (!StringViewUtil::TryParse(StringViewUtil::Trim(captionResValues[0]), group))
 			{
 				logger.WriteLineFormatted(
 					LogLevel::Error,
@@ -73,7 +73,7 @@ namespace
 
 			uint32_t instance = 0;
 
-			if (!StringViewUtil::TryParse(StringViewUtil::TrimWhiteSpace(captionResValues[1]), instance))
+			if (!StringViewUtil::TryParse(StringViewUtil::Trim(captionResValues[1]), instance))
 			{
 				logger.WriteLineFormatted(
 					LogLevel::Error,
@@ -121,7 +121,7 @@ namespace
 			return false;
 		}
 
-		const std::string_view styleIDView = StringViewUtil::TrimWhiteSpace(input.substr(0, styleIDCommaIndex));
+		const std::string_view styleIDView = StringViewUtil::Trim(input.substr(0, styleIDCommaIndex));
 
 		if (!StringViewUtil::EqualsIgnoreCase(styleIDView, "Show"sv))
 		{
@@ -145,7 +145,7 @@ namespace
 			}
 		}
 
-		const std::string_view fontStyleView = StringViewUtil::TrimWhiteSpace(input.substr(styleIDCommaIndex + 1));
+		const std::string_view fontStyleView = StringViewUtil::Trim(input.substr(styleIDCommaIndex + 1));
 
 		if (fontStyleView.empty())
 		{

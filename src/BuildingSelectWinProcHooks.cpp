@@ -514,7 +514,7 @@ void BuildingSelectWinProcHooks::Install()
 
 	Logger& logger = Logger::GetInstance();
 
-	const uint16_t gameVersion = SC4VersionDetection::GetInstance().GetGameVersion();
+	const uint16_t gameVersion = SC4VersionDetection::GetGameVersion();
 	bool setCallbacks = false;
 
 	switch (gameVersion)
@@ -544,7 +544,7 @@ void BuildingSelectWinProcHooks::Install()
 	{
 		try
 		{
-			Patcher::InstallJump(DoWinProcMessage_Hook_InjectPoint, reinterpret_cast<uintptr_t>(&DoWinProcMessageHookFn));
+			Patcher::InstallHook(DoWinProcMessage_Hook_InjectPoint, &DoWinProcMessageHookFn);
 			Patcher::InstallCallHook(DoWinProcMessage_EnableStyleButtons_Call_1, enable_buttons_shim.pfnVoid);
 			Patcher::InstallCallHook(DoWinProcMessage_EnableStyleButtons_Call_2, enable_buttons_shim.pfnVoid);
 			Patcher::InstallCallHook(DoWinProcMessage_AddActiveStyle_Call, add_active_style_shim.pfnVoid);

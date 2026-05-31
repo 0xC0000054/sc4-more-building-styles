@@ -1417,7 +1417,7 @@ void TractDeveloperHooks::Install(const Preferences& preferences)
 	Build = nullptr;
 	BuildFarm = nullptr;
 
-	const uint16_t gameVersion = SC4VersionDetection::GetInstance().GetGameVersion();
+	const uint16_t gameVersion = SC4VersionDetection::GetGameVersion();
 	bool setCallbacks = false;
 
 	switch (gameVersion)
@@ -1451,33 +1451,33 @@ void TractDeveloperHooks::Install(const Preferences& preferences)
 	{
 		try
 		{
-			Patcher::InstallJump(
+			Patcher::InstallHook(
 				IsLotConfigurationSuitable_BuildingStyleSelectionHook_Inject,
-				reinterpret_cast<uintptr_t>(&IsLotConfigurationSuitable_BuildingStyleSelectionHook));
-			Patcher::InstallJump(
+				&IsLotConfigurationSuitable_BuildingStyleSelectionHook);
+			Patcher::InstallHook(
 				IsBuildingCompatible_BuildingStyleSelectionHook_Inject,
-				reinterpret_cast<uintptr_t>(&IsBuildingCompatible_BuildingStyleSelectionHook));
-			Patcher::InstallJump(
+				&IsBuildingCompatible_BuildingStyleSelectionHook);
+			Patcher::InstallHook(
 				Grow_LotAggregationAndSubdivisionHook_Inject,
-				reinterpret_cast<uintptr_t>(&Grow_LotAggregationAndSubdivisionHook));
+				&Grow_LotAggregationAndSubdivisionHook);
 
 			if (preferences.LogGrowableFunctions())
 			{
 				Patcher::InstallCallHook(
 					TakeOverAbandoned_Trampoline_Inject,
-					reinterpret_cast<uintptr_t>(&TakeOverAbandoned_Trampoline));
+					&TakeOverAbandoned_Trampoline);
 				Patcher::InstallCallHook(
 					ListPossibleLotConfigurations_Trampoline_Inject,
-					reinterpret_cast<uintptr_t>(&ListPossibleLotConfigurations_Trampoline));
+					&ListPossibleLotConfigurations_Trampoline);
 				Patcher::InstallCallHook(
 					ListCandidateLots_Existing_Trampoline_Inject,
-					reinterpret_cast<uintptr_t>(&ListCandidateLots_Existing_Trampoline));
+					&ListCandidateLots_Existing_Trampoline);
 				Patcher::InstallCallHook(
 					Build_Trampoline_Inject,
-					reinterpret_cast<uintptr_t>(&Build_Trampoline));
+					&Build_Trampoline);
 				Patcher::InstallCallHook(
 					BuildFarm_Trampoline_Inject,
-					reinterpret_cast<uintptr_t>(&BuildFarm_Trampoline));
+					&BuildFarm_Trampoline);
 			}
 
 			logger.WriteLine(LogLevel::Info, "Installed the building style algorithm patch.");

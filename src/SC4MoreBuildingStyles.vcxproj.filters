@@ -34,11 +34,14 @@
     <Filter Include="Source Files\building-style-definition">
       <UniqueIdentifier>{581390ea-4b0a-4779-a126-badc8b83e6d7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\sc4-dll-utilities">
+      <UniqueIdentifier>{61442df8-15c6-4080-bbe4-b9596040d7e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sc4-dll-utilities">
+      <UniqueIdentifier>{6bf12f64-638d-4bf7-ac03-41f1a7617f0c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Logger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZBaseString.cpp">
       <Filter>Source Files\GZCOM</Filter>
     </ClCompile>
@@ -75,12 +78,6 @@
     <ClCompile Include="AvailableBuildingStyles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GZWinUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SC4VersionDetection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BuildingSelectWinManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -93,28 +90,16 @@
     <ClCompile Include="TractDeveloperHooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Patcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FileSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Preferences.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StringViewUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SC4NotificationDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BuildingStyleCollection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BuildingStyleCollectionEntry.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BuildingStyleWallToWall.cpp">
@@ -174,11 +159,35 @@
     <ClCompile Include="BuildingDevelopmentSimulatorHooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\DebugUtil.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\GZWinUtil.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\Logger.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\Patcher.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\SC4NotificationDialog.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\SC4VersionDetection.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\StringConversion.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\StringViewUtil.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\Utf8TextOFStream.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Logger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -218,12 +227,6 @@
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cIGZWinBtn.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
-    <ClInclude Include="GZWinUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SC4VersionDetection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GlobalPointers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -251,9 +254,6 @@
     <ClInclude Include="TractDeveloperHooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Patcher.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FileSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -269,12 +269,6 @@
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cIGZFile.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
-    <ClInclude Include="StringViewUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SC4NotificationDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="IBuildingSelectWinContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -282,9 +276,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BuildingStyleCollectionEntry.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="public\include\cIBuildingStyleWallToWall.h">
@@ -364,6 +355,27 @@
     </ClInclude>
     <ClInclude Include="BuildingDevelopmentSimulatorHooks.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\DebugUtil.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\GZWinUtil.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\Logger.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\Patcher.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\SC4NotificationDialog.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\SC4VersionDetection.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\StringViewUtil.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
