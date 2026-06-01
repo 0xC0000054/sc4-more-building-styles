@@ -25,12 +25,10 @@
 #include "BuildingStyleWinUtil.h"
 #include "cRZAutoRefCount.h"
 #include "FileSystem.h"
+#include "IniReader.h"
 #include "Logger.h"
 #include "StringResourceKey.h"
 #include "StringResourceManager.h"
-#include "StringViewUtil.h"
-#include "boost/property_tree/ptree.hpp"
-#include "boost/property_tree/ini_parser.hpp"
 #include <unordered_set>
 
 using namespace std::string_view_literals;
@@ -209,11 +207,9 @@ std::vector<DefinedBuildingStyleEntryWithButtonID> BuildingStyleIniFile::GetDefi
 
 		if (stream)
 		{
-			boost::property_tree::ptree tree;
+			IniReader iniReader(stream);
 
-			boost::property_tree::ini_parser::read_ini(stream, tree);
-
-			const boost::property_tree::ptree buildingStylesSection = tree.get_child("BuildingStyles");
+			const auto& buildingStylesSection = iniReader.get_section("BuildingStyles");
 
 			const size_t sectionSize = buildingStylesSection.size();
 

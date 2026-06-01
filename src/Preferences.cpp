@@ -21,9 +21,8 @@
 
 #include "Preferences.h"
 #include "FileSystem.h"
+#include "IniReader.h"
 #include "Logger.h"
-#include "boost/property_tree/ptree.hpp"
-#include "boost/property_tree/ini_parser.hpp"
 #include "cIGZCOM.h"
 
 Preferences::Preferences()
@@ -71,14 +70,14 @@ void Preferences::LoadPreferencesFromDllConfigFile()
 
 		if (stream)
 		{
-			boost::property_tree::ptree tree;
+			IniReader iniReader(stream);
 
-			boost::property_tree::ini_parser::read_ini(stream, tree);
+			const auto& debugLoggingSection = iniReader.get_section("DebugLogging");
 
-			logBuildingStyleSelection = tree.get<bool>("DebugLogging.BuildingStyleSelection");
-			logLotStyleSelection = tree.get<bool>("DebugLogging.LotStyleSelection");
-			logGrowableFunctions = tree.get<bool>("DebugLogging.GrowableFunctions");
-			logCandidateLots = tree.get<bool>("DebugLogging.CandidateLots");
+			logBuildingStyleSelection = debugLoggingSection.get_converted_value<bool>("BuildingStyleSelection");
+			logLotStyleSelection = debugLoggingSection.get_converted_value<bool>("LotStyleSelection");
+			logGrowableFunctions = debugLoggingSection.get_converted_value<bool>("GrowableFunctions");
+			logCandidateLots = debugLoggingSection.get_converted_value<bool>("CandidateLots");
 		}
 		else
 		{
